@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GodAgent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoStart.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Process.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Service.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="KernelMemory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ntapi.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RegistryUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="VerifyUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FileInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Parse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="EventLogUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="StringUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AccountInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PE.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PrivilegeUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="EvtInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PythonUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Module.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNativeModule.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeModules.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="KernelUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="public.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="autostarts.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Service.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="KernelMemory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ntapi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistryUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VerifyUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NtFileInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NtProcessInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NtSystemInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FileInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NtThreadInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EventLogUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="parse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AccountInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PE.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PrivilegeUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EvtInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PythonUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NtObjectInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestNativeModule.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Test.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeModules.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="KernelUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
