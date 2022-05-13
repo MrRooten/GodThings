@@ -1,5 +1,0 @@
-D:/windows/GodThings/GodThings/build-QtGodAgent-Desktop_Qt_6_2_4_MinGW_64_bit-Debug/CMakeFiles/QtGodAgent.dir
-D:/windows/GodThings/GodThings/build-QtGodAgent-Desktop_Qt_6_2_4_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
-D:/windows/GodThings/GodThings/build-QtGodAgent-Desktop_Qt_6_2_4_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
-D:/windows/GodThings/GodThings/build-QtGodAgent-Desktop_Qt_6_2_4_MinGW_64_bit-Debug/CMakeFiles/QtGodAgent_autogen_timestamp_deps.dir
-D:/windows/GodThings/GodThings/build-QtGodAgent-Desktop_Qt_6_2_4_MinGW_64_bit-Debug/CMakeFiles/QtGodAgent_autogen.dir

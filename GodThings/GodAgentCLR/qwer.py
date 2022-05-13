@@ -1,2 +1,0 @@
-def multiply():
-    return "abc"
