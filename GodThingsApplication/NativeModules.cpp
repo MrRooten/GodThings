@@ -276,6 +276,7 @@ ResultSet* Rundll32Backdoor::ModuleRun() {
 			printf("\t%d %s", item.first, StringUtils::ws2s(cmdline).c_str());
 			result->PushDictOrdered("pid",std::to_string(item.first));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
+			result->report = "Might have rundll32 backdoor";
 		}
 	}
 	result->SetType(DICT);
@@ -302,6 +303,7 @@ ResultSet* ShadowAccount::ModuleRun() {
 		if (StringUtils::HasEnding(user->userName, L"$")) {
 			//GTPrintln(L"\t%s", user->userName.c_str());
 			result->PushDictOrdered("username", StringUtils::ws2s(user->userName));
+			result->report = "Might have shadow manager";
 		}
 	}
 	result->SetType(DICT);
@@ -333,6 +335,7 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 			printf("\t%d %s", item.first, StringUtils::ws2s(cmdline).c_str());
 			result->PushDictOrdered("pid", std::to_string(item.first));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
+			result->report = "There is unsigned process running";
 		}
 	}
 	result->SetType(DICT);

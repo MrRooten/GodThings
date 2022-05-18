@@ -324,6 +324,9 @@ Json::Value ResultSet::ToJsonObject() {
 		value["Data"] = this->data;
 		value["Type"] = "unknown";
 	}
+	if (this->report.size() != 0) {
+		value["Report"] = this->report;
+	}
 	return value;
 }
 

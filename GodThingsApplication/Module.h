@@ -30,6 +30,7 @@ public:
 	using Array = std::vector<std::string>;
 	Dict dataDict;
 	Array dataArray;
+	std::string report;
 	
 	ResultSet();
 

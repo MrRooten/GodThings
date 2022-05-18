@@ -23,7 +23,7 @@
             <Menu Width="Auto" Height="20" Background="LightGray" DockPanel.Dock="Top">
                 <!--File菜单项-->
             <MenuItem Header="GodAgent">
-                <MenuItem Header="保存"/>
+                <MenuItem Header="Export Report" Click="ExportReport_Click"/>
                     <Separator/>
                     <MenuItem Header="退出"/>
                 </MenuItem>

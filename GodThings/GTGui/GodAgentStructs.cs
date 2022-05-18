@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 namespace GodAgent {
@@ -7,6 +8,7 @@ namespace GodAgent {
         public string Type { get;set;}
         public object Data { get;set;}
 
+        public string Report { get;set;}
         public List<string> order { get;set;}
         public ResultSet(string json) {
             loadJson(json);
@@ -33,16 +35,21 @@ namespace GodAgent {
                 this.order = listOrder;
                 var data = root.GetProperty("Data");
                 var _result = new Dictionary<string, List<string>>();
-
-                foreach(var item in data.EnumerateObject()) {
-                    List<string> _values = new List<string>();
-                    foreach (var subItem in item.Value.EnumerateArray()) {
-                        _values.Add(subItem.GetString());
-                    }
-                    _result[item.Name] = _values;
+                if (data.ToString() == "") {
+                    this.Data = _result;
+                    this.Type = "dict";
                 }
-                this.Data = _result;
-                this.Type = "dict";
+                else {
+                    foreach (var item in data.EnumerateObject()) {
+                        List<string> _values = new List<string>();
+                        foreach (var subItem in item.Value.EnumerateArray()) {
+                            _values.Add(subItem.GetString());
+                        }
+                        _result[item.Name] = _values;
+                    }
+                    this.Data = _result;
+                    this.Type = "dict";
+                }
             } else if (Type == "array") {
                 var data = root.GetProperty("Data");
                 var _result = new List<string>();
@@ -60,6 +67,12 @@ namespace GodAgent {
             } else {
                 this.Data = root.GetProperty("Data").ToString();
                 this.Type = Type;
+            }
+            JsonElement report;
+            if(root.TryGetProperty("Report",out report)) {
+                this.Report = report.GetString();
+                using StreamWriter file = new StreamWriter("Report.txt", append: true);
+                file.Write(JsonSerializer.Serialize(this));
             }
             return true;
         }

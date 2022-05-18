@@ -16,6 +16,8 @@ using System.Reflection;
 using System.Threading;
 using System.Text.Json;
 using System.Data;
+using System.IO;
+
 namespace GTGui {
 
     /// <summary>
@@ -189,6 +191,11 @@ namespace GTGui {
             ModuleProperty proWin = new ModuleProperty(item,mods);
             proWin.item = item;
             proWin.Show();
+        }
+
+        private void ExportReport_Click(object sender, RoutedEventArgs e) {
+            using StreamWriter file = new StreamWriter("report.json", append: true);
+            file.Write("hello");
         }
     }
 }
