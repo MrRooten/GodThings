@@ -27,7 +27,7 @@ DWORD GTDeviceIoControl(
 
 BOOL HasDriver() {
 
-	if (hDriverFile != NULL) {
+	if (hDriverFile != INVALID_HANDLE_VALUE) {
 		return TRUE;
 	}
 	return FALSE;

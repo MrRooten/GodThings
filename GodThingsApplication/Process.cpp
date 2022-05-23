@@ -276,11 +276,14 @@ DWORD Process::SetProcessUserName() {
 	SetLastError(ERROR_SUCCESS);
 	DWORD res = 0;
 	LSA_HANDLE policyHandle;
+	HANDLE hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 	if (hProcess == NULL) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error in Setting Process user name when using Handle:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error in GTOpenProcess:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		return GetLastError();
 	}
 	HANDLE processToken;
 	DWORD status;
+	
 	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &processToken)) {
 		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not Call OpenProcessToken:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
 		return GetLastError();
@@ -788,12 +791,12 @@ DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
 	if (hProcess == NULL) {
-		Logln(INFO_LEVEL, L"[%s:%s:%d]:Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
+		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
 		return GetLastError();
 	}
 	if (!ReadProcessMemory(hProcess, address, data, size, NULL)) {
 		if (GetLastError() == ERROR_ACCESS_DENIED) {
-			Logln(INFO_LEVEL, L"[%s:%s:%d]:Access denied to process memory");
+			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Access denied to process memory");
 		}
 		else {
 			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error ReadProcessMemory:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
@@ -837,7 +840,7 @@ void Thread::Terminate() {
 	}
 	if (!TerminateThread(hThread, 0)) {
 		//error when terminate thread
-		Logln(INFO_LEVEL, L"[%s:%s:%d]:Can not terminate the thread:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not terminate the thread:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
 		return;
 	}
 }
