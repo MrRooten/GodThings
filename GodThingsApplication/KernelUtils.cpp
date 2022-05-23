@@ -21,7 +21,6 @@ DWORD GTDeviceIoControl(
 		0
 	);
 
-	printf("status:%p\n", status);
 	return NtStatusHandler(status);
 
 }

@@ -5,6 +5,7 @@
 #include "ntapi.h"
 #include "sddl.h"
 #include "NtSystemInfo.h"
+#include "ProcessUtils.h"
 typedef NTSTATUS(NTAPI* pfnNtQueryInformationProcess)(
 	IN  HANDLE ProcessHandle,
 	IN  int ProcessInformationClass,
@@ -85,11 +86,11 @@ Process::Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr) {
 	this->processId = (PID)pInfo->UniqueProcessId;
 	this->processName = pInfo->ImageName.Buffer;
 	this->processesManager = procMgr;
-	this->hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+	this->hProcess = GTOpenProcess(processId,PROCESS_ALL_ACCESS);
 	if (this->hProcess == NULL) {
-		this->hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId);
+		this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 		if (this->hProcess == NULL) {
-			this->hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+			this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_LIMITED_INFORMATION);
 		}
 		else {
 			this->processRights = PROCESS_QUERY_INFORMATION;
@@ -117,11 +118,11 @@ Process::Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr) {
 }
 
 Process::Process(PID processId, ProcessManager* processesManager) {
-	this->hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+	this->hProcess = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
 	if (this->hProcess == NULL) {
-		this->hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId);
+		this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 		if (this->hProcess == NULL) {
-			this->hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+			this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_LIMITED_INFORMATION);
 		}
 		else {
 			this->processRights = PROCESS_QUERY_INFORMATION;
@@ -153,11 +154,11 @@ Process::Process(PID processId, ProcessManager* processesManager) {
 }
 
 Process::Process(PID processId) {
-	this->hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+	this->hProcess = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
 	if (this->hProcess == NULL) {
-		this->hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId);
+		this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 		if (this->hProcess == NULL) {
-			this->hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+			this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_LIMITED_INFORMATION);
 		}
 		else {
 			this->processRights = PROCESS_QUERY_INFORMATION;
@@ -509,7 +510,7 @@ DWORD Process::SetProcessHandleState() {
 	NTSTATUS status;
 	ULONG returnLength = 0;
 	ULONG attempts = 0;
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, this->processId);
+	HANDLE hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 	if (hProcess == NULL) {
 		return GetLastError();
 	}
@@ -720,7 +721,7 @@ DWORD Process::SetProcessIOState() {
 //}
 
 BOOL Process::CreateDump(LPTSTR filename, MINIDUMP_TYPE dumpType) {
-	HANDLE hProcess = OpenProcess(PROCESS_VM_READ, FALSE, this->processId);
+	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
 	if (hProcess = NULL) {
 		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can open process in CreateDump:%d,%s,%d", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString(), __LINE__);
 		return 0;
@@ -785,7 +786,7 @@ CPUState* Process::GetCPUState() {
 
 DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
-	HANDLE hProcess = OpenProcess(PROCESS_VM_READ, FALSE, this->processId);
+	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
 	if (hProcess == NULL) {
 		Logln(INFO_LEVEL, L"[%s:%s:%d]:Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
 		return GetLastError();

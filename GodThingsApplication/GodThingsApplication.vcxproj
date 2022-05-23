@@ -172,13 +172,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AccountInfo.cpp" />
-    <ClCompile Include="AutoStart.cpp" />
     <ClCompile Include="EventLogUtils.cpp" />
     <ClCompile Include="EvtInfo.cpp" />
     <ClCompile Include="FileInfo.cpp" />
     <ClCompile Include="FileUtils.cpp" />
     <ClCompile Include="GodAgent.cpp" />
-    <ClCompile Include="KernelMemory.cpp" />
     <ClCompile Include="KernelUtils.cpp" />
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="NativeModules.cpp" />
@@ -196,7 +194,6 @@
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="StringUtils.cpp" />
     <ClCompile Include="SystemInfo.cpp" />
-    <ClCompile Include="Test.cpp" />
     <ClCompile Include="TestNativeModule.cpp" />
     <ClCompile Include="ThreadInfo.cpp" />
     <ClCompile Include="utils.cpp" />
@@ -204,7 +201,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccountInfo.h" />
-    <ClInclude Include="autostarts.h" />
     <ClInclude Include="EventLogUtils.h" />
     <ClInclude Include="EvtInfo.h" />
     <ClInclude Include="FileInfo.h" />
@@ -213,7 +209,6 @@
     <ClInclude Include="Module.h" />
     <ClInclude Include="NativeModules.h" />
     <ClInclude Include="NtFileInfo.h" />
-    <ClInclude Include="KernelMemory.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="ntapi.h" />
     <ClInclude Include="NtObjectInfo.h" />
@@ -233,7 +228,6 @@
     <ClInclude Include="NtSystemInfo.h" />
     <ClInclude Include="StringUtils.h" />
     <ClInclude Include="SystemInfo.h" />
-    <ClInclude Include="Test.h" />
     <ClInclude Include="TestNativeModule.h" />
     <ClInclude Include="ThreadInfo.h" />
     <ClInclude Include="utils.h" />

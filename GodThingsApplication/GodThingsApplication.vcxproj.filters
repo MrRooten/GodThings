@@ -21,9 +21,6 @@
     <ClCompile Include="utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="AutoStart.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Process.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -31,9 +28,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Network.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="KernelMemory.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ntapi.cpp">
@@ -90,9 +84,6 @@
     <ClCompile Include="TestNativeModule.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Test.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ProcServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -113,9 +104,6 @@
     <ClInclude Include="public.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="autostarts.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Process.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -123,9 +111,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Network.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="KernelMemory.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ntapi.h">
@@ -195,9 +180,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="TestNativeModule.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Test.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ProcServer.h">

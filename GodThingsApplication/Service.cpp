@@ -358,7 +358,7 @@ DWORD ServiceManager::SetAllServices() {
 	}
 	printf("%d %d\n", cbSize/sizeof(ENUM_SERVICE_STATUSW), cbSize);
 
-	for (int i = 0; i < numService; i++) {
+	for (size_t i = 0; i < numService; i++) {
 		Srv* service = new Srv();
 		if (service == NULL) {
 			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not alloc space for service", __FILEW__, __FUNCTIONW__, __LINE__);

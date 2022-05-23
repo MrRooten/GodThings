@@ -175,7 +175,6 @@ VOID Serve() {
     initialize init;
     BOOL   fConnected = FALSE;
     DWORD  dwThreadId = 0;
-    HANDLE hThread;
     LPCSTR _pipeName = "\\\\.\\pipe\\gtpipe";
     const SIZE_T BufferSize = 10240;
     sub_interpreter s1;
@@ -235,7 +234,6 @@ VOID ProcServer::Serve() {
     ModuleMgr::GetMgr();
 	BOOL   fConnected = FALSE;
 	DWORD  dwThreadId = 0;
-	HANDLE hThread;
     sub_interpreter* s1 = new sub_interpreter();
 	for (;;) {
         HANDLE _hPipe = CreateNamedPipe(
@@ -298,6 +296,7 @@ std::mutex locker;
 DWORD ProcHandler::Process(PyInterpreterState* state) {
     Json::Reader reader;
     Json::Value root;
+    std::cout << "Client Message:" << this->message << std::endl;
     if (!reader.parse(this->message, root)) {
         this->message = reader.getFormattedErrorMessages();
         return -1;

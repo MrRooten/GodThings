@@ -102,19 +102,19 @@ std::wstring EvtFilter::GetXMLQuery() {
     std::vector<std::wstring> _levels;
     std::wstring levelsString;
     if (this->level != 0) {
-        if (this->level & 0x00000001 != 0) {
+        if ((this->level & 0x00000001) != 0) {
             _levels.push_back(L"Level=0");
         }
-        if (this->level & 0x00000010 != 0) {
+        if ((this->level & 0x00000010) != 0) {
             _levels.push_back(L"Level=1");
         }
-        if (this->level & 0x00000100 != 0) {
+        if ((this->level & 0x00000100) != 0) {
             _levels.push_back(L"Level=2");
         }
-        if (this->level & 0x00001000 != 0) {
+        if ((this->level & 0x00001000) != 0) {
             _levels.push_back(L"Level=3");
         }
-        if (this->level & 0x00010000 != 0) {
+        if ((this->level & 0x00010000) != 0) {
             _levels.push_back(L"Level=4");
         }
         levelsString = StringUtils::StringsJoin(_levels, L" or ");

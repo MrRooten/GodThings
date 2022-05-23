@@ -202,7 +202,7 @@ DWORD ModuleMgr::LoadModules() {
 	Rundll32Backdoor* rundll = new Rundll32Backdoor();
 	UnsignedRunningProcess* unsignedProcess = new UnsignedRunningProcess();
 	ShadowAccount* shadowAccount = new ShadowAccount();
-	PythonModule* ListProcess = new PythonModule(L"D:\\Windows\\GodThings\\GodThings\\plugins\\ListProcess");
+	//PythonModule* ListProcess = new PythonModule(L"D:\\Windows\\GodThings\\GodThings\\plugins\\ListProcess");
 	/*PythonModule* qwer2 = new PythonModule(L"D:\\SourceCodes\\qwer2");
 	PythonModule* qwer3 = new PythonModule(L"D:\\SourceCodes\\qwer3");
 	PythonModule* qwer4 = new PythonModule(L"D:\\SourceCodes\\qwer4");*/

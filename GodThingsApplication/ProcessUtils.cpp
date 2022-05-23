@@ -10,7 +10,7 @@ HANDLE GTOpenProcess(
 	HANDLE resHandle = NULL;
 	do {
 		if (HasDriver() == TRUE) {
-			printf("Process in kernel\n");
+			//printf("Process in kernel\n");
 			struct {
 				PHANDLE hHandle;
 				DWORD accessRight;
@@ -19,7 +19,7 @@ HANDLE GTOpenProcess(
 			input.accessRight = AccessRight;
 			input.processId = ProcessId;
 			input.hHandle = new HANDLE;
-			printf("handle:%p,%x,%d", input.hHandle, input.accessRight, input.processId);
+			//printf("handle:%p,%x,%d", input.hHandle, input.accessRight, input.processId);
 			status = GTDeviceIoControl(
 				&input,
 				sizeof input,

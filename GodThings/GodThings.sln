@@ -14,11 +14,9 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "gtlib", "gtlib\gtlib.pyproj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Godthings", "Godthings\Godthings.vcxproj", "{25C1437B-CE03-4925-BDF0-ECBE8DDBF124}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp2", "ConsoleApp2\ConsoleApp2.csproj", "{2801056A-4BD7-4B96-91AA-F26232E7C43D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestPipeServer", "ConsoleApp2\TestPipeServer.csproj", "{2801056A-4BD7-4B96-91AA-F26232E7C43D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTGui", "GTGui\GTGui.csproj", "{FF40C6F9-40E4-4F78-A68E-59476FC80AC7}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project1", "Project1\Project1.vcxproj", "{BE6C701B-89B3-42C6-86E8-9B1E874922B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -138,20 +136,6 @@ Global
 		{FF40C6F9-40E4-4F78-A68E-59476FC80AC7}.Release|x64.Build.0 = Debug|Any CPU
 		{FF40C6F9-40E4-4F78-A68E-59476FC80AC7}.Release|x86.ActiveCfg = Debug|Any CPU
 		{FF40C6F9-40E4-4F78-A68E-59476FC80AC7}.Release|x86.Build.0 = Debug|Any CPU
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|ARM.ActiveCfg = Debug|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|ARM64.ActiveCfg = Debug|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|x64.ActiveCfg = Debug|x64
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|x64.Build.0 = Debug|x64
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|x86.ActiveCfg = Debug|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Debug|x86.Build.0 = Debug|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|Any CPU.ActiveCfg = Release|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|ARM.ActiveCfg = Release|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|ARM64.ActiveCfg = Release|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|x64.ActiveCfg = Release|x64
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|x64.Build.0 = Release|x64
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|x86.ActiveCfg = Release|Win32
-		{BE6C701B-89B3-42C6-86E8-9B1E874922B1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

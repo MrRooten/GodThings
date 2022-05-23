@@ -262,9 +262,8 @@ namespace PyProcessInfoModule {
     }
 
     PyObject* GetProcessCPUState(PyObject* self, PyObject* args) {
-        PyObject* CPUStateSerial;
+        PyObject* CPUStateSerial = NULL;
         int pid;
-        PyObject* MemoryStateSerial;
         if (!PyArg_ParseTuple(args, "i", &pid)) {
             PyList_New(0);
         }
@@ -366,7 +365,6 @@ namespace PyProcessInfoModule {
     PyObject* GetProcessHandleState(PyObject* self, PyObject* args) {
         PyObject* HandleStateSerial;
         int pid;
-        PyObject* MemoryStateSerial;
         if (!PyArg_ParseTuple(args, "i", &pid)) {
             PyList_New(0);
         }
@@ -449,7 +447,7 @@ PyObject* PySystemInfoModule::GetSystemBasicInfo(PyObject* self, PyObject* args)
     PyObject* basicInfo = PyDict_New();
     auto fsi = [basicInfo](const char* key, ULONG64 value) {
         PyObject* pyKey = PyUnicode_FromString(key);
-        PyObject* pyValue = PyLong_FromLong(value);
+        PyObject* pyValue = PyLong_FromUnsignedLongLong(value);
         PyDict_SetItem(basicInfo, pyKey, pyValue);
         Py_XDECREF(pyKey);
         Py_XDECREF(pyValue);
@@ -478,7 +476,7 @@ PyObject* PySystemInfoModule::GetProcessorInfo(PyObject* self, PyObject* args) {
     processorInfo = PyDict_New();
     auto fsi = [processorInfo](const char* key, ULONG64 value) {
         PyObject* pyKey = PyUnicode_FromString(key);
-        PyObject* pyValue = PyLong_FromLong(value);
+        PyObject* pyValue = PyLong_FromUnsignedLongLong(value);
         PyDict_SetItem(processorInfo, pyKey, pyValue);
         Py_XDECREF(pyKey);
         Py_XDECREF(pyValue);
@@ -856,12 +854,15 @@ PyObject* PyFileInfoModule::GetBasicInfo(PyObject* self, PyObject* args) {
 }
 
 PyObject* PyFileInfoModule::GetStandardInfo(PyObject* self, PyObject* args) {
-    char* path;
+    char* path = NULL;
     if (!PyArg_ParseTuple(args, "s", &path)) {
         return Py_None;
     }
     PyObject* info;
     FileInfo* file = NULL;
+    if (path == NULL) {
+        return Py_None;
+    }
     if (isFileCacheEnable == true) {
         if (fileCache.count(path) > 0) {
             file = fileCache[path];
@@ -900,7 +901,7 @@ PyObject* PyFileInfoModule::GetStandardInfo(PyObject* self, PyObject* args) {
 }
 
 PyObject* PyFileInfoModule::GetStatInfo(PyObject* self, PyObject* args) {
-    char* path;
+    char* path = NULL;
     if (!PyArg_ParseTuple(args, "s", &path)) {
         return Py_None;
     }
@@ -929,17 +930,17 @@ PyObject* PyFileInfoModule::GetStatInfo(PyObject* self, PyObject* args) {
     }
 
     info = PyDict_New();
-    _dict_insert_help(info, PyUnicode_FromString("FileId"), PyBool_FromLong(file->pStatInfo->FileId.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("CreationTime"), PyBool_FromLong(file->pStatInfo->CreationTime.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("LastAccessTime"), PyBool_FromLong(file->pStatInfo->LastAccessTime.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("LastWriteTime"), PyBool_FromLong(file->pStatInfo->LastWriteTime.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("ChangeTime"), PyBool_FromLong(file->pStatInfo->ChangeTime.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("AllocationSize"), PyBool_FromLong(file->pStatInfo->AllocationSize.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("EndOfFile"), PyBool_FromLong(file->pStatInfo->EndOfFile.QuadPart));
-    _dict_insert_help(info, PyUnicode_FromString("FileAttributes"), PyBool_FromLong(file->pStatInfo->FileAttributes));
-    _dict_insert_help(info, PyUnicode_FromString("ReparseTag"), PyBool_FromLong(file->pStatInfo->ReparseTag));
-    _dict_insert_help(info, PyUnicode_FromString("NumberOfLinks"), PyBool_FromLong(file->pStatInfo->NumberOfLinks));
-    _dict_insert_help(info, PyUnicode_FromString("EffectiveAccess"), PyBool_FromLong(file->pStatInfo->EffectiveAccess));
+    _dict_insert_help(info, PyUnicode_FromString("FileId"), PyLong_FromLongLong(file->pStatInfo->FileId.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("CreationTime"), PyLong_FromLongLong(file->pStatInfo->CreationTime.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("LastAccessTime"), PyLong_FromLongLong(file->pStatInfo->LastAccessTime.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("LastWriteTime"), PyLong_FromLongLong(file->pStatInfo->LastWriteTime.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("ChangeTime"), PyLong_FromLongLong(file->pStatInfo->ChangeTime.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("AllocationSize"), PyLong_FromLongLong(file->pStatInfo->AllocationSize.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("EndOfFile"), PyLong_FromLongLong(file->pStatInfo->EndOfFile.QuadPart));
+    _dict_insert_help(info, PyUnicode_FromString("FileAttributes"), PyLong_FromLongLong(file->pStatInfo->FileAttributes));
+    _dict_insert_help(info, PyUnicode_FromString("ReparseTag"), PyLong_FromLongLong(file->pStatInfo->ReparseTag));
+    _dict_insert_help(info, PyUnicode_FromString("NumberOfLinks"), PyLong_FromLongLong(file->pStatInfo->NumberOfLinks));
+    _dict_insert_help(info, PyUnicode_FromString("EffectiveAccess"), PyLong_FromLongLong(file->pStatInfo->EffectiveAccess));
 
     return info;
 }
@@ -1044,4 +1045,49 @@ PyObject* PyUtils::ReturnObject(PyObject* self, PyObject* args) {
     }
 
     return Py_None;
+}
+#include "AccountInfo.h"
+PyObject* PyAccountInfoModule::InitAccounts(PyObject* self, PyObject* args) {
+    PyObject* pyAccounts = PyList_New(0);
+    AccountInfoManager mgr;
+    mgr.Initialize();
+    auto accountList = mgr.GetAccountList();
+    for (auto& account : accountList) {
+        PyObject* serialize = PyDict_New();
+        PyList_Append(pyAccounts, serialize);
+        _dict_insert_help(serialize, PyUnicode_FromString("username"), PyUnicode_FromString(StringUtils::ws2s(account->userName).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("comment"), PyUnicode_FromString(StringUtils::ws2s(account->comment).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("passwordAge"), PyLong_FromUnsignedLong(account->passwordAge));
+        _dict_insert_help(serialize, PyUnicode_FromString("privilege"), PyLong_FromUnsignedLong(account->privilege));
+        _dict_insert_help(serialize, PyUnicode_FromString("homeDir"), PyUnicode_FromString(StringUtils::ws2s(account->homeDir).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("flags"), PyLong_FromUnsignedLong(account->flags));
+        _dict_insert_help(serialize, PyUnicode_FromString("scriptPath"), PyUnicode_FromString(StringUtils::ws2s(account->scriptPath).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("authFlags"), PyLong_FromUnsignedLong(account->authFlags));
+        _dict_insert_help(serialize, PyUnicode_FromString("fullName"), PyUnicode_FromString(StringUtils::ws2s(account->fullName).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("usrComment"), PyUnicode_FromString(StringUtils::ws2s(account->usrComment).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("params"), PyUnicode_FromString(StringUtils::ws2s(account->params).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("workstations"), PyUnicode_FromString(StringUtils::ws2s(account->workstations).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("lastLogon"), PyLong_FromUnsignedLong(account->lastLogon));
+        _dict_insert_help(serialize, PyUnicode_FromString("lastLogoff"), PyLong_FromUnsignedLong(account->lastLogoff));
+        _dict_insert_help(serialize, PyUnicode_FromString("acctExpires"), PyLong_FromUnsignedLong(account->acctExpires));
+        _dict_insert_help(serialize, PyUnicode_FromString("maxStorage"), PyLong_FromUnsignedLong(account->maxStorage));
+        _dict_insert_help(serialize, PyUnicode_FromString("unitsPerWeek"), PyLong_FromUnsignedLong(account->unitsPerWeek));
+        _dict_insert_help(serialize, PyUnicode_FromString("badPasswordCount"), PyLong_FromUnsignedLong(account->badPasswordCount));
+        _dict_insert_help(serialize, PyUnicode_FromString("numLogons"), PyLong_FromUnsignedLong(account->numLogons));
+        _dict_insert_help(serialize, PyUnicode_FromString("logonServer"), PyUnicode_FromString(StringUtils::ws2s(account->logonServer).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("countryCode"), PyLong_FromUnsignedLong(account->countryCode));
+        _dict_insert_help(serialize, PyUnicode_FromString("codePage"), PyLong_FromUnsignedLong(account->codePage));
+        _dict_insert_help(serialize, PyUnicode_FromString("userId"), PyLong_FromUnsignedLong(account->userId));
+        _dict_insert_help(serialize, PyUnicode_FromString("primaryGroupId"), PyLong_FromUnsignedLong(account->primaryGroupId));
+        _dict_insert_help(serialize, PyUnicode_FromString("profile"), PyUnicode_FromString(StringUtils::ws2s(account->profile).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("homeDirDrive"), PyUnicode_FromString(StringUtils::ws2s(account->homeDirDrive).c_str()));
+        _dict_insert_help(serialize, PyUnicode_FromString("passwordExpired"), PyLong_FromUnsignedLong(account->passwordExpired));
+        PyList_Append(pyAccounts,serialize);
+        Py_XDECREF(serialize);
+    }
+    return pyAccounts;
+}
+
+PyObject* PyAccountInfoModule::AccountInfoModuleInit() {
+    return PyModule_Create(&moduleDef);
 }

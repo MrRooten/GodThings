@@ -27,7 +27,7 @@ DWORD File::ReadBytes(PBYTE* pBytes) {
 		return 0;
 	}
 	
-	size_t bufferSize = size.QuadPart;
+	LONGLONG bufferSize = size.QuadPart;
 	DWORD readSize;
 	if (bufferSize > 0xffffffff) {
 		bufferSize = 0xffffffff;
@@ -95,7 +95,7 @@ File* FileUtils::Open(std::wstring filePath,std::wstring mode) {
 		return file;
 	}
 	DWORD access = 0;
-	for (int i = 0; i < mode.size(); i++) {
+	for (size_t i = 0; i < mode.size(); i++) {
 		if (mode[i] == L'R' || mode[i] == L'r') {
 			access = access | GENERIC_READ;
 		}

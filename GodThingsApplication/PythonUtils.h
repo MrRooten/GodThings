@@ -185,8 +185,25 @@ namespace PyUtils {
 	};
 };
 
-namespace PyAccountInfoModuel {
-
+namespace PyAccountInfoModule {
+	PyObject* InitAccounts(PyObject* self, PyObject* args);
+	static PyMethodDef methods[] = {
+		{"list_usernames",InitAccounts,METH_NOARGS,"List System Usernames"},
+		{NULL,NULL,0,0}
+		//	//{"get_nt_global_flag",GetNtGlobalFlag,METH_NOARGS,"Return the NtGlobalFlag"}
+	};
+	static PyModuleDef moduleDef = {
+		PyModuleDef_HEAD_INIT,
+		"account_internal",
+		NULL,
+		-1,
+		methods,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	};
+	PyObject* AccountInfoModuleInit();
 };
 
 namespace PyNetworkInfoModule {

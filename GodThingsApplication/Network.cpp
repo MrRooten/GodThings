@@ -75,7 +75,7 @@ DWORD TCPManager::SetTCPConnection() {
 	}
 	this->connections.clear();
 	num = pTcpTable->dwNumEntries;
-	for (int i = 0; i < num; i++) {
+	for (size_t i = 0; i < num; i++) {
 		Connection* conn = new Connection();
 		if (conn == nullptr) {
 			Logln(ERROR_LEVEL, L"[%s:%s:%d]:Can not new Connection():%d,%s\n",__FILEW__,__FUNCTIONW__,__LINE__,GetLastError(),GetLastErrorAsString());
@@ -92,7 +92,7 @@ DWORD TCPManager::SetTCPConnection() {
 	}
 	if (GetTcp6Table2 != NULL) {
 		num = pTcp6Table->dwNumEntries;
-		for (int i = 0; i < num; i++) {
+		for (size_t i = 0; i < num; i++) {
 			Connection* conn = new Connection();
 			if (conn == nullptr) {
 				Logln(ERROR_LEVEL, L"[%s:%s:%d]:Can not new Connection():%d,%s\n", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());

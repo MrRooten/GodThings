@@ -140,6 +140,7 @@ std::vector<std::wstring> FileInfo::GetAttributes() {
 	if (attrs & FILE_ATTRIBUTE_VIRTUAL) {
 		res.push_back(L"FILE_ATTRIBUTE_VIRTUAL");
 	}
+	return res;
 }
 
 DWORD FileInfo::SetStandInfo() {

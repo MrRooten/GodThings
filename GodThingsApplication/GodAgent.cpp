@@ -89,10 +89,11 @@ void test3() {
     
 }
 int main() {
-    printf("Hello");
+    InitKernelUtils();
     Serve();
     //test2();
     //test3();
     //GetTCPConnection();
+    
     return 0;
 }

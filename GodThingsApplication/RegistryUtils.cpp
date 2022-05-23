@@ -85,7 +85,7 @@ std::vector<std::pair<std::wstring, std::wstring>> RegistryUtils::ListKeyValue()
 
 		WCHAR* valueData = new WCHAR[maxValueDataLen + 1];
 
-		for (int i = 0; i < numOfValues; i++)
+		for (size_t i = 0; i < numOfValues; i++)
 		{
 			DWORD valueNameBuferSize = maxValueNameLen + 1;
 			DWORD valueDataBufferSize = maxValueDataLen + 1;
@@ -119,7 +119,7 @@ std::vector<std::wstring> RegistryUtils::ListValueNames() {
 	{
 		WCHAR* valueName = new WCHAR[maxValueNameLen + 1];
 
-		for (int i = 0; i < numOfValues; i++)
+		for (size_t i = 0; i < numOfValues; i++)
 		{
 			DWORD valueNameBuferSize = maxValueNameLen + 1;
 
@@ -180,7 +180,6 @@ BytesBuffer RegistryUtils::GetValueStatic(std::wstring &path,std::wstring &key) 
 	
 	//registryPath = path.substr(path.find_first_of(L'\\')+1, path.find_last_of(L'\\')-path.find_first_of(L'\\'));
 	//std::wstring valueName = path.substr(path.find_last_of(L'\\')+1, path.size() - path.find_last_of(L'\\'));
-	DWORD type;
 	DWORD size = 0x100;
 	DWORD status = 0;
 	PBYTE bytes = (PBYTE)GlobalAlloc(GPTR, 0x100);
