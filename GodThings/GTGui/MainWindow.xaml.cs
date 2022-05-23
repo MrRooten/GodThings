@@ -17,9 +17,10 @@ using System.Threading;
 using System.Text.Json;
 using System.Data;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Markup;
 
 namespace GTGui {
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -39,8 +40,7 @@ namespace GTGui {
 
             TabItem tabItem = new TabItem();
             tabItem.Header = targetMod.Name;
-            Tabs.Items.Add(tabItem);
-            Tabs.SelectedItem = tabItem;
+            
             var t = new Thread(() => {
 
                 GodAgent.ResultSet result = targetMod.ModuleRun();
@@ -90,7 +90,7 @@ namespace GTGui {
                         string[] vs = { v };
                         table.Rows.Add(vs);
                     }
-                    contentUI = table.DefaultView;
+                    contentUI = table.AsDataView();
                 }
                 else if (result.Type == "error") {
                     var textBlock = new TextBlock();
@@ -100,11 +100,14 @@ namespace GTGui {
                 else {
 
                 }
+                
                 Dispatcher.Invoke(delegate {
                     if (result.Type == "dict") {
                         var grid = (DataGrid)FindResource("resultGrid");
+                        var newGrid = new DataGrid();
+                        newGrid.ItemsSource = (DataView)contentUI;
                         grid.DataContext = contentUI;
-                        tabItem.Content = grid;
+                        tabItem.Content = newGrid;
                     }
                     else if (result.Type == "array") {
                         var listView = (DataGrid)FindResource("resultGrid");
@@ -116,13 +119,15 @@ namespace GTGui {
                         textBlock.Text = (string)result.Data;
                         tabItem.Content = textBlock;
                     }
-
+                    Tabs.Items.Add(tabItem);
+                    Tabs.SelectedItem = tabItem;
                 });
 
-
+                
             });
             t.SetApartmentState(ApartmentState.STA);
             t.Start();
+
             return;
         }
         private void Item_DoubleClick(object sender, MouseButtonEventArgs e) {
