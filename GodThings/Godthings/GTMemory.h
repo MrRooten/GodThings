@@ -13,3 +13,9 @@ NTSTATUS GTReadVirtualMemory(
     _In_ KPROCESSOR_MODE AccessMode
 );
 
+NTSTATUS GTWriteVirtualMemory(
+    PVOID BaseAddress,
+    PVOID Buffer,
+    SIZE_T BufferSize
+    );
+

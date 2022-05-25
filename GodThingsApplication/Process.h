@@ -117,11 +117,12 @@ typedef struct _ImageState {
 	std::wstring GetFilePath();
 	//TCHAR path[MAX_PATH];
 	std::wstring cmdline;
-	SignatureInfomation* info;
+	SignatureInfomation* info = NULL;
 	//TCHAR currentDirectory[MAX_PATH];
 	bool IsSigned();
 	
 	std::wstring GetSignInfo();
+	~_ImageState();
 }ImageState;
 
 

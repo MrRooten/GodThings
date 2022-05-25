@@ -322,7 +322,6 @@ UnsignedRunningProcess::UnsignedRunningProcess() {
 
 ResultSet* UnsignedRunningProcess::ModuleRun(){
 	ResultSet* result = new ResultSet();
-	GTPrintln(L"Rundll32 Backdoor:");
 	ProcessManager mgr;
 	mgr.UpdateInfo();
 	for (auto item : mgr.processesMap) {
@@ -332,7 +331,6 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 			Process* process = item.second;
 			auto imageState = process->GetImageState();
 			std::wstring cmdline = imageState->cmdline;
-			printf("\t%d %s", item.first, StringUtils::ws2s(cmdline).c_str());
 			result->PushDictOrdered("pid", std::to_string(item.first));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
 			result->PushDictOrdered("info", StringUtils::ws2s(item.second->imageState->GetSignInfo()).c_str());

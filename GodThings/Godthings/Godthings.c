@@ -141,7 +141,11 @@ NTSTATUS ControlThroughDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
 		break;
 	}
 	case IOCTL_GTCTL_METHOD_WRITE_MEMORY:{
-
+		struct {
+			PVOID BaseAddress;
+			PVOID Buffer;
+			SIZE_T BufferSize;
+		};
 		break;
 	}
 	case IOCTL_GTCTL_METHOD_OPEN_PROCESS: {

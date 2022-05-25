@@ -1021,3 +1021,9 @@ bool _ImageState::IsSigned() {
 std::wstring _ImageState::GetSignInfo() {
 	return this->info->info;
 }
+
+_ImageState::~_ImageState() {
+	if (this->info != NULL) {
+		delete this->info;
+	}
+}

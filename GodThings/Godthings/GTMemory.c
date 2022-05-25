@@ -17,3 +17,16 @@ NTSTATUS GTReadVirtualMemory(
 	memcpy(Buffer, BaseAddress, NumberOfBytesRead);
 	return 0;
 }
+
+NTSTATUS GTWriteVirtualMemory(PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize)
+{
+	__try {
+		ProbeForWrite(BaseAddress, BufferSize, sizeof(ULONG));
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {
+		return GetExceptionCode();
+	}
+
+	memcpy(BaseAddress, Buffer, BufferSize);
+	return 0;
+}
