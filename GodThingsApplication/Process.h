@@ -25,6 +25,7 @@
 #include "SystemInfo.h"
 #include "NtProcessInfo.h"
 #include "FileInfo.h"
+#include "VerifyUtils.h"
 #define MAX_FILE_LENGTH 4096
 #define MAX_USERNAME_LENGTH 255
 #define MAX_PROCESS_NAME_LENGTH 255
@@ -116,8 +117,11 @@ typedef struct _ImageState {
 	std::wstring GetFilePath();
 	//TCHAR path[MAX_PATH];
 	std::wstring cmdline;
+	SignatureInfomation* info;
 	//TCHAR currentDirectory[MAX_PATH];
 	bool IsSigned();
+	
+	std::wstring GetSignInfo();
 }ImageState;
 
 

@@ -1006,13 +1006,18 @@ std::vector<Thread*>* ProcessManager::GetThreadsByPID(PID pid) {
 void ProcessManager::UpdateInfo() {
 	this->SetAllProcesses();
 }
-#include "VerifyUtils.h"
+
 bool _ImageState::IsSigned() {
 	if (this->filePath.size() == 0) {
 		return true;
 	}
-	if (VerifyEmbeddedSignature(this->filePath.c_str())) {
+	this->info = VerifyEmbeddedSignature(this->filePath.c_str());
+	if (info->isSignature) {
 		return true;
 	}
 	return false;
+}
+
+std::wstring _ImageState::GetSignInfo() {
+	return this->info->info;
 }

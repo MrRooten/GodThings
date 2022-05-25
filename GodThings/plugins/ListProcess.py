@@ -9,10 +9,11 @@ import process_internal
 def module_run(args):
     print("Start module1...")
     print("End module1...")
-    a = process_internal.get_pids()
-    b = []
-    for i in a:
-        b.append(str(i))
-    print(b)
-    return {"result":b}
+    pid_list = process_internal.get_pids()
+    pids = []
+    process_names = []
+    for i in pid_list:
+        pids.append(str(i))
+        process_names.append(process_internal.get_process_name(i))
+    return {"pid":pids,"process_name":process_names}
 

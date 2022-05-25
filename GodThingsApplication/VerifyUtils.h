@@ -5,10 +5,23 @@
 #include <wincrypt.h>
 #include <wintrust.h>
 #include <stdio.h>
+#include <string>
 // Link with the Wintrust.lib file.
 #pragma comment (lib, "wintrust")
 
-BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile);
+struct SignatureInfomation{
+    std::wstring info;
+    bool isSignature;
+
+    std::wstring GetInfo() {
+        return this->info;
+    }
+
+    bool IsSignature() {
+        return this->isSignature;
+    }
+};
+SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile);
 
 typedef enum _VERIFY_RESULT
 {

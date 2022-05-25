@@ -335,6 +335,7 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 			printf("\t%d %s", item.first, StringUtils::ws2s(cmdline).c_str());
 			result->PushDictOrdered("pid", std::to_string(item.first));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
+			result->PushDictOrdered("info", StringUtils::ws2s(item.second->imageState->GetSignInfo()).c_str());
 			result->report = "There is unsigned process running";
 		}
 	}

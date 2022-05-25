@@ -1,9 +1,9 @@
 #include "VerifyUtils.h"
-BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
+SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
 {
     LONG lStatus;
     DWORD dwLastError;
-
+    SignatureInfomation* info = new SignatureInfomation();
     // Initialize the WINTRUST_FILE_INFO structure.
 
     WINTRUST_FILE_INFO FileData;
@@ -97,10 +97,9 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
                 "Yes" when asked to install and run the signed
                 subject.
         */
-        wprintf_s(L"The file \"%s\" is signed and the signature "
-            L"was verified.\n",
-            pwszSourceFile);
-        return true;
+        info->info = L"The file is signed and the signature "
+            L"was verified.";
+        info->isSignature = true;
         break;
 
     case TRUST_E_NOSIGNATURE:
@@ -114,18 +113,16 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
             TRUST_E_PROVIDER_UNKNOWN == dwLastError)
         {
             // The file was not signed.
-            wprintf_s(L"The file \"%s\" is not signed.\n",
-                pwszSourceFile);
-            return false;
+            info->info = L"The file is not signed.";
+            info->isSignature = false;
         }
         else
         {
             // The signature was not valid or there was an error 
             // opening the file.
-            wprintf_s(L"An unknown error occurred trying to "
-                L"verify the signature of the \"%s\" file.\n",
-                pwszSourceFile);
-            return true;
+            info->info = L"An unknown error occurred trying to "
+                L"verify the signature of the \"%s\" file.\n";
+            info->isSignature = false;
         }
 
         break;
@@ -133,16 +130,16 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
     case TRUST_E_EXPLICIT_DISTRUST:
         // The hash that represents the subject or the publisher 
         // is not allowed by the admin or user.
-        wprintf_s(L"The signature is present, but specifically "
-            L"disallowed.\n");
-        return false;
+        info->info = L"The signature is present, but specifically "
+            L"disallowed.";
+        info->isSignature = true;
         break;
 
     case TRUST_E_SUBJECT_NOT_TRUSTED:
         // The user clicked "No" when asked to install and run.
-        wprintf_s(L"The signature is present, but not "
-            L"trusted.\n");
-        return false;
+        info->info = L"The signature is present, but not "
+            L"trusted.\n";
+        info->isSignature = true;
         break;
 
     case CRYPT_E_SECURITY_SETTINGS:
@@ -152,21 +149,22 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         admin policy has disabled user trust. No signature,
         publisher or time stamp errors.
         */
-        wprintf_s(L"CRYPT_E_SECURITY_SETTINGS - The hash "
+        info->info = L"CRYPT_E_SECURITY_SETTINGS - The hash "
             L"representing the subject or the publisher wasn't "
             L"explicitly trusted by the admin and admin policy "
             L"has disabled user trust. No signature, publisher "
-            L"or timestamp errors.\n");
-        return false;
+            L"or timestamp errors.\n";
+        info->isSignature = false;
         break;
 
     default:
         // The UI was disabled in dwUIChoice or the admin policy 
         // has disabled user trust. lStatus contains the 
         // publisher or time stamp chain error.
-        wprintf_s(L"Error is: 0x%x.\n",
-            lStatus);
-        return true;
+        wchar_t s[30] = { 0 };
+        wsprintfW(s, L"Error is: 0x%x.", lStatus);
+        info->info = s;
+        info->isSignature = true;
         break;
     }
 
@@ -178,5 +176,5 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         &WVTPolicyGUID,
         &WinTrustData);
 
-    return true;
+    return info;
 }
