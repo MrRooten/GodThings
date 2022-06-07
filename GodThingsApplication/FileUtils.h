@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "public.h"
 
 class File {
@@ -25,4 +26,12 @@ public:
 	static File* Open(std::wstring filePath, std::wstring mode);
 	static BOOL Delete(std::wstring filePath);
 	static BOOL CreateLink(std::wstring filePath, std::wstring linkPath);
+};
+
+class Dir {
+private:
+	std::wstring dirpath;
+public:
+	Dir(const wchar_t* dirpath);
+	std::vector<std::wstring> listFiles();
 };

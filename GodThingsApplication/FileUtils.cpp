@@ -115,3 +115,25 @@ File* FileUtils::Open(std::wstring filePath,std::wstring mode) {
 
 	return file;
 }
+
+Dir::Dir(const wchar_t* dirpath) {
+	this->dirpath = dirpath;
+}
+
+std::vector<std::wstring> Dir::listFiles() {
+	WIN32_FIND_DATAW ffd;
+	std::vector<std::wstring> res;
+	HANDLE hFind = FindFirstFileW(this->dirpath.c_str(), &ffd);
+	do
+	{
+		if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			continue;
+		}
+		else
+		{
+			res.push_back(ffd.cFileName);
+		}
+	} while (FindNextFileW(hFind, &ffd) != 0);
+	return res;
+}

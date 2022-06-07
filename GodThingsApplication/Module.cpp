@@ -192,6 +192,8 @@ DWORD ModuleMgr::RegisterModule(Module* mod) {
 	return 0;
 }
 
+#include "FileUtils.h"
+#include <filesystem>
 DWORD ModuleMgr::LoadModules() {
 	ProcessModule* processModule = new ProcessModule();
 	ServiceModule* serviceModule = new ServiceModule();
@@ -202,13 +204,18 @@ DWORD ModuleMgr::LoadModules() {
 	Rundll32Backdoor* rundll = new Rundll32Backdoor();
 	UnsignedRunningProcess* unsignedProcess = new UnsignedRunningProcess();
 	ShadowAccount* shadowAccount = new ShadowAccount();
-	PythonModule* ListProcess = new PythonModule(L"D:\\Windows\\GodThings\\GodThings\\plugins\\ListProcess");
-	/*PythonModule* qwer2 = new PythonModule(L"D:\\SourceCodes\\qwer2");
-	PythonModule* qwer3 = new PythonModule(L"D:\\SourceCodes\\qwer3");
-	PythonModule* qwer4 = new PythonModule(L"D:\\SourceCodes\\qwer4");*/
-	
-	//PythonModule* qwer5 = new PythonModule(L"D:\\SourceCodes\\qwer5");
-	//PythonModule* qwer6 = new PythonModule(L"D:\\SourceCodes\\qwer6");
+	printf("cur:%s\n", std::filesystem::current_path().generic_string().c_str());
+	std::wstring currPath = std::filesystem::current_path().native().c_str();
+	wprintf(L"%s\n", currPath.c_str());
+	std::wstring pluginPath = currPath + L"\\plugins\\*";
+	Dir dir(pluginPath.c_str());
+	auto files = dir.listFiles();
+	for (auto& f : files) {
+		auto f2 = f.substr(0, f.size() - 3);
+		std::wstring pyPluginPath = currPath + L"\\plugins\\" + f2;
+		wprintf(L"%s\n", pyPluginPath.c_str());
+		new PythonModule(pyPluginPath.c_str());
+	}
 	return 0;
 }
 
