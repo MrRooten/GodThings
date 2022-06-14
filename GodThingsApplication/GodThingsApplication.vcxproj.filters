@@ -194,5 +194,11 @@
     <ClInclude Include="ProcessUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="PEInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ArgsHelper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

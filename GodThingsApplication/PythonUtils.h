@@ -242,6 +242,7 @@ struct initialize
 		PyImport_AppendInittab("process_internal", &PyProcessInfoModule::ProcessInfoModuleInit);
 		PyImport_AppendInittab("system_internal", &PySystemInfoModule::SystemInfoModuleInit);
 		PyImport_AppendInittab("registry_internal", &PyRegistryUtilsModule::RegistryModuleInit);
+		PyImport_AppendInittab("account_internal", &PyAccountInfoModule::AccountInfoModuleInit);
 		Py_InitializeEx(1);
 		//PyEval_InitThreads(); // not needed as of Python 3.7, deprecated as of 3.9
 	}

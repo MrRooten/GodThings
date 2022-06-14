@@ -1,5 +1,4 @@
-﻿
-#include <string>
+﻿#include <string>
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -8,40 +7,10 @@
 #include "PythonUtils.h"
 #include "Module.h"
 #include "ProcServer.h"
-//#include "ProcServer.h"
-// runs in a new thread
-class VM {
-public:
-    PyInterpreterState* interp;
-    VM(PyInterpreterState* interp) {
-        this->interp = interp;
-    }
-
-    void exec(const char* code) {
-        sub_interpreter::thread_scope scope(this->interp);
-        PythonUtils::ExecString("print(123)");
-    }
-};
-
-// runs in a new thread
-void f(PyInterpreterState* interp, const char* tname)
-{
-    std::string code = R"PY(
-from __future__ import print_function
-import sys
-print("TNAME: sys.xxx={}".format(getattr(sys, 'xxx', 'attribute not set')))
-    )PY";
-
-    code.replace(code.find("TNAME"), 5, tname);
-    PyArgs a;
-    sub_interpreter::thread_scope scope(interp);
-    PythonUtils::ExecString("import process_internal\nprint(process_internal.get_pids())");
-}
-void test() {
-    sub_interpreter s1;
-}
-
-
+#include "parse.h"
+#include "ProcessUtils.h"
+#include "ArgsHelper.h"
+/*
 int test2()
 {
     initialize init;
@@ -56,7 +25,7 @@ print('main: setting sys.xxx={}'.format(sys.xxx))
     )PY");
     
     sub_interpreter ss[30];
-    //PythonModule* m = new PythonModule(L"D:\\SourceCodes\\qwer1");
+    PythonModule* m = new PythonModule(L"D:\\SourceCodes\\qwer1");
     std::vector<std::jthread*> js;
     
     enable_threads_scope t;
@@ -71,8 +40,7 @@ print('main: setting sys.xxx={}'.format(sys.xxx))
     }
     return 0;
 }
-#include "parse.h"
-#include "ProcessUtils.h"
+
 void test3() {
     InitKernelUtils();
     HANDLE a = GTOpenProcess(4,PROCESS_ALL_ACCESS);
@@ -88,12 +56,10 @@ void test3() {
     }
     
 }
-int main() {
+*/
+int main(int argc,char* argv[]) {
     InitKernelUtils();
-    Serve();
-    //test2();
-    //test3();
-    //GetTCPConnection();
-    
+    // create a parser
+    ArgsHelper::MainArgs(argc, argv);
     return 0;
 }
