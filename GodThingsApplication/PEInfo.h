@@ -3,4 +3,5 @@
 class PEInfo {
 public:
 	PEInfo(WCHAR* path);
+	PEInfo(char* path);
 };

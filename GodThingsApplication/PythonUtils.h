@@ -210,6 +210,23 @@ namespace PyNetworkInfoModule {
 
 };
 
+namespace PyServiecInfoModule {
+	PyObject* InitServices(PyObject* self, PyObject* args);
+	static PyMethodDef methods[] = {
+		{NULL,NULL,0,0}
+	};
+	static PyModuleDef moduleDef = {
+		PyModuleDef_HEAD_INIT,
+		"service_internal",
+		NULL,
+		-1,
+		methods,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	};
+}
 using PyTypes = std::map<std::string, PyTypeObject*>;
 using PyObjectCallback = std::function<int(LPVOID)>;
 using PyArgs = std::vector<PyObject*>;

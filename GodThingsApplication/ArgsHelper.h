@@ -36,7 +36,25 @@ public:
 	}
 
 	static void InfoModule(char* moduleName) {
+		auto mgr = ModuleMgr::GetMgr();
+		Module* targetModule = NULL;
+		for (auto& mod : mgr->modules) {
+			if (StringUtils::ws2s(mod->Name) == moduleName) {
+				targetModule = mod;
+				break;
+			}
+		}
 
+		if (targetModule == NULL) {
+			wprintf(L"Please select right module,the %s doesn't exist.\n",targetModule->Name);
+			return;
+		}
+
+		auto metaInfo = targetModule->GetModuleMetaJson();
+		Json::StyledWriter writer;
+		std::string output = writer.write(metaInfo);
+		printf("%s\n", output.c_str());
+		return;
 	}
 
 	static void MainArgs(int argc,char** argv) {
@@ -67,12 +85,19 @@ public:
 			return;
 		}
 		else if (subcmd == "run_module") {
-
+			if (argc < 3) {
+				printf("Usage:%s run_module <exist_module>\n");
+				return;
+			}
+			RunModule(argv[2], argc - 3, &argv[3]);
 		}
 		else if (subcmd == "info_module") {
-
+			if (argc < 3) {
+				printf("Usage:%s info_module <exist_module>\n");
+				return;
+			}
+			InfoModule(argv[2]);
 		}
 
-		help(argv[0]);
 	}
 };
