@@ -65,11 +65,22 @@ bool StringUtils::IsNumeric(std::wstring s) {
     }
     return true;
 }
+void ltrim(std::string& s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](char ch) {
+        return !isspace(ch);
+        }));
+}
 
 void ltrim(std::wstring& s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](wchar_t ch) {
         return !iswspace(ch);
         }));
+}
+
+void rtrim(std::string& s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](char ch) {
+        return !isspace(ch);
+        }).base(), s.end());
 }
 
 // trim from end (in place)
@@ -80,6 +91,11 @@ void rtrim(std::wstring& s) {
 }
 
 void trim(std::wstring& s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+void trim(std::string& s) {
     ltrim(s);
     rtrim(s);
 }
@@ -101,6 +117,11 @@ std::wstring trim_copy(std::wstring s) {
 }
 
 std::wstring StringUtils::Trim(std::wstring s) {
+    trim(s);
+    return s;
+}
+
+std::string StringUtils::Trim(std::string s) {
     trim(s);
     return s;
 }

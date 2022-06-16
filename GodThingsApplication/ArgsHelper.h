@@ -3,14 +3,18 @@
 #include "PythonUtils.h"
 class ArgsHelper {
 public:
-	static void help(char *file) {
-		printf("\n%s <subcommand> <option>\n", file);
-		printf("\tpyfile <file>\n");
-		printf("\t\tRun python file\n");
+	static void help(wchar_t *file) {
+		std::wstring f(file);
+
+		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\")+1).c_str());
+		wprintf(L"    pyfile <file>: Run python file\n");
+		wprintf(L"    interpreter: Run python interpreter\n");
+		wprintf(L"    gui_serve: Run the GUI Serve\n");
+		wprintf(L"    info_module: List the Module Information\n");
 	}
 
-	static void RunPythonFile(const char* path) {
-		
+	static void RunPythonFile(const wchar_t* wpath) {
+		const char* path = StringUtils::ws2s(wpath).c_str();
 		FILE* fp = fopen(path, "r");
 		if (fp == NULL) {
 			printf("Error open file %d\n",GetLastError());
@@ -31,22 +35,22 @@ public:
 		}
 	}
 
-	static void RunModule(char* moduleName,int argc,char** args) {
+	static void RunModule(wchar_t* moduleName,int argc,wchar_t** args) {
 
 	}
 
-	static void InfoModule(char* moduleName) {
+	static void InfoModule(wchar_t* moduleName) {
 		auto mgr = ModuleMgr::GetMgr();
 		Module* targetModule = NULL;
 		for (auto& mod : mgr->modules) {
-			if (StringUtils::ws2s(mod->Name) == moduleName) {
+			if (mod->Name == moduleName) {
 				targetModule = mod;
 				break;
 			}
 		}
 
 		if (targetModule == NULL) {
-			wprintf(L"Please select right module,the %s doesn't exist.\n",targetModule->Name);
+			wprintf(L"Please select right module,the %s doesn't exist.\n");
 			return;
 		}
 
@@ -57,46 +61,49 @@ public:
 		return;
 	}
 
-	static void MainArgs(int argc,char** argv) {
+	static void MainArgs(int argc,wchar_t** argv) {
 		initialize init;
 		if (argc < 2) {
 			help(argv[0]);
 			return;
 		}
 
-		std::string subcmd = argv[1];
-		if (subcmd == "pyfile") {
+		std::wstring subcmd = argv[1];
+		subcmd = StringUtils::Trim(subcmd);
+		if (subcmd == L"pyfile") {
 			if (argc < 3) {
 				printf("%s pyfile <pyfile_path>\n", argv[0]);
 				return;
 			}
 
-			std::string path = argv[2];
+			std::wstring path = argv[2];
 			RunPythonFile(path.c_str());
 			return;
 		}
-		else if (subcmd == "gui_serve") {
+		else if (subcmd == L"gui_serve") {
 			GuiServer();
 			return;
 		}
-		ModuleMgr* mgr = ModuleMgr::GetMgr();
-		if (subcmd == "list_modules") {
+		if (subcmd == L"list_modules") {
 			ListModules();
 			return;
 		}
-		else if (subcmd == "run_module") {
+		else if (subcmd == L"run_module") {
 			if (argc < 3) {
-				printf("Usage:%s run_module <exist_module>\n");
+				wprintf(L"Usage:%s run_module <exist_module>\n");
 				return;
 			}
 			RunModule(argv[2], argc - 3, &argv[3]);
 		}
-		else if (subcmd == "info_module") {
+		else if (subcmd == L"info_module") {
 			if (argc < 3) {
-				printf("Usage:%s info_module <exist_module>\n");
+				wprintf(L"Usage:%s info_module <exist_module>\n");
 				return;
 			}
 			InfoModule(argv[2]);
+		}
+		else if (subcmd == L"interpreter") {
+			Py_Main(argc - 1, &argv[1]);
 		}
 
 	}

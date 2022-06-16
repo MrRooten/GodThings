@@ -24,6 +24,8 @@ public:
 
 	static std::wstring Trim(std::wstring s);
 
+	static std::string Trim(std::string s);
+
 	static std::string ws2s(const std::wstring& wstr);
 
 	static std::string ws2s(const wchar_t* wstr);

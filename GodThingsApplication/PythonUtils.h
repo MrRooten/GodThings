@@ -130,7 +130,6 @@ namespace PyEventLogModule {
 
 };
 
-
 namespace PyFileInfoModule {
 	using FileCache = std::map<std::string, FileInfo*>;
 	static FileCache fileCache;

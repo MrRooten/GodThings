@@ -882,7 +882,6 @@ PyObject* PyFileInfoModule::GetStandardInfo(PyObject* self, PyObject* args) {
     Py_XDECREF(path);
     if (file->pStandardInfo == NULL) {
         if (file->SetBasicInfo() != ERROR_SUCCESS) {
-
             return Py_None;
         }
     }

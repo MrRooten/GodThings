@@ -57,7 +57,7 @@ void test3() {
     
 }
 */
-int main(int argc,char* argv[]) {
+int wmain(int argc,wchar_t* argv[]) {
     InitKernelUtils();
     // create a parser
     ArgsHelper::MainArgs(argc, argv);
