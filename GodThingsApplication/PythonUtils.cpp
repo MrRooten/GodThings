@@ -5,6 +5,7 @@
 #include "StringUtils.h"
 #include "ObjectInfo.h"
 #include "RegistryUtils.h"
+#include "Service.h"
 namespace PyProcessInfoModule {
     PyObject* GetPids(PyObject* self, PyObject* args) {
         PyObject* list = PyList_New(0);
@@ -1091,3 +1092,25 @@ PyObject* PyAccountInfoModule::AccountInfoModuleInit() {
     return PyModule_Create(&moduleDef);
 }
 
+PyObject* PyServiecInfoModule::InitServices(PyObject* self, PyObject* args) {
+    return nullptr;
+}
+
+PyObject* PyServiecInfoModule::GetServices(PyObject* self, PyObject* args) {
+    PyObject* serviceList = PyList_New(0);
+    ServiceManager mgr;
+    mgr.SetAllServices();
+    for (auto& service : mgr.services) {
+        PyObject* pyService = PyDict_New();
+        _dict_insert_help(pyService, PyUnicode_FromString("serviceName"),PyUnicode_FromString(StringUtils::ws2s(service->serviceName).c_str()));
+        //_dict_insert_help(pyService, PyUnicode_FromString("serviceStatus"), PyUnicode_FromString(StringUtils::ws2s(service->GetServiceStatus()).c_str()));
+        //_dict_insert_help(pyService, PyUnicode_FromString("description"), PyUnicode_FromString(StringUtils::ws2s(service->GetDescription()).c_str()));
+        PyList_Append(serviceList, pyService);
+        Py_XDECREF(pyService);
+    }
+    return serviceList;
+}
+
+PyObject* PyServiecInfoModule::ServiceInfoModuleInit() {
+    return PyModule_Create(&moduleDef);
+}

@@ -318,6 +318,17 @@ DWORD Srv::SetRequirePrivilegesInfo() {
 	CloseServiceHandle(hSCManager);
 	return 0;
 }
+std::wstring Srv::GetDescription() {
+	this->SetDescription();
+	std::wstring a = L"";
+	if (lstrlenW(this->pDescription->lpDescription) == 0) {
+		a = L"";
+	}
+	else {
+		a = this->pDescription->lpDescription;
+	}
+	return a;
+}
 ServiceManager::ServiceManager() {
 	this->hSCManger = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
 	if (this->hSCManger == INVALID_HANDLE_VALUE) {

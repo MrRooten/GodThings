@@ -122,9 +122,6 @@ namespace PyRegistryUtilsModule {
 	PyObject* RegistryModuleInit();
 };
 
-namespace PyServiceModule {
-
-};
 
 namespace PyEventLogModule {
 
@@ -206,12 +203,39 @@ namespace PyAccountInfoModule {
 };
 
 namespace PyNetworkInfoModule {
+	PyObject* GetNetworkList(PyObject* self, PyObject* args);
 
+	static PyMethodDef methods[] = {
+		{NULL,NULL,0,0}
+	};
+
+	static PyModuleDef moduleDef = {
+		PyModuleDef_HEAD_INIT,
+		"network_internal",
+		NULL,
+		-1,
+		methods,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	};
+
+	PyObject* NetworkInfoModuleInit();
 };
 
 namespace PyServiecInfoModule {
 	PyObject* InitServices(PyObject* self, PyObject* args);
+
+	PyObject* GetServices(PyObject* self, PyObject* args);
+
+	PyObject* GetServiceDescription(PyObject* self, PyObject* args);
+
+	PyObject* GetServiceStatus(PyObject* self, PyObject* args);
+
+	PyObject* GetServiceFailuareAction(PyObject* self, PyObject* args);
 	static PyMethodDef methods[] = {
+		{"get_services",GetServices,METH_NOARGS,"List System Services"},
 		{NULL,NULL,0,0}
 	};
 	static PyModuleDef moduleDef = {
@@ -225,6 +249,8 @@ namespace PyServiecInfoModule {
 		NULL,
 		NULL
 	};
+
+	PyObject* ServiceInfoModuleInit();
 }
 using PyTypes = std::map<std::string, PyTypeObject*>;
 using PyObjectCallback = std::function<int(LPVOID)>;
@@ -259,6 +285,7 @@ struct initialize
 		PyImport_AppendInittab("system_internal", &PySystemInfoModule::SystemInfoModuleInit);
 		PyImport_AppendInittab("registry_internal", &PyRegistryUtilsModule::RegistryModuleInit);
 		PyImport_AppendInittab("account_internal", &PyAccountInfoModule::AccountInfoModuleInit);
+		PyImport_AppendInittab("service_internal", &PyServiecInfoModule::ServiceInfoModuleInit);
 		Py_InitializeEx(1);
 		//PyEval_InitThreads(); // not needed as of Python 3.7, deprecated as of 3.9
 	}

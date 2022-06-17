@@ -59,6 +59,8 @@ public:
 	DWORD SetDependentServices();
 
 	DWORD SetSrvRegKey();
+
+	std::wstring GetDescription();
 };
 
 
