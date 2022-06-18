@@ -57,27 +57,26 @@ namespace PyProcessInfoModule {
         
         Process* process = NULL;
         if (mgr != NULL) {
+            mgr->UpdateInfo();
             if (mgr->processesMap.count(pid) > 0) {
                 process = mgr->processesMap[pid];
             }
             else {
                 //THROW ERROR
-                SecurityStateSerial;
+                return Py_None;
             }
         }
-        
+
         if (process == NULL) {
-            if (mgr == NULL) {
-                mgr = new ProcessManager();
-                if (mgr == NULL) {
-                    //THROW ERROR
-                    SecurityStateSerial;
-                }
+            auto handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+            if (handle == NULL) {
+                return Py_None;
             }
-            process = mgr->processesMap[pid];
+            process = new Process(pid);
+            CloseHandle(handle);
         }
         if (process == NULL) {
-            PyDict_New();
+            return Py_None;
         }
         DWORD status = process->SetProcessSecurityState();
         if (status != ERROR_SUCCESS) {
@@ -121,32 +120,31 @@ namespace PyProcessInfoModule {
         int pid;
         PyObject* MemoryStateSerial = PyList_New(0);
         if (!PyArg_ParseTuple(args, "i", &pid)) {
-            MemoryStateSerial;
+            return Py_None;
         }
 
         Process* process = NULL;
         if (mgr != NULL) {
+            mgr->UpdateInfo();
             if (mgr->processesMap.count(pid) > 0) {
                 process = mgr->processesMap[pid];
             }
             else {
                 //THROW ERROR
-                MemoryStateSerial;
+                return Py_None;
             }
         }
 
         if (process == NULL) {
-            if (mgr == NULL) {
-                mgr = new ProcessManager();
-                if (mgr == NULL) {
-                    //THROW ERROR
-                    MemoryStateSerial;
-                }
+            auto handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+            if (handle == NULL) {
+                return Py_None;
             }
-            process = mgr->processesMap[pid];
+            process = new Process(pid);
+            CloseHandle(handle);
         }
         if (process == NULL) {
-            MemoryStateSerial;
+            return Py_None;
         }
         
         DWORD status = process->SetProcessMemoryState();
@@ -185,32 +183,31 @@ namespace PyProcessInfoModule {
 
         Process* process = NULL;
         if (mgr != NULL) {
+            mgr->UpdateInfo();
             if (mgr->processesMap.count(pid) > 0) {
                 process = mgr->processesMap[pid];
             }
             else {
                 //THROW ERROR
-                PyList_New(0);
+                return Py_None;
             }
         }
 
         if (process == NULL) {
-            if (mgr == NULL) {
-                mgr = new ProcessManager();
-                if (mgr == NULL) {
-                    //THROW ERROR
-                    PyList_New(0);
-                }
-            }
-            process = mgr->processesMap[pid];
+            auto handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+            if (handle == NULL) {
+                return Py_None;
+            } 
+            process = new Process(pid);
+            CloseHandle(handle);
         }
         if (process == NULL) {
-            PyList_New(0);
+            return Py_None;
         }
 
         DWORD status = process->SetProcessIOState();
         if (status != ERROR_SUCCESS) {
-            PyList_New(0);
+            return Py_None;
         }
 
         IoStateSerial = PyList_New(0);
@@ -271,6 +268,7 @@ namespace PyProcessInfoModule {
 
         Process* process = NULL;
         if (mgr != NULL) {
+            mgr->UpdateInfo();
             if (mgr->processesMap.count(pid) > 0) {
                 process = mgr->processesMap[pid];
             }
@@ -287,22 +285,23 @@ namespace PyProcessInfoModule {
                     //THROW ERROR
                     PyList_New(0);
                 }
+                mgr->SetAllProcesses();
             }
             process = mgr->processesMap[pid];
         }
         if (process == NULL) {
-            PyList_New(0);
+            return Py_None;
         }
 
         DWORD status = process->SetProcessIOState();
         if (status != ERROR_SUCCESS) {
-            PyList_New(0);
+            return Py_None;
         }
 
         CPUStateSerial = PyList_New(0);
         status = process->SetProcessCPUState();
         if (status != 0) {
-            PyList_New(0);
+            return Py_None;
         }
         auto f = [CPUStateSerial, process](SIZE_T value) {
             PyObject* pyValue = PyLong_FromLongLong(value);
@@ -874,7 +873,7 @@ PyObject* PyFileInfoModule::GetStandardInfo(PyObject* self, PyObject* args) {
         
     }
     else {
-        FileInfo* file = new FileInfo(path);
+        file = new FileInfo(path);
         if (file == NULL) {
             Py_XDECREF(path);
             return Py_None;
@@ -882,7 +881,7 @@ PyObject* PyFileInfoModule::GetStandardInfo(PyObject* self, PyObject* args) {
     }
     Py_XDECREF(path);
     if (file->pStandardInfo == NULL) {
-        if (file->SetBasicInfo() != ERROR_SUCCESS) {
+        if (file->SetStandInfo() != ERROR_SUCCESS) {
             return Py_None;
         }
     }
@@ -916,7 +915,7 @@ PyObject* PyFileInfoModule::GetStatInfo(PyObject* self, PyObject* args) {
         }
     }
     else {
-        FileInfo* file = new FileInfo(path);
+        file = new FileInfo(path);
         if (file == NULL) {
             Py_XDECREF(path);
             return Py_None;
@@ -924,7 +923,7 @@ PyObject* PyFileInfoModule::GetStatInfo(PyObject* self, PyObject* args) {
     }
     Py_XDECREF(path);
     if (file->pStatInfo == NULL) {
-        if (file->SetBasicInfo() != ERROR_SUCCESS) {
+        if (file->SetStatInfo() != ERROR_SUCCESS) {
             return Py_None;
         }
     }
@@ -1114,3 +1113,5 @@ PyObject* PyServiecInfoModule::GetServices(PyObject* self, PyObject* args) {
 PyObject* PyServiecInfoModule::ServiceInfoModuleInit() {
     return PyModule_Create(&moduleDef);
 }
+
+

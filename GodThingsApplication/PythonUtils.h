@@ -205,6 +205,8 @@ namespace PyAccountInfoModule {
 namespace PyNetworkInfoModule {
 	PyObject* GetNetworkList(PyObject* self, PyObject* args);
 
+	PyObject* GetNetworkByPid(PyObject* self, PyObject* args);
+
 	static PyMethodDef methods[] = {
 		{NULL,NULL,0,0}
 	};

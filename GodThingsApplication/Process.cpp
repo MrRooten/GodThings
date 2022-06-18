@@ -633,6 +633,10 @@ DWORD Process::SetProcessMemoryState() {
 	if (NtQueryInformationProcess != NULL) {
 		DWORD size = 0;
 		VM_COUNTERS_EX2 counters2 = { 0 };
+		HANDLE process = GTOpenProcess(this->processId, PROCESS_QUERY_INFORMATION);
+		if (process == NULL) {
+			return GetLastError();
+		}
 		NTSTATUS status = NtQueryInformationProcess(this->hProcess, ProcessVmCounters, &counters2, sizeof(VM_COUNTERS_EX2), &size);
 		if (status != 0) {
 			return NtStatusHandler(status);

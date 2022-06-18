@@ -14,7 +14,6 @@ DWORD AccountInfo::Initialize(PUSER_INFO_3 userInfo) {
 	this->flags = userInfo->usri3_flags;
 	
 	this->scriptPath = userInfo->usri3_script_path;
-
 	
 	this->authFlags = userInfo->usri3_auth_flags;
 
@@ -22,9 +21,7 @@ DWORD AccountInfo::Initialize(PUSER_INFO_3 userInfo) {
 
 	this->usrComment = userInfo->usri3_usr_comment;
 
-
 	this->params = userInfo->usri3_parms;
-
 	
 	this->workstations = userInfo->usri3_workstations;
 

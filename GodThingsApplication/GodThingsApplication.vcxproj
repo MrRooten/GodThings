@@ -187,6 +187,7 @@ xcopy /y /d "$(ProjectDir)plugins" "$(OutDir)plugins"
     <ClCompile Include="ObjectInfo.cpp" />
     <ClCompile Include="Parse.cpp" />
     <ClCompile Include="PE.cpp" />
+    <ClCompile Include="PEInfo.cpp" />
     <ClCompile Include="PrivilegeUtils.cpp" />
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="ProcessUtils.cpp" />
