@@ -842,6 +842,86 @@ Thread::~Thread() {
 
 }
 
+THREAD_BASIC_INFORMATION* Thread::GetBasicInfo() {
+	auto code = this->SetBasicInfo();
+	if (code != ERROR_SUCCESS) {
+		return NULL;
+	}
+	return &this->basicInfo;
+}
+
+KERNEL_USER_TIMES* Thread::GetKernelUserTimes() {
+	auto code = this->SetKernelUserTime();
+	if (code != ERROR_SUCCESS) {
+		return NULL;
+	}
+	return &this->kernelUserTime;
+}
+
+std::vector<Thread> Thread::GetThreadsByPId(DWORD pid) {
+	std::vector<Thread> result;
+	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		THREADENTRY32 te;
+		te.dwSize = sizeof(te);
+		if (Thread32First(h, &te)) {
+			do {
+				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) +
+					sizeof(te.th32OwnerProcessID)) {
+					if (te.th32OwnerProcessID == pid) {
+						result.push_back(Thread(te.th32ThreadID));
+					}
+				}
+				te.dwSize = sizeof(te);
+			} while (Thread32Next(h, &te));
+		}
+		CloseHandle(h);
+	}
+	return result;
+}
+
+DWORD Thread::SetBasicInfo() {
+	SetLastError(0);
+	pNtQueryInformationThread NtQueryInformation = (pNtQueryInformationThread)GetNativeProc("NtQueryInformationThread");
+	if (NtQueryInformation == NULL) {
+		return GetLastError();
+	}
+	auto tid = (DWORD)this->threadId;
+	HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, false, (DWORD)tid);
+	if (hThread == NULL) {
+		return GetLastError();
+	}
+	ULONG size = 0;
+	NTSTATUS status = NtQueryInformation(hThread, ThreadBasicInformation, &this->basicInfo, sizeof(THREAD_BASIC_INFORMATION), &size);
+	if (!NT_SUCCESS(status)) {
+		goto cleanup;
+	}
+cleanup:
+	CloseHandle(hThread);
+	return 0;
+}
+
+DWORD Thread::SetKernelUserTime() {
+	SetLastError(0);
+	pNtQueryInformationThread NtQueryInformation = (pNtQueryInformationThread)GetNativeProc("NtQueryInformationThread");
+	if (NtQueryInformation == NULL) {
+		return GetLastError();
+	}
+	auto tid = this->threadId;
+	HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, false, tid);
+	if (hThread == NULL) {
+		return GetLastError();
+	}
+	ULONG size = 0;
+	NTSTATUS status = NtQueryInformation(hThread, ThreadTimes, &this->kernelUserTime, sizeof(this->kernelUserTime), &size);
+	if (!NT_SUCCESS(status)) {
+		goto cleanup;
+	}
+cleanup:
+	CloseHandle(hThread);
+	return 0;
+}
+
 void Thread::Suspend() {
 	if (SuspendThread(this->hThread) == -1) {
 		//error when can't suspend thread 

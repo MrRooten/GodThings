@@ -264,6 +264,29 @@ namespace PyServiecInfoModule {
 	PyObject* ServiceInfoModuleInit();
 }
 
+namespace PyThreadInfoModule {
+	PyObject* GetThreadsInfoByPid(PyObject* self, PyObject* args);
+
+	static PyMethodDef methods[] = {
+		{"get_threads_by_pid",GetThreadsInfoByPid,METH_VARARGS,"Get threads by pid"},
+		{NULL,NULL,0,0}
+	};
+
+	static PyModuleDef moduleDef = {
+		PyModuleDef_HEAD_INIT,
+		"thread_internal",
+		NULL,
+		-1,
+		methods,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	};
+
+	PyObject* ThreadInfoModuleInit();
+}
+
 using PyTypes = std::map<std::string, PyTypeObject*>;
 using PyObjectCallback = std::function<int(LPVOID)>;
 using PyArgs = std::vector<PyObject*>;
@@ -299,6 +322,7 @@ struct initialize
 		PyImport_AppendInittab("account_internal", &PyAccountInfoModule::AccountInfoModuleInit);
 		PyImport_AppendInittab("service_internal", &PyServiecInfoModule::ServiceInfoModuleInit);
 		PyImport_AppendInittab("network_internal", &PyNetworkInfoModule::NetworkInfoModuleInit);
+		PyImport_AppendInittab("thread_internal", &PyThreadInfoModule::ThreadInfoModuleInit);
 		Py_InitializeEx(1);
 		//PyEval_InitThreads(); // not needed as of Python 3.7, deprecated as of 3.9
 	}

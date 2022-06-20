@@ -1200,3 +1200,21 @@ PyObject* PyNetworkInfoModule::GetNetworkByPid(PyObject* self, PyObject* args) {
 PyObject* PyNetworkInfoModule::NetworkInfoModuleInit() {
     return PyModule_Create(&moduleDef);
 }
+
+PyObject* PyThreadInfoModule::GetThreadsInfoByPid(PyObject* self, PyObject* args) {
+    int pid = 0;
+    if (!PyArg_ParseTuple(args, "i", &pid)) {
+        return Py_None;
+    }
+
+    auto threads = Thread::GetThreadsByPId(pid);
+    PyObject* pyList = PyList_New(0);
+    for (auto& thread : threads) {
+        _list_insert_help(pyList, PyLong_FromLong((long)thread.threadId));
+    }
+    return pyList;
+}
+
+PyObject* PyThreadInfoModule::ThreadInfoModuleInit() {
+    return PyModule_Create(&moduleDef);
+}

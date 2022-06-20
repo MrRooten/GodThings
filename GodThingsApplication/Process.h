@@ -234,6 +234,9 @@ public:
 	void Resume();
 	void Terminate();
 	~Thread();
+	THREAD_BASIC_INFORMATION* GetBasicInfo();
+	KERNEL_USER_TIMES* GetKernelUserTimes();
+	static std::vector<Thread> GetThreadsByPId(DWORD pid);
 private:
 	HANDLE hThread;
 	HANDLE threadToken;
