@@ -14,7 +14,8 @@ public:
 	}
 
 	static void RunPythonFile(const wchar_t* wpath) {
-		const char* path = StringUtils::ws2s(wpath).c_str();
+		std::wstring s = wpath;
+		const char* path = StringUtils::ws2s(s).c_str();
 		FILE* fp = fopen(path, "r");
 		if (fp == NULL) {
 			printf("Error open file %d\n",GetLastError());
@@ -50,7 +51,7 @@ public:
 		}
 
 		if (targetModule == NULL) {
-			wprintf(L"Please select right module,the %s doesn't exist.\n");
+			wprintf(L"Please select right module,the %s doesn't exist.\n",moduleName);
 			return;
 		}
 
@@ -72,7 +73,7 @@ public:
 		subcmd = StringUtils::Trim(subcmd);
 		if (subcmd == L"pyfile") {
 			if (argc < 3) {
-				printf("%s pyfile <pyfile_path>\n", argv[0]);
+				wprintf(L"%s pyfile <pyfile_path>\n", argv[0]);
 				return;
 			}
 
@@ -90,14 +91,14 @@ public:
 		}
 		else if (subcmd == L"run_module") {
 			if (argc < 3) {
-				wprintf(L"Usage:%s run_module <exist_module>\n");
+				wprintf(L"Usage:%s run_module <exist_module>\n",argv[0]);
 				return;
 			}
 			RunModule(argv[2], argc - 3, &argv[3]);
 		}
 		else if (subcmd == L"info_module") {
 			if (argc < 3) {
-				wprintf(L"Usage:%s info_module <exist_module>\n");
+				wprintf(L"Usage:%s info_module <exist_module>\n",argv[0]);
 				return;
 			}
 			InfoModule(argv[2]);

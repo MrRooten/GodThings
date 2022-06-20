@@ -24,6 +24,7 @@
 #include <NTSecAPI.h>
 #include "SystemInfo.h"
 #include "NtProcessInfo.h"
+#include "NtThreadInfo.h"
 #include "FileInfo.h"
 #include "VerifyUtils.h"
 #define MAX_FILE_LENGTH 4096
@@ -129,8 +130,10 @@ typedef struct _ImageState {
 class Thread;
 class ProcessManager;
 class Process {
+	std::vector<Thread> _threads;
 public:
 	std::vector<Thread*>* threads;
+	
 	PID processId;
 	std::wstring processName;
 	std::wstring userName;
@@ -192,10 +195,10 @@ public:
 	DWORD SetProcessMemoryState();
 	//set CPU State in Process
 	DWORD SetProcessCPUState();
-
+	//set Process Session id
+	DWORD SetSessionId();
 	
-
-	BOOL SetThreads();
+	DWORD SetThreads();
 
 	/*PPROCESS_EXTENDED_BASIC_INFORMATION pExtendedBasicInfo = NULL;
 	DWORD SetExtendedBasicInfo();
@@ -235,6 +238,22 @@ private:
 	HANDLE hThread;
 	HANDLE threadToken;
 	CONTEXT threadContext;
+	THREAD_BASIC_INFORMATION basicInfo;
+	DWORD SetBasicInfo();
+	KERNEL_USER_TIMES kernelUserTime;
+	DWORD SetKernelUserTime();
+	LONG basePriority;
+	DWORD SetBasePriority();
+	KAFFINITY affinity;
+	DWORD SetAffinity();
+	HANDLE impersionationToken;
+	DWORD SetImpersionationToken();
+	THREAD_TEB_INFORMATION tebInformation;
+	DWORD SetTEBInformation();
+	THREAD_PERFORMANCE_DATA performanceData;
+	DWORD SetPerformanceData();
+	THREAD_NAME_INFORMATION nameInformation;
+	DWORD SetNameInformation();
 	//void SetMemoryPriority();
 	//void SetThreadPriority();
 	//void SetDescription();

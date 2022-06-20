@@ -233,9 +233,27 @@ DWORD Process::UpdateInfo() {
 	return 0;
 }
 
-BOOL Process::SetThreads() {
-	this->threads = this->processesManager->GetThreadsByPID(this->processId);
-	return TRUE;
+DWORD Process::SetThreads() {
+	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		THREADENTRY32 te;
+		te.dwSize = sizeof(te);
+		if (Thread32First(h, &te)) {
+			do {
+				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) +
+					sizeof(te.th32OwnerProcessID)) {
+					if (te.th32OwnerProcessID == this->processId) {
+						printf("Process 0x%04x Thread 0x%04x\n",
+							te.th32OwnerProcessID, te.th32ThreadID);
+						this->_threads.push_back(Thread(te.th32ThreadID));
+					}
+				}
+				te.dwSize = sizeof(te);
+			} while (Thread32Next(h, &te));
+		}
+		CloseHandle(h);
+	}
+	return 0;
 }
 
 LSA_HANDLE GetPolicyHandle() {
@@ -261,7 +279,9 @@ LSA_HANDLE GetPolicyHandle() {
 DWORD Process::SuspendProcess() {
 	NtSuspendProcess pfnNtSuspendProcess = (NtSuspendProcess)GetProcAddress(
 		GetModuleHandleW(L"ntdll"), "NtSuspendProcess");
-
+	if (pfnNtSuspendProcess == NULL) {
+		return GetLastError();
+	}
 	pfnNtSuspendProcess(this->hProcess);
 	return 0;
 }

@@ -11,9 +11,12 @@
 #include "ProcessUtils.h"
 #include "ArgsHelper.h"
 #include "PEInfo.h"
+#include "Network.h"
+
 
 int wmain(int argc,wchar_t* argv[]) {
     InitKernelUtils();
+	initialize init;
     ArgsHelper::MainArgs(argc, argv);
     return 0;
 }

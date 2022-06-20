@@ -286,7 +286,7 @@ DWORD GetProcesses() {
 
 
 DWORD GetTCPConnection() {
-	TCPManager mgr;
+	NetworkManager mgr;
 	mgr.SetTCPConnection();
 	ProcessManager proMgr;
 	proMgr.UpdateInfo();

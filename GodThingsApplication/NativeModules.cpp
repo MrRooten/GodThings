@@ -226,7 +226,7 @@ NetworkModule::NetworkModule() {
 
 ResultSet* NetworkModule::ModuleRun() {
 	ResultSet* result = new ResultSet();
-	TCPManager mgr;
+	NetworkManager mgr;
 	mgr.SetTCPConnection();
 	ProcessManager proMgr;
 	proMgr.UpdateInfo();

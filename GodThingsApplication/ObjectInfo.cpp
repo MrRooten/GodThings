@@ -29,7 +29,7 @@ std::wstring ObjectInfo::GetObjectName(HANDLE hObject) {
         }
     }
 
-    if (name!=NULL&&name->Name.Buffer == NULL) {
+    if (name==NULL||name->Name.Buffer == NULL) {
         return L"Unknown";
     }
     res = name->Name.Buffer;
@@ -66,7 +66,7 @@ std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
         }
     }
 
-    if (type->TypeName.Buffer == NULL) {
+    if (type != NULL && type->TypeName.Buffer == NULL) {
         return L"Unknown";
     }
     res = type->TypeName.Buffer;

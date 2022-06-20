@@ -36,6 +36,7 @@ namespace PyProcessInfoModule {
 
 	PyObject* GetProcessHandleState(PyObject* self, PyObject* args);
 
+	PyObject* GetProcessUsername(PyObject* self, PyObject* args);
 	//PyObject* GetProcessImageState(PyObject* self, PyObject* args);
 
 	static PyMethodDef methods[] = {
@@ -45,7 +46,8 @@ namespace PyProcessInfoModule {
 		{"get_process_memory_state",GetProcessMemoryState,METH_VARARGS,"Return the process memory state"},
 		{"get_process_io_state",GetProcessIOState,METH_VARARGS,"Return the process io state"},
 		{"get_process_cpu_state",GetProcessCPUState,METH_VARARGS,"Return the process cpu state"},
-		{"get_process_handle_state",GetProcessHandleState,METH_VARARGS,"Return the process"},
+		{"get_process_handle_state",GetProcessHandleState,METH_VARARGS,"Return the process handle state"},
+		{"get_process_username",GetProcessUsername,METH_VARARGS,"Return the process username"},
 		{NULL,NULL,0,0}
 	};
 	static PyModuleDef moduleDef = {
@@ -68,6 +70,10 @@ namespace PySystemInfoModule {
 	PyObject* GetProcessorInfo(PyObject* self, PyObject* args);
 
 	PyObject* GetPerfInfo(PyObject* self, PyObject* args);
+
+	PyObject* GetSystemWorkingSet(PyObject* self, PyObject* args);
+
+
 
 	//PyObject* GetNtGlobalFlag(PyObject* self, PyObject* args);
 
@@ -122,7 +128,6 @@ namespace PyRegistryUtilsModule {
 	PyObject* RegistryModuleInit();
 };
 
-
 namespace PyEventLogModule {
 
 };
@@ -175,6 +180,8 @@ namespace PyFileInfoModule {
 namespace PyUtils {
 	PyObject* ReturnObject(PyObject* self, PyObject* args);
 
+	PyObject* GetErrorStringByCode(PyObject* self, PyObject* args);
+
 	static PyMethodDef methods[] = {
 		{"return_object",ReturnObject,METH_VARARGS,"Return Object"},
 		{NULL,NULL,0,0}
@@ -208,6 +215,8 @@ namespace PyNetworkInfoModule {
 	PyObject* GetNetworkByPid(PyObject* self, PyObject* args);
 
 	static PyMethodDef methods[] = {
+		{"get_connection_by_pid",GetNetworkByPid,METH_VARARGS,"Get Network connection by pid"},
+		{"get_connections",GetNetworkList,METH_NOARGS,"Get Network connections"},
 		{NULL,NULL,0,0}
 	};
 
@@ -254,6 +263,7 @@ namespace PyServiecInfoModule {
 
 	PyObject* ServiceInfoModuleInit();
 }
+
 using PyTypes = std::map<std::string, PyTypeObject*>;
 using PyObjectCallback = std::function<int(LPVOID)>;
 using PyArgs = std::vector<PyObject*>;
@@ -288,6 +298,7 @@ struct initialize
 		PyImport_AppendInittab("registry_internal", &PyRegistryUtilsModule::RegistryModuleInit);
 		PyImport_AppendInittab("account_internal", &PyAccountInfoModule::AccountInfoModuleInit);
 		PyImport_AppendInittab("service_internal", &PyServiecInfoModule::ServiceInfoModuleInit);
+		PyImport_AppendInittab("network_internal", &PyNetworkInfoModule::NetworkInfoModuleInit);
 		Py_InitializeEx(1);
 		//PyEval_InitThreads(); // not needed as of Python 3.7, deprecated as of 3.9
 	}

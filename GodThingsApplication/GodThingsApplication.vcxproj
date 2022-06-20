@@ -212,6 +212,7 @@ xcopy /y /d "$(ProjectDir)plugins" "$(OutDir)plugins"
     <ClInclude Include="KernelUtils.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="NativeModules.h" />
+    <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="NtFileInfo.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="ntapi.h" />

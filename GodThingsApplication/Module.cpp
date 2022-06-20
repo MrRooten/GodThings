@@ -25,6 +25,9 @@ void PythonModule::_LoadMetaData() {
 	std::vector<PyObject*> args;
 	std::string file = StringUtils::ws2s(this->Path);
 	std::string function = "meta_data";
+	PythonUtils::RunFunction([](LPVOID pObject)->int {
+		return 0;
+		}, file.c_str(), "meta_data", args);
 	PythonUtils::RunFunction([this](LPVOID pObject)->int {
 		this->Description = GetDictItemString((PyObject*)pObject, "Description");
 

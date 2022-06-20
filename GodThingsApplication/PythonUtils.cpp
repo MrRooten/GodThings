@@ -6,6 +6,7 @@
 #include "ObjectInfo.h"
 #include "RegistryUtils.h"
 #include "Service.h"
+#include "Network.h"
 namespace PyProcessInfoModule {
     PyObject* GetPids(PyObject* self, PyObject* args) {
         PyObject* list = PyList_New(0);
@@ -428,6 +429,42 @@ namespace PyProcessInfoModule {
         return HandleStateSerial;
     }
 
+    PyObject* GetProcessUsername(PyObject* self, PyObject* args) {
+        int pid;
+        PyObject* MemoryStateSerial = PyList_New(0);
+        if (!PyArg_ParseTuple(args, "i", &pid)) {
+            return Py_None;
+        }
+
+        Process* process = NULL;
+        if (mgr != NULL) {
+            mgr->UpdateInfo();
+            if (mgr->processesMap.count(pid) > 0) {
+                process = mgr->processesMap[pid];
+            }
+            else {
+                //THROW ERROR
+                return Py_None;
+            }
+        }
+
+        if (process == NULL) {
+            auto handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+            if (handle == NULL) {
+                return Py_None;
+            }
+            process = new Process(pid);
+            CloseHandle(handle);
+        }
+        if (process == NULL) {
+            return Py_None;
+        }
+
+        auto username = process->GetUser();
+        PyObject* pyUsername = PyUnicode_FromString(StringUtils::ws2s(username).c_str());
+        return pyUsername;
+    }
+
     PyObject* ProcessInfoModuleInit() {
         return PyModule_Create(&moduleDef);
     }
@@ -666,9 +703,6 @@ DWORD PythonUtils::RunFunction(PyObjectCallback callback,const char* cstr_file, 
     PyObject* pArgs, * pValue = NULL;
     PyObject* pErrorObject = NULL;
     int res = 0;
-    /*if (Py_IsInitialized() == false) {
-        Py_Initialize();
-    }*/
     std::string file(cstr_file);
     std::string function(cstr_function);
     std::string dir = file.substr(0,file.find_last_of('\\')+1);
@@ -680,7 +714,6 @@ DWORD PythonUtils::RunFunction(PyObjectCallback callback,const char* cstr_file, 
     file = file.substr(file.find_last_of("\\")+1);
     pName = PyUnicode_DecodeFSDefault(file.c_str());
     /* Error checking of pName left out */
-
     pModule = PyImport_Import(pName);
     Py_DECREF(pName);
 
@@ -718,7 +751,7 @@ DWORD PythonUtils::RunFunction(PyObjectCallback callback,const char* cstr_file, 
     else {
         pValue = PythonUtils::GetLastError();
     }
-    //std::cout << PythonUtils::GetObjectString(pValue) << std::endl;
+    std::cout << PythonUtils::GetObjectString(pValue) << std::endl;
     res = callback(pValue);
     //Py_FinalizeEx();
 
@@ -1114,4 +1147,56 @@ PyObject* PyServiecInfoModule::ServiceInfoModuleInit() {
     return PyModule_Create(&moduleDef);
 }
 
+inline void _get_connection(PyObject* pyConnection, Connection* conn) {
+    std::string protocol;
+    if (conn->protocol == Protocol::TCP) {
+        protocol = "TCP";
+    }
+    else if (conn->protocol == Protocol::UDP) {
+        protocol = "UDP";
+    }
+    _dict_insert_help(pyConnection, PyUnicode_FromString("Protocol"), PyUnicode_FromString(protocol.c_str()));
+    _dict_insert_help(pyConnection, PyUnicode_FromString("Local IP"), PyUnicode_FromString(StringUtils::ws2s(conn->GetLocalIPAsString()).c_str()));
+    _dict_insert_help(pyConnection, PyUnicode_FromString("Remote IP"), PyUnicode_FromString(StringUtils::ws2s(conn->GetRemoteIPAsString()).c_str()));
+    _dict_insert_help(pyConnection, PyUnicode_FromString("State"), PyUnicode_FromString(StringUtils::ws2s(conn->GetStateAsString()).c_str()));
+    _dict_insert_help(pyConnection, PyUnicode_FromString("Local Port"), PyLong_FromLong(conn->localPort));
+    _dict_insert_help(pyConnection, PyUnicode_FromString("Remote Port"), PyLong_FromLong(conn->remotePort));
+    _dict_insert_help(pyConnection, PyUnicode_FromString("Pid"), PyLong_FromLong(conn->owningPid));
+}
 
+PyObject* PyNetworkInfoModule::GetNetworkList(PyObject* self, PyObject* args) {
+    NetworkManager mgr;
+    auto connections = mgr.GetAllConnections();
+    PyObject* connList = PyList_New(0);
+    for (auto conn : connections) {
+        PyObject* pyConnection = PyDict_New();
+        _get_connection(pyConnection, conn);
+        PyList_Append(connList, pyConnection);
+        Py_XDECREF(pyConnection);
+    }
+
+    return connList;
+}
+
+PyObject* PyNetworkInfoModule::GetNetworkByPid(PyObject* self, PyObject* args) {
+    int pid = 0;
+    if (!PyArg_ParseTuple(args, "i", &pid)) {
+        return Py_None;
+    }
+
+    NetworkManager mgr;
+    auto connections = mgr.GetConnectionsByPid(pid);
+    PyObject* connList = PyList_New(0);
+    for (auto conn : connections) {
+        PyObject* pyConnection = PyDict_New();
+        _get_connection(pyConnection, conn);
+        PyList_Append(connList, pyConnection);
+        Py_XDECREF(pyConnection);
+    }
+
+    return connList;
+}
+
+PyObject* PyNetworkInfoModule::NetworkInfoModuleInit() {
+    return PyModule_Create(&moduleDef);
+}
