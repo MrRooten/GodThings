@@ -265,10 +265,17 @@ namespace PyServiecInfoModule {
 }
 
 namespace PyThreadInfoModule {
-	PyObject* GetThreadsInfoByPid(PyObject* self, PyObject* args);
+	PyObject* GetTidsInfoByPid(PyObject* self, PyObject* args);
 
+	PyObject* GetThreadBasicInfoByTid(PyObject* self, PyObject* args);
+
+	PyObject* GetThreadPerformanceByTid(PyObject* self, PyObject* args);
+
+	PyObject* GetProcessIdByTid(PyObject* self, PyObject* args);
+
+	PyObject* GetThreadNameByTid(PyObject* self, PyObject* args);
 	static PyMethodDef methods[] = {
-		{"get_threads_by_pid",GetThreadsInfoByPid,METH_VARARGS,"Get threads by pid"},
+		{"get_tids_by_pid",GetTidsInfoByPid,METH_VARARGS,"Get threads by pid"},
 		{NULL,NULL,0,0}
 	};
 
@@ -472,8 +479,6 @@ private:
 
 	PyThreadState* _ts;
 };
-
-
 
 class PythonVM {
 public:

@@ -751,7 +751,7 @@ DWORD PythonUtils::RunFunction(PyObjectCallback callback,const char* cstr_file, 
     else {
         pValue = PythonUtils::GetLastError();
     }
-    std::cout << PythonUtils::GetObjectString(pValue) << std::endl;
+    //std::cout << PythonUtils::GetObjectString(pValue) << std::endl;
     res = callback(pValue);
     //Py_FinalizeEx();
 
@@ -1201,7 +1201,7 @@ PyObject* PyNetworkInfoModule::NetworkInfoModuleInit() {
     return PyModule_Create(&moduleDef);
 }
 
-PyObject* PyThreadInfoModule::GetThreadsInfoByPid(PyObject* self, PyObject* args) {
+PyObject* PyThreadInfoModule::GetTidsInfoByPid(PyObject* self, PyObject* args) {
     int pid = 0;
     if (!PyArg_ParseTuple(args, "i", &pid)) {
         return Py_None;
@@ -1213,6 +1213,26 @@ PyObject* PyThreadInfoModule::GetThreadsInfoByPid(PyObject* self, PyObject* args
         _list_insert_help(pyList, PyLong_FromLong((long)thread.threadId));
     }
     return pyList;
+}
+
+PyObject* PyThreadInfoModule::GetThreadBasicInfoByTid(PyObject* self, PyObject* args) {
+    int tid = 0;
+    if (!PyArg_ParseTuple(args, "i", &tid)) {
+        return Py_None;
+    }
+
+    Thread h(tid);
+    auto pInfo = h.GetBasicInfo();
+    if (pInfo == NULL) {
+        return Py_None;
+    }
+    PyObject* result = PyDict_New();
+    _dict_insert_help(result, PyUnicode_FromString("ExitStatus"), PyLong_FromLong(pInfo->ExitStatus));
+    _dict_insert_help(result, PyUnicode_FromString("TebBaseAddress"), PyLong_FromUnsignedLongLong((UINT64)pInfo->TebBaseAddress));
+    _dict_insert_help(result, PyUnicode_FromString("AffinityMask"), PyLong_FromUnsignedLongLong(pInfo->AffinityMask));
+    _dict_insert_help(result, PyUnicode_FromString("AffinityMask"), PyLong_FromLongLong(pInfo->Priority));
+    _dict_insert_help(result, PyUnicode_FromString("AffinityMask"), PyLong_FromLong(pInfo->BasePriority));
+    return result;
 }
 
 PyObject* PyThreadInfoModule::ThreadInfoModuleInit() {

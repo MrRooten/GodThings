@@ -198,7 +198,6 @@ xcopy /y /d "$(ProjectDir)plugins" "$(OutDir)plugins"
     <ClCompile Include="StringUtils.cpp" />
     <ClCompile Include="SystemInfo.cpp" />
     <ClCompile Include="TestNativeModule.cpp" />
-    <ClCompile Include="ThreadInfo.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="VerifyUtils.cpp" />
   </ItemGroup>
@@ -235,7 +234,6 @@ xcopy /y /d "$(ProjectDir)plugins" "$(OutDir)plugins"
     <ClInclude Include="StringUtils.h" />
     <ClInclude Include="SystemInfo.h" />
     <ClInclude Include="TestNativeModule.h" />
-    <ClInclude Include="ThreadInfo.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="VerifyUtils.h" />
   </ItemGroup>

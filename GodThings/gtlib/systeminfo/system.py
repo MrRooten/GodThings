@@ -1,7 +1,7 @@
 import system_internal
 
 
-class BasicInfo:
+class SystemBasicInfo:
     def __init__(self):
         return
 
@@ -9,7 +9,6 @@ class BasicInfo:
 class SystemInfo:
     def __init__(self):
         pass
-
 
     def get_basic_info(self):
         return system_internal.get_basic_info()

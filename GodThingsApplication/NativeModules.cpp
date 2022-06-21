@@ -240,12 +240,13 @@ ResultSet* NetworkModule::ModuleRun() {
 			connection->owningPid,
 			proMgr.processesMap[connection->owningPid]->processName.c_str()
 		);
-		result->PushDictOrdered("localIP", StringUtils::ws2s(connection->GetLocalIPAsString().c_str()));
-		result->PushDictOrdered("localPort", std::to_string(connection->localPort));
-		result->PushDictOrdered("remoteIP", StringUtils::ws2s(connection->GetRemoteIPAsString().c_str()));
-		result->PushDictOrdered("remotePort", std::to_string(connection->remotePort));
+		result->PushDictOrdered("local ip", StringUtils::ws2s(connection->GetLocalIPAsString().c_str()));
+		result->PushDictOrdered("local port", std::to_string(connection->localPort));
+		result->PushDictOrdered("remote ip", StringUtils::ws2s(connection->GetRemoteIPAsString().c_str()));
+		result->PushDictOrdered("remote port", std::to_string(connection->remotePort));
 		result->PushDictOrdered("state", StringUtils::ws2s(connection->GetStateAsString().c_str()));
 		result->PushDictOrdered("pid", std::to_string(connection->owningPid));
+		result->PushDictOrdered("process name", StringUtils::ws2s(Process(connection->owningPid).GetProcessName()));
 	}
 	result->SetType(DICT);
 	return result;

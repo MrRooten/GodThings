@@ -216,7 +216,6 @@ Process::~Process() {
 	if (latestCpuState != nullptr)
 		delete latestCpuState;
 
-	
 }
 
 
@@ -243,9 +242,7 @@ DWORD Process::SetThreads() {
 				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) +
 					sizeof(te.th32OwnerProcessID)) {
 					if (te.th32OwnerProcessID == this->processId) {
-						printf("Process 0x%04x Thread 0x%04x\n",
-							te.th32OwnerProcessID, te.th32ThreadID);
-						this->_threads.push_back(Thread(te.th32ThreadID));
+						this->_threads.push_back(Thread(te.th32OwnerProcessID,te.th32ThreadID));
 					}
 				}
 				te.dwSize = sizeof(te);
@@ -710,43 +707,6 @@ DWORD Process::SetProcessIOState() {
 	return NtStatusHandler(status);
 }
 
-
-
-
-//DWORD Process::SetProcessHandlesState() {
-//	PPROCESS_HANDLE_SNAPSHOT_INFORMATION handles;
-//	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->processId);
-//	NTSTATUS status = EnumProcessHandles(
-//		hProcess,
-//		&handles
-//	);
-//	if (hProcess != NULL) {
-//		CloseHandle(hProcess);
-//	}
-//	PSYSTEM_HANDLE_INFORMATION_EX convertedHandles = (PSYSTEM_HANDLE_INFORMATION_EX)malloc(sizeof(SYSTEM_HANDLE_INFORMATION_EX) + sizeof(SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX) * (handles->NumberOfHandles));
-//	if (convertedHandles == NULL) {
-//		Logln(DEBUG_LEVEL, 
-//			L"Can not alloc space for SYSTEM_HANDLE_INFORMATION_EX:%d,%s", 
-//			GetLastError(), 
-//			GetLastErrorAsString());
-//		return GetLastError();
-//	}
-//	convertedHandles->NumberOfHandles = handles->NumberOfHandles;
-//
-//
-//	for (int i = 0; i < handles->NumberOfHandles; i++) {
-//		convertedHandles->Handles[i].Object = 0;
-//		convertedHandles->Handles[i].UniqueProcessId = (ULONG_PTR)this->processId;
-//		convertedHandles->Handles[i].HandleValue = (ULONG_PTR)handles->Handles[i].HandleValue;
-//		convertedHandles->Handles[i].GrantedAccess = handles->Handles[i].GrantedAccess;
-//		convertedHandles->Handles[i].CreatorBackTraceIndex = 0;
-//		convertedHandles->Handles[i].ObjectTypeIndex = (USHORT)handles->Handles[i].ObjectTypeIndex;
-//		convertedHandles->Handles[i].HandleAttributes = handles->Handles[i].HandleAttributes;
-//	}
-//	this->handleState->handles = convertedHandles;
-//	return 0;
-//}
-
 BOOL Process::CreateDump(LPTSTR filename, MINIDUMP_TYPE dumpType) {
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
 	if (hProcess = NULL) {
@@ -811,6 +771,47 @@ CPUState* Process::GetCPUState() {
 	return this->cpuState;
 }
 
+std::map<DWORD, std::wstring> Process::_pidProcessNameMap;
+std::wstring Process::GetProcessName() {
+	if (this->processName.size() != 0) {
+		return this->processName;
+	}
+
+	if (_pidProcessNameMap.count(this->processId) > 0) {
+		return this->_pidProcessNameMap[this->processId];
+	}
+	else {
+		HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
+		PROCESSENTRY32 pe32;
+
+		hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+		if (hProcessSnap == INVALID_HANDLE_VALUE) {
+			return L"";
+		}
+
+		pe32.dwSize = sizeof(PROCESSENTRY32);
+
+		if (!Process32First(hProcessSnap, &pe32)) {
+			CloseHandle(hProcessSnap);
+			return L"";
+		}
+		do {
+			PID pid = pe32.th32ProcessID;
+			PID parentPid = pe32.th32ParentProcessID;
+			if (_pidProcessNameMap.count(pid) == 0) {
+				_pidProcessNameMap[pid] = StringUtils::s2ws(pe32.szExeFile);
+			}
+		} while (Process32Next(hProcessSnap, &pe32));
+		CloseHandle(hProcessSnap);
+	}
+
+	if (_pidProcessNameMap.count(this->processId) > 0) {
+		return this->_pidProcessNameMap[this->processId];
+	}
+	return L"";
+}
+
 DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
@@ -838,6 +839,10 @@ Thread::Thread(PSYSTEM_THREAD_INFORMATION pInfo) {
 	this->threadId = (TID)pInfo->ClientId.UniqueThread;
 	this->processId = (PID)pInfo->ClientId.UniqueProcess;
 }
+Thread::Thread(DWORD pid, DWORD tid) {
+	this->processId = pid;
+	this->threadId = tid;
+}
 Thread::~Thread() {
 
 }
@@ -858,6 +863,19 @@ KERNEL_USER_TIMES* Thread::GetKernelUserTimes() {
 	return &this->kernelUserTime;
 }
 
+DWORD Thread::GetProcessId() {
+	if (this->processId != 0) {
+		return this->processId;
+	}
+	HANDLE hThread = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, false, this->threadId);
+	if (hThread == NULL) {
+		return 0;
+	}
+	this->processId = GetProcessIdOfThread(hThread);
+	CloseHandle(hThread);
+	return this->processId;
+}
+
 std::vector<Thread> Thread::GetThreadsByPId(DWORD pid) {
 	std::vector<Thread> result;
 	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -869,7 +887,7 @@ std::vector<Thread> Thread::GetThreadsByPId(DWORD pid) {
 				if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) +
 					sizeof(te.th32OwnerProcessID)) {
 					if (te.th32OwnerProcessID == pid) {
-						result.push_back(Thread(te.th32ThreadID));
+						result.push_back(Thread(pid,te.th32ThreadID));
 					}
 				}
 				te.dwSize = sizeof(te);
@@ -921,6 +939,8 @@ cleanup:
 	CloseHandle(hThread);
 	return 0;
 }
+
+
 
 void Thread::Suspend() {
 	if (SuspendThread(this->hThread) == -1) {

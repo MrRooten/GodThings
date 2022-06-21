@@ -36,8 +36,8 @@
 #pragma comment(lib,"dbghelp.lib")
 
 typedef void (*processCallback)(PROCESSENTRY32 processEntry);
-typedef unsigned int PID;
-typedef unsigned int TID;
+typedef DWORD PID;
+typedef DWORD TID;
 typedef long long int Affinity;
 typedef DWORD Priority;
 typedef ULONGLONG MemoryUsage;
@@ -129,11 +129,13 @@ typedef struct _ImageState {
 
 class Thread;
 class ProcessManager;
+
 class Process {
 	std::vector<Thread> _threads;
+	
 public:
 	std::vector<Thread*>* threads;
-	
+	static std::map<DWORD, std::wstring> _pidProcessNameMap;
 	PID processId;
 	std::wstring processName;
 	std::wstring userName;
@@ -168,6 +170,7 @@ public:
 	IOState* GetIOState();
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
+	std::wstring GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	//DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
 	~Process();
@@ -210,17 +213,16 @@ public:
 	BOOL IsStronglyNamed();
 	BOOL IsSecureProcess();
 	BOOL IsSubsystemProcess();*/
-
-
 };
 
 class Thread {
 public:
 	Thread(TID tid);
 	Thread(PSYSTEM_THREAD_INFORMATION pInfo);
+	Thread(DWORD pid, DWORD tid);
 	SecurityState* securityState;
 	TID threadId;
-	PID processId;
+	PID processId = 0;
 	Priority priority;
 	ULONG memoryPriority;
 	FILETIME createTime;
@@ -236,6 +238,7 @@ public:
 	~Thread();
 	THREAD_BASIC_INFORMATION* GetBasicInfo();
 	KERNEL_USER_TIMES* GetKernelUserTimes();
+	DWORD GetProcessId();
 	static std::vector<Thread> GetThreadsByPId(DWORD pid);
 private:
 	HANDLE hThread;

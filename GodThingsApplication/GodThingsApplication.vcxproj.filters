@@ -48,9 +48,6 @@
     <ClCompile Include="Parse.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadInfo.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="EventLogUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -138,9 +135,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SystemInfo.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadInfo.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="NtThreadInfo.h">
