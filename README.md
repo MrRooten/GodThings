@@ -1,2 +1,2 @@
+This project is a framework of Windows system analysis
 # Godthings
-This project is a framework of Windows system analyser
