@@ -34,5 +34,5 @@ This project is a framework of Windows system analysis and provide some system a
   ### thread_internal
   ### service_internal
 ## gtlib[todo]
-  This is a python library wrap the functions that implement in GodAgent.exe,
+  This is a python library wrap the internal functions that implement in GodAgent.exe,
 
