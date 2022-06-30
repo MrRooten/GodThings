@@ -11,20 +11,21 @@ This project is a framework of Windows system analysis and provide some system a
     list_modules:
     interpreter: Run a Python interpreter
   ### Ability
-   #### Process information gathering [process controlling may be accomplished one day]
-   #### Network information gathering [network controlling may be accomplished one day]
-   #### Log information gathering.... suppose the control of log may not be implement
-   #### Account information gathering
-   #### Thread information gathering  [thread controlling may be accomplished one day]
-   #### Registry information gathering
-   #### Embed python interpreter to use those apis to write plugins so no need to compile c code to accomplish the ability you want
-   #### System information gathering
+    Process:Information gathering [process controlling may be accomplished one day]
+    Network:Information gathering [network controlling may be accomplished one day]
+    Windows Log:information gathering.... suppose the control of log may not be implement
+    Account:Information gathering
+    Thread:Information gathering  [thread controlling may be accomplished one day]
+    Registry:Information gathering
+    Embed python interpreter:Use those apis to write plugins so no need to compile c code to accomplish the ability you want
+    System:Information gathering
   
 ## GtGui.exe
   This is the gui application of this GodAgent.exe that write in C#/WPF,
  
 ## Python Internal API
   ### process_internal
+    process_internal.get_pids()
   ### system_internal
   ### registry_internal
   ### file_internal
