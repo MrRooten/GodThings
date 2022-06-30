@@ -695,6 +695,7 @@ DWORD PythonUtils::LoadFile(const char* pyFile) {
     PyRun_SimpleFile(fp, pyFile);
     
     //PyRun_SimpleString("import process\nprint(process.ProcessesManager.get_pids())");
+    return 0;
 }
 
 
