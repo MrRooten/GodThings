@@ -1,5 +1,5 @@
 # Godthings
-This project is a framework of Windows system analysis
+This project is a framework of Windows system analysis and provide some system api to write C or Python code to extend the function of this system. 
 ## Godthings.sys
   This is kernel driver of this project that supply some kernel mode ability.
   
