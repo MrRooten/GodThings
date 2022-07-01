@@ -480,47 +480,6 @@ private:
 	PyThreadState* _ts;
 };
 
-class PythonVM {
-public:
-	sub_interpreter* s_interp;
-	PythonVM();
 
-	void ExecCode(const char* s);
 
-	void RunFunction(PyObjectCallback callback, const char* cstr_file, const char* cstr_function, PyArgs& args);
-
-	~PythonVM();
-};
-
-class PythonVMMgr {
-public:
-	initialize* init;
-	static PythonVMMgr* _one_instance;
-	PythonVM* vm = NULL;
-	static PythonVMMgr* GetVMMgr() {
-		if (PythonVMMgr::_one_instance != NULL) {
-			return PythonVMMgr::_one_instance;
-		}
-		PythonVMMgr::_one_instance = new PythonVMMgr();
-		_one_instance->vm = new PythonVM();
-		return PythonVMMgr::_one_instance;
-	}
-	PythonVMMgr() {
-		PyImport_AppendInittab("file_internal", &PyFileInfoModule::FileInfoModuleInit);
-		PyImport_AppendInittab("process_internal", &PyProcessInfoModule::ProcessInfoModuleInit);
-		PyImport_AppendInittab("system_internal", &PySystemInfoModule::SystemInfoModuleInit);
-		PyImport_AppendInittab("registry_internal", &PyRegistryUtilsModule::RegistryModuleInit);
-		init = new initialize();
-	}
-	PythonVM* GetVM() {
-		if (vm != NULL) {
-			return vm;
-		}
-		vm = new PythonVM();
-		return vm;
-	}
-	~PythonVMMgr() {
-		delete init;
-	}
-};
 #endif // !_PYTHON_UTILS_H

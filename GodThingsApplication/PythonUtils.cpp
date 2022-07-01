@@ -983,38 +983,8 @@ PyObject* PyFileInfoModule::FileInfoModuleInit() {
 }
 
 const static std::thread::id MAIN_THREAD_ID = std::this_thread::get_id();
-PythonVM::PythonVM() {
-    s_interp = new sub_interpreter();
-}
 
-void PythonVM::ExecCode(const char* s) {
-    if (std::this_thread::get_id() != MAIN_THREAD_ID) {
-        sub_interpreter::thread_scope scope(s_interp->interp());
-        PyRun_SimpleString(s);
-    }
-    else {
-        PyRun_SimpleString(s);
-    }
-}
 
-void PythonVM::RunFunction(PyObjectCallback callback, const char* cstr_file, const char* cstr_function, PyArgs& args) {
-    if (std::this_thread::get_id() != MAIN_THREAD_ID) {
-        sub_interpreter::thread_scope scope(s_interp->interp());
-        PythonUtils::RunFunction(callback, cstr_file, cstr_function, args);
-    }
-    else {
-        PythonUtils::RunFunction(callback, cstr_file, cstr_function, args);
-    }
-}
-
-PythonVM::~PythonVM() {
-    if (s_interp != NULL) {
-        delete s_interp;
-    }
-        
-}
-
-PythonVMMgr* PythonVMMgr::_one_instance = NULL;
 
 PyObject* PyRegistryUtilsModule::GetRegistryValue(PyObject* self, PyObject* args) {
     char* path;
