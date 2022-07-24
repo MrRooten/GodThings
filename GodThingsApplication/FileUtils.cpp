@@ -54,6 +54,12 @@ DWORD File::ReadBytes(PBYTE* pBytes) {
 	return readSize;
 }
 
+DWORD File::ReadBytes(PBYTE bytes,size_t size) {
+	DWORD _size = 0;
+	ReadFile(this->hFile, bytes, size, &_size, NULL);
+	return _size;
+}
+
 //Return number of read bytes
 DWORD File::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
 	if (size != this->_blockSize) {
@@ -137,3 +143,40 @@ std::vector<std::wstring> Dir::listFiles() {
 	} while (FindNextFileW(hFind, &ffd) != 0);
 	return res;
 }
+
+#include <fstream>
+#include <iostream>
+PrefetchFile* PrefetchFile::NewPrefetchFile(std::wstring file, bool is_compressed) {
+	PrefetchFile* result = NULL;
+	try {
+		result = new PrefetchFile(file, is_compressed);
+	}
+	catch (std::exception ex) {
+		return NULL;
+	}
+
+	return result;
+}
+PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) {
+	HANDLE hFile = CreateFileW(
+		file.c_str(),
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+	if (hFile == NULL) {
+		goto exception;
+	}
+	if (is_compressed) {
+
+	}
+
+exception:
+	if (hFile != NULL) {
+		CloseHandle(hFile);
+	}
+	throw std::exception();
+}
+

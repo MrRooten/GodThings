@@ -55,4 +55,22 @@ public:
 	UnsignedRunningProcess();
 	ResultSet* ModuleRun();
 };
+
+class DriverList : public NativeModule {
+public:
+	DriverList();
+	ResultSet* ModuleRun();
+};
+
+class USBHistory : public NativeModule {
+public:
+	USBHistory();
+	ResultSet* ModuleRun();
+};
+
+class PrefetchModule : public NativeModule {
+public:
+	PrefetchModule();
+	ResultSet* ModuleRun();
+};
 #endif

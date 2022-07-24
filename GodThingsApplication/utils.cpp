@@ -217,6 +217,30 @@ ULONG64 GTTime::ToNowULONG64() {
 	res += this->day * 24 * 60 * 60 * 1000;
 	return res;
 }
+GTTime::GTTime(FILETIME &filetime) {
+	SYSTEMTIME utc;
+	FileTimeToSystemTime(std::addressof(filetime), std::addressof(utc));
+	std::ostringstream stm;
+	const auto w2 = std::setw(2);
+	this->year = utc.wYear;
+	this->mouth = utc.wMonth;
+	this->day = utc.wDay;
+	this->hour = utc.wHour;
+	this->minute = utc.wMinute;
+	this->second = utc.wSecond;
+	this->millisecond = utc.wMilliseconds;
+}
+GTTime::GTTime(SYSTEMTIME &utc) {
+	std::ostringstream stm;
+	const auto w2 = std::setw(2);
+	this->year = utc.wYear;
+	this->mouth = utc.wMonth;
+	this->day = utc.wDay;
+	this->hour = utc.wHour;
+	this->minute = utc.wMinute;
+	this->second = utc.wSecond;
+	this->millisecond = utc.wMilliseconds;
+}
 std::wstring GTTime::ToISO8601() {
 	struct std::tm tm;
 	std::wstringstream ss(this->ToString().c_str());

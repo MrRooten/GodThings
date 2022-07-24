@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "PythonUtils.h"
+#include "FileUtils.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -37,7 +38,12 @@ public:
 	}
 
 	static void RunModule(wchar_t* moduleName,int argc,wchar_t** args) {
-
+		auto mgr = ModuleMgr::GetMgr();
+		for (auto& mod : mgr->modules) {
+			if (mod->Name == moduleName) {
+				mod->ModuleRun();
+			}
+		}
 	}
 
 	static void InfoModule(wchar_t* moduleName) {
@@ -62,6 +68,13 @@ public:
 		return;
 	}
 
+	static void test() {
+		auto file = FileUtils::Open(L"C:\\test\\index.php", L"r");
+		BYTE b[100] = { 0 };
+		file->ReadBytes(b, 2);
+		file->ReadBytes(b, 2);
+		delete file;
+	}
 	static void MainArgs(int argc,wchar_t** argv) {
 		initialize init;
 		if (argc < 2) {
@@ -106,6 +119,8 @@ public:
 		else if (subcmd == L"interpreter") {
 			Py_Main(argc - 1, &argv[1]);
 		}
-
+		else if (subcmd == L"test") {
+			test();
+		}
 	}
 };

@@ -207,7 +207,7 @@ DWORD ModuleMgr::LoadModules() {
 	Rundll32Backdoor* rundll = new Rundll32Backdoor();
 	UnsignedRunningProcess* unsignedProcess = new UnsignedRunningProcess();
 	ShadowAccount* shadowAccount = new ShadowAccount();
-	printf("cur:%s\n", std::filesystem::current_path().generic_string().c_str());
+	USBHistory* usbHistory = new USBHistory();
 	std::wstring currPath = std::filesystem::current_path().native().c_str();
 	std::wstring pluginPath = currPath + L"\\plugins\\*";
 	Dir dir(pluginPath.c_str());
@@ -216,7 +216,6 @@ DWORD ModuleMgr::LoadModules() {
 		try {
 			auto f2 = f.substr(0, f.size() - 3);
 			std::wstring pyPluginPath = currPath + L"\\plugins\\" + f2;
-			wprintf(L"%s\n", pyPluginPath.c_str());
 			new PythonModule(pyPluginPath.c_str());
 		}
 		catch (...) {

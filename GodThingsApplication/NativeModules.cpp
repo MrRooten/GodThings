@@ -341,3 +341,43 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 	result->SetType(DICT);
 	return result;
 }
+
+USBHistory::USBHistory() {
+	this->Name = L"USBHistory";
+	this->Path = this->Name;
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get USB History";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* USBHistory::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	std::wstring key = L"HKEY_LOCAL_MACHINE\\SYSTEM\\";
+	std::wstring timeKey = L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\DeviceClasses\\{53f56307-b6bf-11d0-94f2-00a0c91efb8b}\\";
+	RegistryUtils utils(timeKey.c_str());
+	auto subkeys = utils.ListSubKeysChain();
+	for (auto& subkey : subkeys) {
+		auto time = subkey.GetLastWriteTime();
+		wprintf(L"%s %s\n", subkey.GetKeyName().c_str(), GTTime(time).ToString().c_str());
+		result->PushDictOrdered("Device Name", StringUtils::ws2s(subkey.GetKeyName()));
+		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).ToString()));
+		
+	}
+	return result;
+}
+
+PrefetchModule::PrefetchModule() {
+	this->Name = L"Prefetch";
+	this->Path = this->Name;
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Prefetch files";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* PrefetchModule::ModuleRun() {
+	return nullptr;
+}

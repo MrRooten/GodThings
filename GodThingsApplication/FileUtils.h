@@ -16,6 +16,7 @@ public:
 	File();
 	BOOL Initialize(std::wstring filePath,DWORD mode);
 	DWORD ReadBytes(PBYTE *pBytes);
+	DWORD ReadBytes(PBYTE bytes,size_t size);
 	DWORD ReadBytesBlock(DWORD size,PBYTE* pBytes);
 	size_t WriteBytes(size_t pos, PBYTE bytes, size_t length);
 	~File();
@@ -34,4 +35,19 @@ private:
 public:
 	Dir(const wchar_t* dirpath);
 	std::vector<std::wstring> listFiles();
+};
+
+class MFTReader {
+	std::wstring volume;
+public:
+	MFTReader(std::wstring volume);
+	DWORD Initialize();
+};
+
+class PrefetchFile {
+	std::string header;
+public:
+	static PrefetchFile* NewPrefetchFile(std::wstring file, bool is_compressed);
+	PrefetchFile(std::wstring& file, bool is_compressed);
+	~PrefetchFile();
 };

@@ -41,7 +41,8 @@ public:
 	DWORD minute = 0;
 	DWORD second = 0;
 	DWORD millisecond = 0;
-
+	GTTime(FILETIME &filetime);
+	GTTime(SYSTEMTIME &systime);
 	std::wstring ToISO8601();
 	std::wstring ToString();
 	static GTTime GetTime();

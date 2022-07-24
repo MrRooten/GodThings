@@ -167,13 +167,13 @@
       <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)PythonLibs\Amd64\Python37.dll" "$(OutDir)"
-xcopy /y /d "$(ProjectDir)plugins" "$(OutDir)plugins"
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AccountInfo.cpp" />
+    <ClCompile Include="DriverInfo.cpp" />
     <ClCompile Include="EventLogUtils.cpp" />
     <ClCompile Include="EvtInfo.cpp" />
     <ClCompile Include="FileInfo.cpp" />
@@ -204,6 +204,7 @@ xcopy /y /d "$(ProjectDir)plugins" "$(OutDir)plugins"
   <ItemGroup>
     <ClInclude Include="AccountInfo.h" />
     <ClInclude Include="ArgsHelper.h" />
+    <ClInclude Include="DriverInfo.h" />
     <ClInclude Include="EventLogUtils.h" />
     <ClInclude Include="EvtInfo.h" />
     <ClInclude Include="FileInfo.h" />
