@@ -2,6 +2,7 @@
 #ifndef _PYTHON_UTILS_H
 #define _PYTHON_UTILS_H
 
+#ifdef PYTHON_ENABLE
 #include "public.h"
 #include "Python/Python.h"
 #include <string>
@@ -13,6 +14,7 @@
 #elif _WIN32
 #pragma comment(lib,"PythonLibs\\win32\\python37.lib")
 #endif
+
 namespace PyProcessInfoModule {
 	static PyObject module;
 	
@@ -475,6 +477,8 @@ private:
 	PyThreadState* _ts;
 };
 
-
+#else
+typedef void PyInterpreterState;
+#endif
 
 #endif // !_PYTHON_UTILS_H

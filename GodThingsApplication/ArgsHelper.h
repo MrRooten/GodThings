@@ -17,6 +17,8 @@ public:
 	}
 
 	static void RunPythonFile(const wchar_t* wpath) {
+#ifdef  PYTHON_ENABLE
+
 		std::wstring s = wpath;
 		const char* path = StringUtils::ws2s(s).c_str();
 		FILE* fp = fopen(path, "r");
@@ -26,6 +28,7 @@ public:
 		}
 		int re = PyRun_SimpleFile(fp, path);
 		fclose(fp);
+#endif //  PYTHON_ENABLE
 	}
 
 	static void GuiServer() {
@@ -101,7 +104,9 @@ public:
 		}
 	}
 	static void MainArgs(int argc,wchar_t** argv) {
+#ifdef PYTHON_ENABLE
 		initialize init;
+#endif // PYTHON_ENABLE
 		if (argc < 2) {
 			help(argv[0]);
 			return;
@@ -142,7 +147,9 @@ public:
 			InfoModule(argv[2]);
 		}
 		else if (subcmd == L"python") {
+#ifdef PYTHON_ENABLE
 			Py_Main(argc - 1, &argv[1]);
+#endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
 			test();

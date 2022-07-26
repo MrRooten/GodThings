@@ -146,37 +146,17 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
 }
 #include <strsafe.h>
 #include <queue>
-struct sub_interpreter_manager {
-    std::queue<sub_interpreter*> ss;
-    sub_interpreter_manager() {
-        for (int i = 0; i < 20; i++) {
-            ss.push(new sub_interpreter());
-        }
-    }
-
-    sub_interpreter* get() {
-        auto res = ss.front();
-        ss.pop();
-        ss.push(res);
-        return res;
-    }
-
-    ~sub_interpreter_manager() {
-        while (ss.size() > 0) {
-            auto s = ss.front();
-            delete s;
-            ss.pop();
-        }
-    }
-};
-
 
 VOID Serve() {
+#ifdef PYTHON_ENABLE
     initialize init;
+#endif // PYTHON_ENABLE
     BOOL   fConnected = FALSE;
     DWORD  dwThreadId = 0;
     LPCSTR _pipeName = "\\\\.\\pipe\\gtpipe";
     const SIZE_T BufferSize = 10240;
+    ModuleMgr::GetMgr();
+#ifdef PYTHON_ENABLE
     sub_interpreter s1;
     sub_interpreter ss[20];
     std::thread t4{ [](PyInterpreterState* interp) {
@@ -184,6 +164,7 @@ VOID Serve() {
         ModuleMgr::GetMgr();
 } , sub_interpreter::current() };
     enable_threads_scope t;
+#endif
     int i = 0;
     for (;;) {
         HANDLE _hPipe = CreateNamedPipe(
@@ -209,7 +190,7 @@ VOID Serve() {
             i++;
             printf("Client connected, creating a processing thread.\n");
             //PythonVM* vm = new PythonVM();
-            
+#ifdef PYTHON_ENABLE
             std::thread t1([_hPipe](PyInterpreterState* state) {
                 sub_interpreter::thread_scope scope(state);
                 InstanceThread((LPVOID)_hPipe, state);
@@ -218,6 +199,7 @@ VOID Serve() {
             //_f.wait();
             //printf("Wait\n");
             t1.detach();
+#endif
 
             // Create a thread for this client. 
 
@@ -230,62 +212,7 @@ VOID Serve() {
     }
 }
 
-VOID ProcServer::Serve() {
-    ModuleMgr::GetMgr();
-	BOOL   fConnected = FALSE;
-	DWORD  dwThreadId = 0;
-    sub_interpreter* s1 = new sub_interpreter();
-	for (;;) {
-        HANDLE _hPipe = CreateNamedPipe(
-			this->_pipeName,             // pipe name 
-			PIPE_ACCESS_DUPLEX,       // read/write access 
-			PIPE_TYPE_MESSAGE |       // message type pipe 
-			PIPE_READMODE_MESSAGE |   // message-read mode 
-			PIPE_WAIT,                // blocking mode 
-			PIPE_UNLIMITED_INSTANCES, // max. instances  
-			this->BufferSize,                  // output buffer size 
-			this->BufferSize,                  // input buffer size 
-			0,                        // client time-out 
-			NULL);                    // default security attribute 
 
-		if (_hPipe == NULL) {
-			break;
-		}
-
-		fConnected = ConnectNamedPipe(_hPipe, NULL) ?
-			TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-
-        if (fConnected)
-        {
-            printf("Client connected, creating a processing thread.\n");
-            //PythonVM* vm = new PythonVM();
-            
-            
-            std::thread t1([_hPipe](PyInterpreterState* state) {
-                InstanceThread((LPVOID)_hPipe,state);
-
-                },s1->interp());
-            //_f.wait();
-            //printf("Wait\n");
-            //enable_threads_scope t;
-            t1.detach();
-            
-            // Create a thread for this client. 
-            
-        }
-        else
-            // The client could not connect, so close the pipe. 
-            CloseHandle(_hPipe);
-        
-        
-	}
-}
-
-ProcServer::~ProcServer() {
-	//if (this->_hPipe != NULL) {
-	//	CloseHandle(this->_hPipe);
-	//}
-}
 
 ProcHandler::ProcHandler(std::string &Message) {
     this->message = Message;
@@ -347,7 +274,9 @@ DWORD ProcHandler::Process(PyInterpreterState* state) {
                 }
             }
             mod->SetArgs(args);
+#ifdef PYTHON_ENABLE
             mod->SetVM(state);
+#endif // PYTHON_ENABLE
             ResultSet* _result_set = NULL;
             _result_set = mod->ModuleRun();
             result["module_result"] = _result_set->ToJsonObject();

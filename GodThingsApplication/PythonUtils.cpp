@@ -1,3 +1,7 @@
+#ifdef PYTHON_ENABLE
+
+
+
 #include "PythonUtils.h"
 #include <string>
 #include <vector>
@@ -1209,3 +1213,5 @@ PyObject* PyThreadInfoModule::GetThreadBasicInfoByTid(PyObject* self, PyObject* 
 PyObject* PyThreadInfoModule::ThreadInfoModuleInit() {
     return PyModule_Create(&moduleDef);
 }
+
+#endif // PYTHON_ENABLE

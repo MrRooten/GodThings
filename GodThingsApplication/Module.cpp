@@ -4,6 +4,9 @@
 #include "StringUtils.h"
 #include "TestNativeModule.h"
 #include "NativeModules.h"
+
+#ifdef PYTHON_ENABLE
+
 std::wstring GetDictItemString(PyObject* dict, const char* key) {
 	PyObject* Key = PyUnicode_FromString(key);
 	PyObject* Item = PyDict_GetItem(dict, Key);
@@ -15,12 +18,14 @@ std::wstring GetDictItemString(PyObject* dict, const char* key) {
 	Py_XDECREF(bytes);
 	return res;
 }
+#endif // PYTHON_ENABLE
 
 std::wstring helpPath(std::wstring path) {
 	auto tmps = StringUtils::StringSplit(path, L"\\");
 	return StringUtils::StringsJoin(tmps, L"\\\\");
 }
 
+#ifdef PYTHON_ENABLE
 void PythonModule::_LoadMetaData() {
 	std::vector<PyObject*> args;
 	std::string file = StringUtils::ws2s(this->Path);
@@ -41,26 +46,30 @@ void PythonModule::_LoadMetaData() {
 	
 	return;
 }
-
+#endif // PYTHON_ENABLE
 void PythonModule::Initialize() {
 
 }
 
 PythonModule::PythonModule(std::wstring path) {
+#ifdef  PYTHON_ENABLE
 	this->Path = path;
 	this->_LoadMetaData();
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
+#endif //  PYTHON_ENABLE
 }
 
 VOID Module::SetArgs(const Args& args) {
 	this->args = args;
 }
-
+#ifdef PYTHON_ENABLE
 VOID Module::SetVM(PyInterpreterState* state) {
 	this->state = state;
 }
+#endif
 
+#ifdef PYTHON_ENABLE
 ResultSet* PythonModule::ModuleRun() {
 	//this->_locker.lock();
 	PyObject* pyArgs = PyDict_New();
@@ -159,7 +168,9 @@ ResultSet* PythonModule::ModuleRun() {
 		return 0;
 	};
 	//sub_interpreter::thread_scope scope(this->state);
+#ifdef PYTHON_ENABLE
 	PythonUtils::RunFunction(ProcModule,file.c_str(), function.c_str(), vPyArgs);
+#endif
 	if (this->pPromise != NULL) {
 		this->pPromise->set_value_at_thread_exit(result);
 	}
@@ -168,6 +179,7 @@ ResultSet* PythonModule::ModuleRun() {
 	return result;
 }
 
+#endif
 
 VOID PythonModule::SetPromise(std::promise<ResultSet*>& promise) {
 	this->pPromise = &promise;
@@ -208,6 +220,8 @@ DWORD ModuleMgr::LoadModules() {
 	UnsignedRunningProcess* unsignedProcess = new UnsignedRunningProcess();
 	ShadowAccount* shadowAccount = new ShadowAccount();
 	USBHistory* usbHistory = new USBHistory();
+#ifdef  PYTHON_ENABLE
+
 	std::wstring currPath = std::filesystem::current_path().native().c_str();
 	std::wstring pluginPath = currPath + L"\\plugins\\*";
 	Dir dir(pluginPath.c_str());
@@ -222,6 +236,7 @@ DWORD ModuleMgr::LoadModules() {
 			continue;
 		}
 	}
+#endif //  PYTHON_ENABLE
 	return 0;
 }
 

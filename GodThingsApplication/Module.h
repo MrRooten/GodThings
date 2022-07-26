@@ -69,11 +69,15 @@ public:
 	std::wstring Class;
 	std::wstring Path;
 	std::wstring Description;
+#ifdef  PYTHON_ENABLE
 	PyInterpreterState* state;
+#endif //  PYTHON_ENABLE
 	using Args = std::map<std::string, std::string>;
 	Args args;
 	VOID SetArgs(const Args &args);
+#ifdef  PYTHON_ENABLE
 	VOID SetVM(PyInterpreterState* state);
+#endif //  PYTHON_ENABLE
 	virtual void Initialize() = 0;
 	virtual ResultSet* ModuleRun() = 0;
 	Json::Value GetModuleMetaJson();
@@ -88,7 +92,9 @@ private:
 	std::mutex _locker;
 public:
 	PythonModule(std::wstring path);
+#ifdef  PYTHON_ENABLE
 	ResultSet* ModuleRun() override;
+#endif //  PYTHON_ENABLE
 	VOID SetPromise(std::promise<ResultSet*> &promise);
 };
 
