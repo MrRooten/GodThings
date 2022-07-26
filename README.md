@@ -25,7 +25,8 @@ This project is a framework of Windows system analysis and provide some system a
   Many of api are not expose to python but implement in GodAgent.If you want to use those, this section may be helpful.
 ## GtGui.exe
   This is the gui application of this GodAgent.exe that write in C#/WPF,run this after run the command.(Actually this is not a good gui,I just write it for fun.If you don't want to use it,I understand that.)
-  ### GodAgent.exe gui_serve
+  ###
+    GodAgent.exe gui_serve
 
 ## Python Internal API
   Using help(module) after import the module to get the usage of function
