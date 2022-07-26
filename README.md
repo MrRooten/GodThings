@@ -1,5 +1,5 @@
 # Godthings
-This project is a framework of Windows system analysis and provide some system api to write C or Python code to extend the function of this system. 
+This project is a framework of Windows system analysis and provide some system api to write C or Python code to extend the function of this system. (The code most of it is written in C++/C#, but there are some necessary python libraries so the github code analysis show the python code is most of this project)
 ## Godthings.sys
   This is kernel driver of this project that supply some kernel mode ability.This must be developped in VS2019,but now I'm in VS2022(Too lazy to install VS2019,So may quit for a while)
   
@@ -21,10 +21,12 @@ This project is a framework of Windows system analysis and provide some system a
     Embed python interpreter:Use those apis to write plugins so no need to compile c code to accomplish the ability you want
     System:Information gathering
     Some Files parse: Prefetch[almost done],Amcache[todo],memory[todo],JumpListFile[todo],SRUMFile[todo]
+  ### Extend API [todo]
+  Many of api are not expose to python but implement in GodAgent.If you want to use those, this section may be helpful.
 ## GtGui.exe
-  This is the gui application of this GodAgent.exe that write in C#/WPF,run this after run the command 
+  This is the gui application of this GodAgent.exe that write in C#/WPF,run this after run the command.(Actually this is not a good gui,I just write it for fun.If you don't want to use it,I understand that.)
   ### GodAgent.exe gui_serve
- 
+
 ## Python Internal API
   Using help(module) after import the module to get the usage of function
   ### process_internal
