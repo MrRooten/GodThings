@@ -256,6 +256,10 @@ void ResultSet::PushDictOrdered(std::string key, std::string value) {
 	this->dataDict[key].push_back(value);
 }
 
+std::vector<std::string>& ResultSet::GetMapOrder() {
+	return this->_map_order;
+}
+
 ResultSet::ResultSet() {
 	this->type = NONE;
 }

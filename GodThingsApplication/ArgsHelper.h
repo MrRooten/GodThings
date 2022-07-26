@@ -10,9 +10,10 @@ public:
 
 		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\")+1).c_str());
 		wprintf(L"    pyfile <file>: Run python file\n");
-		wprintf(L"    interpreter: Run python interpreter\n");
+		wprintf(L"    python: Run python interpreter\n");
 		wprintf(L"    gui_serve: Run the GUI Serve\n");
 		wprintf(L"    info_module: List the Module Information\n");
+		wprintf(L"    run_module <module>: Run a module\n");
 	}
 
 	static void RunPythonFile(const wchar_t* wpath) {
@@ -42,7 +43,24 @@ public:
 		auto mgr = ModuleMgr::GetMgr();
 		for (auto& mod : mgr->modules) {
 			if (mod->Name == moduleName) {
-				mod->ModuleRun();
+				ResultSet* res = mod->ModuleRun();
+				auto json = res->ToJsonObject();
+				auto data = json["Data"];
+				int size = 0;
+				auto orders = res->GetMapOrder();
+				for (auto &key : orders) {
+					printf("%-30s ", key.c_str());
+					size = data[key].size();
+				}
+				printf("\n");
+				for (int i = 0; i < size; i++) {
+					for (auto &key : orders) {
+						auto member = data[key][i];
+						wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
+					}
+					printf("\n");
+				}
+				delete res;
 			}
 		}
 	}
@@ -123,7 +141,7 @@ public:
 			}
 			InfoModule(argv[2]);
 		}
-		else if (subcmd == L"interpreter") {
+		else if (subcmd == L"python") {
 			Py_Main(argc - 1, &argv[1]);
 		}
 		else if (subcmd == L"test") {
