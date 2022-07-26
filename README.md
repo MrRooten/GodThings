@@ -12,17 +12,34 @@ This project is a framework of Windows system analysis and provide some system a
     python: Run a Python interpreter
     
   ### Ability
-    Process:Information gathering [process controlling may be accomplished one day]
-    Network:Information gathering [network controlling may be accomplished one day]
-    Windows Log:information gathering.... suppose the control of log may not be implement
-    Account:Information gathering
-    Thread:Information gathering  [thread controlling may be accomplished one day]
-    Registry:Information gathering
-    Embed python interpreter:Use those apis to write plugins so no need to compile c code to accomplish the ability you want
-    System:Information gathering
-    Some Files parse: Prefetch[almost done],Amcache[todo],memory[todo],JumpListFile[todo],SRUMFile[todo]
+    Process:
+        Information gathering [process controlling may be accomplished one day]
+    
+    Network:
+        Information gathering [network controlling may be accomplished one day]
+    
+    Windows Log:
+        Information gathering.... suppose the control of log may not be implement
+    
+    Account:
+        Information gathering
+        
+    Thread:
+        Information gathering  [thread controlling may be accomplished one day]
+        
+    Registry:
+        Information gathering
+        
+    Embed python interpreter:
+        Use those apis to write plugins so no need to compile c code to accomplish the ability you want
+        
+    System:
+        Information gathering
+        
+    Some Files parse: 
+        Prefetch[almost done],Amcache[todo],memory[todo],JumpListFile[todo],SRUMFile[todo]
   ### Extend API [todo]
-  Many of api are not expose to python but implement in GodAgent.If you want to use those, this section may helpful.
+    Many of api are not expose to python but implement in GodAgent.If you want to use those, this section may helpful.
 ## GtGui.exe
   This is the gui application of this GodAgent.exe that write in C#/WPF,run this after run the command.(Actually this is not a good gui,I just write it for fun.If you don't want to use it,I understand that.)
   ###
