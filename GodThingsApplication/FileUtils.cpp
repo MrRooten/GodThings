@@ -53,6 +53,17 @@ DWORD File::ReadBytes(PBYTE* pBytes) {
 	*pBytes = res;
 	return readSize;
 }
+BytesPair File::ReadAll() {
+	PBYTE pBytes = NULL;
+	auto size = this->ReadBytes(&pBytes);
+	return BytesPair(pBytes,size);
+}
+
+DWORD File::ReadBytes(PBYTE bytes,size_t size) {
+	DWORD _size = 0;
+	ReadFile(this->hFile, bytes, size, &_size, NULL);
+	return _size;
+}
 
 //Return number of read bytes
 DWORD File::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
@@ -84,12 +95,19 @@ DWORD File::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
 	return dwReadBytes;
 }
 
+size_t File::WriteBytes(size_t pos, PBYTE bytes, size_t length) {
+	DWORD a;
+
+	WriteFile(this->hFile, bytes, length, &a, NULL);
+	return a;
+}
+
 File::~File() {
 	if (this->curBytes != NULL) {
 		LocalFree(this->curBytes);
 	}
 }
-File* FileUtils::Open(std::wstring filePath,std::wstring mode) {
+File* FileUtils::Open(std::wstring &filePath,std::wstring mode) {
 	File* file = new File();
 	if (file == NULL) {
 		return file;
@@ -137,3 +155,8 @@ std::vector<std::wstring> Dir::listFiles() {
 	} while (FindNextFileW(hFind, &ffd) != 0);
 	return res;
 }
+
+
+
+
+

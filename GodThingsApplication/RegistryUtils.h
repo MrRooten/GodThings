@@ -2,6 +2,8 @@
 #include "public.h"
 #include <string>
 #include <vector>
+#include <ctime>
+#include "utils.h"
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
 
@@ -13,11 +15,12 @@ typedef DWORD (*EnumKeyValueCallback)(
 class RegistryUtils {
 private:
 	std::wstring registryPath;
+	std::wstring _withHKeyPath;
+	std::wstring keyName;
 	HKEY hKey;
 	void init(const wchar_t* path);
 public:
 	DWORD error;
-
 	RegistryUtils(std::wstring &path);
 	RegistryUtils(const wchar_t* path);
 	DWORD GetValueType(std::wstring &valueName,PDWORD pType);
@@ -26,5 +29,33 @@ public:
 	std::vector<std::wstring> ListValueNames();
 	static BytesBuffer GetValueStatic(std::wstring &path,std::wstring &key);
 	static BytesBuffer GetValueStatic(const wchar_t* path, const wchar_t* key);
+	FILETIME GetLastWriteTime();
 	std::vector<std::wstring> ListSubKeys();
+	std::vector<RegistryUtils> ListSubKeysChain();
+	std::wstring& GetPath();
+	std::wstring& GetKeyName();
+};
+
+class UserAssistParser {
+
+};
+
+class MUICacheParser {
+
+};
+
+class RunMRUParser {
+
+};
+
+class AppCompatFlagsParser {
+
+};
+
+class BackgroundActivityModeratorParser {
+
+};
+
+class RecentAppsParser {
+
 };

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 
+
 class StringUtils {
 public:
 	template<typename ... Args>
@@ -26,6 +27,10 @@ public:
 
 	static std::string Trim(std::string s);
 
+	static std::wstring Trim(std::wstring s, std::wstring _t);
+
+	static std::string Trim(std::string s, std::string _t);
+
 	static std::string ws2s(const std::wstring& wstr);
 
 	static std::string ws2s(const wchar_t* wstr);
@@ -33,4 +38,16 @@ public:
 	static std::wstring s2ws(const std::string& str);
 
 	static std::wstring s2ws(const char* str);
+
+	static std::string& ltrim(std::string& s, const char* t);
+
+	static std::string& rtrim(std::string& s, const char* t);
+
+	static std::string& trim(std::string& s, const char* t);
+
+	static std::wstring& ltrim(std::wstring& s, const wchar_t* t);
+
+	static std::wstring& rtrim(std::wstring& s, const wchar_t* t);
+
+	static std::wstring& trim(std::wstring& s, const wchar_t* t);
 };

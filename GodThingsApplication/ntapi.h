@@ -97,6 +97,22 @@ typedef NTSTATUS
 );
 static pRtlNtStatusToDosError RtlNtStatusToDosError = NULL;
 
+typedef NTSTATUS 
+(*pRtlDecompressBufferEx)(
+    _In_  USHORT CompressionFormat,
+    _Out_ PUCHAR UncompressedBuffer,
+    _In_  ULONG  UncompressedBufferSize,
+    _In_  PUCHAR CompressedBuffer,
+    _In_  ULONG  CompressedBufferSize,
+    _In_  PULONG FinalUncompressedSize,
+    _In_  PVOID  WorkSpace
+);
+typedef NTSTATUS 
+(*pRtlGetCompressionWorkSpaceSize)(
+    _In_  USHORT CompressionFormatAndEngine,
+    _Out_ PULONG CompressBufferWorkSpaceSize,
+    _Out_ PULONG CompressFragmentWorkSpaceSize
+);
 typedef LONG KPRIORITY;
 
 DWORD NtStatusHandler(NTSTATUS status);

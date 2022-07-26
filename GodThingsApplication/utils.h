@@ -17,17 +17,21 @@ public:
 	PBYTE bytes;
 	size_t size;
 	DWORD error;
-	static INT64 BytesToINT64(PBYTE bytes);
-	static INT32 BytesToINT32(PBYTE bytes);
-	static INT16 BytesToINT16(PBYTE bytes);
-	static MPEBytes INT16ToBytes(INT16 integer);
-	static MPEBytes INT32ToBytes(INT32 integer);
-	static MPEBytes INT64ToBytes(INT64 integer);
+	static UINT64 BytesToINT64B(PBYTE bytes);
+	static UINT64 BytesToINT64L(PBYTE bytes);
+	static UINT32 BytesToINT32B(PBYTE bytes);
+	static UINT32 BytesToINT32L(PBYTE bytes);
+	static UINT16 BytesToINT16B(PBYTE bytes);
+	static UINT16 BytesToINT16L(PBYTE bytes);
+	static MPEBytes INT16ToBytesB(INT16 integer);
+	static MPEBytes INT32ToBytesB(INT32 integer);
+	static MPEBytes INT64ToBytesB(INT64 integer);
 	MPEBytes();
 	MPEBytes(PBYTE bytes,size_t size);
 	PBYTE ToBytes();
 	VOID AddBytes(PBYTE bytes,size_t size);
 	VOID AddBytes(MPEBytes &mpeBytes);
+	PBYTE& GetBytes();
 	~MPEBytes();
 };
 
@@ -41,7 +45,8 @@ public:
 	DWORD minute = 0;
 	DWORD second = 0;
 	DWORD millisecond = 0;
-
+	GTTime(FILETIME &filetime);
+	GTTime(SYSTEMTIME &systime);
 	std::wstring ToISO8601();
 	std::wstring ToString();
 	static GTTime GetTime();
@@ -66,4 +71,8 @@ LPWSTR GetLastErrorAsString();
 std::wstring GetLastErrorAsStringThreadSafe();
 
 std::wstring s2ws(const std::string& str);
+
+#define BytesBuffer std::string
+#define NewBytesBuffer(bs,len) BytesBuffer(reinterpret_cast<char const*>(bs),len)
+using BytesPair = std::pair<PBYTE, size_t>;
 #endif

@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include "PythonUtils.h"
+#include "FileInfo.h"
+#include "utils.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -8,9 +10,10 @@ public:
 
 		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\")+1).c_str());
 		wprintf(L"    pyfile <file>: Run python file\n");
-		wprintf(L"    interpreter: Run python interpreter\n");
+		wprintf(L"    python: Run python interpreter\n");
 		wprintf(L"    gui_serve: Run the GUI Serve\n");
 		wprintf(L"    info_module: List the Module Information\n");
+		wprintf(L"    run_module <module>: Run a module\n");
 	}
 
 	static void RunPythonFile(const wchar_t* wpath) {
@@ -37,7 +40,29 @@ public:
 	}
 
 	static void RunModule(wchar_t* moduleName,int argc,wchar_t** args) {
-
+		auto mgr = ModuleMgr::GetMgr();
+		for (auto& mod : mgr->modules) {
+			if (mod->Name == moduleName) {
+				ResultSet* res = mod->ModuleRun();
+				auto json = res->ToJsonObject();
+				auto data = json["Data"];
+				int size = 0;
+				auto orders = res->GetMapOrder();
+				for (auto &key : orders) {
+					printf("%-30s ", key.c_str());
+					size = data[key].size();
+				}
+				printf("\n");
+				for (int i = 0; i < size; i++) {
+					for (auto &key : orders) {
+						auto member = data[key][i];
+						wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
+					}
+					printf("\n");
+				}
+				delete res;
+			}
+		}
 	}
 
 	static void InfoModule(wchar_t* moduleName) {
@@ -62,6 +87,19 @@ public:
 		return;
 	}
 
+	static void test() {
+		std::wstring f = L"C:\\Users\\nsfocus\\Desktop\\新建文件夹 (2)\\CMD.EXE-0BD30981.pf";
+		PrefetchFile file(f,true);
+		file.Parse();
+		while (file.HasMoreFileMetrics()) {
+			auto a = file.NextFileMetrics();
+			wprintf(L"%s\n", a.filename.c_str());
+		}
+		auto ts = file.GetExecTime();
+		for (auto& t : ts) {
+			wprintf(L"%s\n", t.ToString().c_str());
+		}
+	}
 	static void MainArgs(int argc,wchar_t** argv) {
 		initialize init;
 		if (argc < 2) {
@@ -103,9 +141,11 @@ public:
 			}
 			InfoModule(argv[2]);
 		}
-		else if (subcmd == L"interpreter") {
+		else if (subcmd == L"python") {
 			Py_Main(argc - 1, &argv[1]);
 		}
-
+		else if (subcmd == L"test") {
+			test();
+		}
 	}
 };

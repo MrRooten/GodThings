@@ -2,15 +2,23 @@
 #include "StringUtils.h"
 
 
-INT16 MPEBytes::BytesToINT16(PBYTE bytes) {
-	return bytes[0] << 8 + bytes[1];
+UINT16 MPEBytes::BytesToINT16B(PBYTE bytes) {
+	return (bytes[0] << 8) + bytes[1];
 }
 
-INT32 MPEBytes::BytesToINT32(PBYTE bytes) {
-	return bytes[0] << 24 + bytes[1] << 16 + bytes[2] << 8 + bytes[3];
+UINT16 MPEBytes::BytesToINT16L(PBYTE bytes) {
+	return (bytes[1] << 8) + bytes[0];
 }
 
-INT64 MPEBytes::BytesToINT64(PBYTE bytes) {
+UINT32 MPEBytes::BytesToINT32B(PBYTE bytes) {
+	return (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3];
+}
+
+UINT32 MPEBytes::BytesToINT32L(PBYTE bytes) {
+	return (bytes[3] << 24) + (bytes[2] << 16) + (bytes[1] << 8) + bytes[0];
+}
+
+UINT64 MPEBytes::BytesToINT64B(PBYTE bytes) {
 	uint64_t value =
 		static_cast<uint64_t>(bytes[7]) |
 		static_cast<uint64_t>(bytes[6]) << 8 |
@@ -23,14 +31,27 @@ INT64 MPEBytes::BytesToINT64(PBYTE bytes) {
 	return value;
 }
 
-MPEBytes MPEBytes::INT16ToBytes(INT16 integer) {
+UINT64 MPEBytes::BytesToINT64L(PBYTE bytes) {
+	uint64_t value =
+		static_cast<uint64_t>(bytes[0]) |
+		static_cast<uint64_t>(bytes[1]) << 8 |
+		static_cast<uint64_t>(bytes[2]) << 16 |
+		static_cast<uint64_t>(bytes[3]) << 24 |
+		static_cast<uint64_t>(bytes[4]) << 32 |
+		static_cast<uint64_t>(bytes[5]) << 40 |
+		static_cast<uint64_t>(bytes[6]) << 48 |
+		static_cast<uint64_t>(bytes[7]) << 56;
+	return value;
+}
+
+MPEBytes MPEBytes::INT16ToBytesB(INT16 integer) {
 	BYTE bytes[2];
 	bytes[0] = integer >> 8;
 	bytes[1] = integer & 0xff;
 	return MPEBytes(bytes, 2);
 }
 
-MPEBytes MPEBytes::INT32ToBytes(INT32 integer) {
+MPEBytes MPEBytes::INT32ToBytesB(INT32 integer) {
 	BYTE bytes[4];
 	bytes[0] = (integer & 0xff000000) >> 24;
 	bytes[1] = (integer & 0x00ff0000) >> 16;
@@ -39,7 +60,7 @@ MPEBytes MPEBytes::INT32ToBytes(INT32 integer) {
 	return MPEBytes(bytes, 4);
 }
 
-MPEBytes MPEBytes::INT64ToBytes(INT64 integer) {
+MPEBytes MPEBytes::INT64ToBytesB(INT64 integer) {
 	BYTE bytes[8];
 	bytes[0] = (integer & 0xff00000000000000) >> 56;
 	bytes[1] = (integer & 0x00ff000000000000) >> 48;
@@ -97,6 +118,10 @@ VOID MPEBytes::AddBytes(MPEBytes& mpeBytes) {
 
 	memcpy(this->bytes + this->size, bytes, size);
 	this->size += size;
+}
+
+PBYTE& MPEBytes::GetBytes() {
+	return this->bytes;
 }
 
 MPEBytes::~MPEBytes() {
@@ -216,6 +241,30 @@ ULONG64 GTTime::ToNowULONG64() {
 	res += this->hour * 60 * 60 * 1000;
 	res += this->day * 24 * 60 * 60 * 1000;
 	return res;
+}
+GTTime::GTTime(FILETIME &filetime) {
+	SYSTEMTIME utc;
+	FileTimeToSystemTime(std::addressof(filetime), std::addressof(utc));
+	std::ostringstream stm;
+	const auto w2 = std::setw(2);
+	this->year = utc.wYear;
+	this->mouth = utc.wMonth;
+	this->day = utc.wDay;
+	this->hour = utc.wHour;
+	this->minute = utc.wMinute;
+	this->second = utc.wSecond;
+	this->millisecond = utc.wMilliseconds;
+}
+GTTime::GTTime(SYSTEMTIME &utc) {
+	std::ostringstream stm;
+	const auto w2 = std::setw(2);
+	this->year = utc.wYear;
+	this->mouth = utc.wMonth;
+	this->day = utc.wDay;
+	this->hour = utc.wHour;
+	this->minute = utc.wMinute;
+	this->second = utc.wSecond;
+	this->millisecond = utc.wMilliseconds;
 }
 std::wstring GTTime::ToISO8601() {
 	struct std::tm tm;

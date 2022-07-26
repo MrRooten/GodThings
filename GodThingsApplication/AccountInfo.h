@@ -3,6 +3,7 @@
 #define _ACCOUNT_H
 #include "public.h"
 #include "lmaccess.h"
+#include "utils.h"
 #include <vector>
 #include <string>
 #pragma comment(lib, "netapi32.lib")

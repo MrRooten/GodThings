@@ -4,6 +4,7 @@
 #include <string>
 #include <string>
 #include "StringUtils.h"
+#include "FileUtils.h"
 DWORD GetFileBasicInfo(LPCWSTR fileName, PFILE_BASIC_INFO* Pinfo);
 
 class FileInfo {
@@ -67,3 +68,70 @@ public:
 //	DWORD Parse();
 //	~PEFileInfo();
 //};
+
+class FileMetrics {
+public:
+	uint32_t _a_start_time;
+	uint32_t _a_duration;
+	BytesBuffer _a_average_duration_s;
+	uint32_t _a_average_duration_i;
+	uint32_t _a_filename_offset;
+	std::wstring filename;
+	uint32_t _a_filename_nb_char;
+};
+
+class PrefetchFile {
+	File* f;
+	BytesPair _bytes;
+	bool is_compressed;
+	uint32_t _format_version;
+	BytesBuffer _unknown_values;
+	uint32_t _file_size;
+	BytesBuffer _exec_name;
+	BytesBuffer _prefetch_hash;
+	uint32_t _section_a;
+	uint32_t _num_entries_a;
+	uint32_t _a_index;
+	FileMetrics _curMetrics;
+	uint32_t _section_b;
+	uint32_t _num_entries_b;
+	uint32_t _section_c;
+	uint32_t _length_c;
+	uint32_t _section_d;
+	uint32_t _num_entries_d;
+	uint32_t _length_d;
+	BytesBuffer _latest_exec_date;
+	uint64_t _exec_count;
+	void _process_section_a();
+	void _process_section_c();
+
+public:
+	static PrefetchFile* NewPrefetchFile(std::wstring file, bool is_compressed);
+	PrefetchFile(std::wstring& file, bool is_compressed);
+	DWORD Parse();
+	FileMetrics& NextFileMetrics();
+	std::vector<GTTime> GetExecTime();
+	bool HasMoreFileMetrics();
+	~PrefetchFile();
+};
+
+class DMPFile {
+
+};
+
+class AMCacheFile {
+
+};
+
+class JumpListFile {
+
+};
+
+class SRUMFile {
+
+};
+
+class ActivitiesCacheDB {
+
+};
+

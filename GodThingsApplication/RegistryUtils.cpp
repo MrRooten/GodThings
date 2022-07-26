@@ -1,8 +1,9 @@
 #include "RegistryUtils.h"
 #include "utils.h"
 #include <algorithm>
-
+#include "StringUtils.h"
 void RegistryUtils::init(const wchar_t* path) {
+	this->_withHKeyPath = path;
 	std::wstring string = path;
 	DWORD backSlash = string.find_first_of(L'\\');
 	std::wstring rootKey;
@@ -44,11 +45,15 @@ void RegistryUtils::init(const wchar_t* path) {
 }
 
 RegistryUtils::RegistryUtils(std::wstring &string) {
-	init(string.c_str());
+	std::wstring save = string.c_str();
+	StringUtils::trim(save, L"\\");
+	init(save.c_str());
 }
 
 RegistryUtils::RegistryUtils(const wchar_t* path) {
-	init(path);
+	std::wstring save = path;
+	StringUtils::trim(save, L"\\");
+	init(save.c_str());
 }
 
 DWORD RegistryUtils::GetValueType(std::wstring &valueName,PDWORD pType) {
@@ -138,17 +143,40 @@ std::vector<std::wstring> RegistryUtils::ListValueNames() {
 
 std::vector<std::wstring> RegistryUtils::ListSubKeys() {
 	int i = 0;
-	DWORD size = 100;
-	WCHAR name[100];
+	DWORD size = 1024;
+	WCHAR name[1024];
 	std::vector<std::wstring> res;
 	HKEY regKey;
 	DWORD status = RegOpenKeyW(hKey, this->registryPath.c_str(), &regKey);
-	while (RegEnumKeyW(regKey, i, name, size) != ERROR_NO_MORE_ITEMS) {
+	while ((status = RegEnumKeyW(regKey, i, name, size)) != ERROR_NO_MORE_ITEMS) {
 		res.push_back(name);
 		i++;
+		ZeroMemory(name, sizeof(WCHAR) * size);
 	}
 	RegCloseKey(regKey);
 	return res;
+}
+
+std::vector<RegistryUtils> RegistryUtils::ListSubKeysChain() {
+	std::vector<RegistryUtils> res;
+	auto list = this->ListSubKeys();
+	for (auto& subkey : list) {
+		auto target = this->_withHKeyPath + L"\\" + subkey;
+		res.push_back(RegistryUtils(target));
+	}
+	return res;
+}
+
+std::wstring& RegistryUtils::GetPath() {
+	return this->registryPath;
+}
+
+std::wstring& RegistryUtils::GetKeyName() {
+	if (this->keyName.size() == 0) {
+		size_t i = this->registryPath.find_last_of(L'\\');
+		this->keyName = this->registryPath.substr(i + 1, this->registryPath.size() - i);
+	}
+	return this->keyName;
 }
 
 BytesBuffer RegistryUtils::GetValueStatic(std::wstring &path,std::wstring &key) {
@@ -219,4 +247,26 @@ BytesBuffer RegistryUtils::GetValueStatic(const wchar_t* path, const wchar_t* ke
 	std::wstring _path = path;
 	std::wstring _key = key;
 	return RegistryUtils::GetValueStatic(_path, _key);
+}
+
+FILETIME RegistryUtils::GetLastWriteTime() {
+	FILETIME ft = {0};
+	HKEY key = NULL;
+	RegOpenKeyW(this->hKey, this->registryPath.c_str(), &key); 
+	DWORD status = RegQueryInfoKeyW(
+		key,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		&ft
+	);
+	RegCloseKey(key);
+	return ft;
 }

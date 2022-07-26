@@ -32,6 +32,8 @@ public:
 	Array dataArray;
 	std::string report;
 	
+	std::vector<std::string>& GetMapOrder();
+
 	ResultSet();
 
 	ResultSet(std::string const& data);

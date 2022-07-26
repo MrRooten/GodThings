@@ -3,6 +3,9 @@
 #include <iterator>
 #include <locale>
 #include <codecvt>
+
+const char* ws = " \t\n\r\f\v";
+const wchar_t* t_ws = L" \t\n\r\f\v";
 bool StringUtils::HasEnding(std::wstring const& fullString, std::wstring const& ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
@@ -83,6 +86,12 @@ void rtrim(std::string& s) {
         }).base(), s.end());
 }
 
+void rtrim(std::string& s,std::string _t) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](char ch) {
+        return !isspace(ch);
+        }).base(), s.end());
+}
+
 // trim from end (in place)
 void rtrim(std::wstring& s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](wchar_t ch) {
@@ -117,13 +126,17 @@ std::wstring trim_copy(std::wstring s) {
 }
 
 std::wstring StringUtils::Trim(std::wstring s) {
-    trim(s);
+    trim(s, L" \t\n\r\f\v");
     return s;
 }
 
 std::string StringUtils::Trim(std::string s) {
-    trim(s);
+    trim(s," \t\n\r\f\v");
     return s;
+}
+
+std::wstring StringUtils::Trim(std::wstring s, std::wstring _t) {
+    return std::wstring();
 }
 
 std::string StringUtils::ws2s(const std::wstring& wstr)
@@ -149,4 +162,42 @@ std::wstring StringUtils::s2ws(const char* str){
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring wstr = converter.from_bytes(str);
     return wstr;
+}
+
+inline std::string& StringUtils::rtrim(std::string& s, const char* t = ws)
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from beginning of string (left)
+inline std::string& StringUtils::ltrim(std::string& s, const char* t = ws)
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from both ends of string (right then left)
+inline std::string& StringUtils::trim(std::string& s, const char* t = ws)
+{
+    return ltrim(rtrim(s, t), t);
+}
+
+inline std::wstring& StringUtils::rtrim(std::wstring& s, const wchar_t* t = t_ws)
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from beginning of string (left)
+inline std::wstring& StringUtils::ltrim(std::wstring& s, const wchar_t* t = t_ws)
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from both ends of string (right then left)
+inline std::wstring& StringUtils::trim(std::wstring& s, const wchar_t* t = t_ws)
+{
+    return ltrim(rtrim(s, t), t);
 }

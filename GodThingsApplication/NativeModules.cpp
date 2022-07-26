@@ -154,7 +154,6 @@ ResultSet* StartupModule::ModuleRun() {
 			result->PushDictOrdered("fileName",StringUtils::ws2s(i.first));
 			result->PushDictOrdered("cmdline",StringUtils::ws2s(i.second));
 			result->PushDictOrdered("source","HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
-			GTPrintln(L"\t%s %s", i.first.c_str(), (LPWSTR)i.second.c_str());
 		}
 	} while (0);
 
@@ -170,14 +169,11 @@ ResultSet* StartupModule::ModuleRun() {
 		for (LPWSTR key : startupKeys) {
 			RegistryUtils utils(key);
 			auto items = utils.ListKeyValue();
-			GTPrintln(L"%s", key);
 			for (auto item : items) {
-				GTPrintln(L"\t%s %s", item.first.c_str(), item.second.c_str());
 				result->PushDictOrdered("fileName",StringUtils::ws2s(item.first));
 				result->PushDictOrdered("cmdline",StringUtils::ws2s(item.second));
 				result->PushDictOrdered("source",StringUtils::ws2s(key));
 			}
-			wprintf(L"\n");
 		}
 	} while (0);
 	result->SetType(DICT);
@@ -205,7 +201,6 @@ ResultSet* FilesRelateOpenCommandsModule::ModuleRun() {
 			if (a.size() == 0) {
 				continue;
 			}
-			GTPrintln(L"\t%s %s", subkey.c_str(), (LPWSTR)a.c_str());
 			result->PushDictOrdered("file",StringUtils::ws2s(subkey));
 			result->PushDictOrdered("program",StringUtils::ws2s((LPWSTR)a.c_str()));
 		}
@@ -231,15 +226,6 @@ ResultSet* NetworkModule::ModuleRun() {
 	ProcessManager proMgr;
 	proMgr.UpdateInfo();
 	for (auto connection : mgr.connections) {
-		wprintf(L"%s:%d -> %s:%d %s:%d:%s\n",
-			connection->GetLocalIPAsString().c_str(),
-			connection->localPort,
-			connection->GetRemoteIPAsString().c_str(),
-			connection->remotePort,
-			connection->GetStateAsString().c_str(),
-			connection->owningPid,
-			proMgr.processesMap[connection->owningPid]->processName.c_str()
-		);
 		result->PushDictOrdered("local ip", StringUtils::ws2s(connection->GetLocalIPAsString().c_str()));
 		result->PushDictOrdered("local port", std::to_string(connection->localPort));
 		result->PushDictOrdered("remote ip", StringUtils::ws2s(connection->GetRemoteIPAsString().c_str()));
@@ -264,7 +250,6 @@ Rundll32Backdoor::Rundll32Backdoor() {
 
 ResultSet* Rundll32Backdoor::ModuleRun() {
 	ResultSet* result = new ResultSet();
-	GTPrintln(L"Rundll32 Backdoor:");
 	ProcessManager mgr;
 	mgr.UpdateInfo();
 	for (auto item : mgr.processesMap) {
@@ -274,7 +259,6 @@ ResultSet* Rundll32Backdoor::ModuleRun() {
 			Process* process = item.second;
 			auto imageState = process->GetImageState();
 			std::wstring cmdline = imageState->cmdline;
-			printf("\t%d %s", item.first, StringUtils::ws2s(cmdline).c_str());
 			result->PushDictOrdered("pid",std::to_string(item.first));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
 			result->report = "Might have rundll32 backdoor";
@@ -340,4 +324,44 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 	}
 	result->SetType(DICT);
 	return result;
+}
+
+USBHistory::USBHistory() {
+	this->Name = L"USBHistory";
+	this->Path = this->Name;
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get USB History";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* USBHistory::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	std::wstring key = L"HKEY_LOCAL_MACHINE\\SYSTEM\\";
+	std::wstring timeKey = L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\DeviceClasses\\{53f56307-b6bf-11d0-94f2-00a0c91efb8b}\\";
+	RegistryUtils utils(timeKey.c_str());
+	auto subkeys = utils.ListSubKeysChain();
+	for (auto& subkey : subkeys) {
+		auto time = subkey.GetLastWriteTime();
+		wprintf(L"%s %s\n", subkey.GetKeyName().c_str(), GTTime(time).ToString().c_str());
+		result->PushDictOrdered("Device Name", StringUtils::ws2s(subkey.GetKeyName()));
+		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).ToString()));
+	}
+	result->SetType(DICT);
+	return result;
+}
+
+PrefetchModule::PrefetchModule() {
+	this->Name = L"Prefetch";
+	this->Path = this->Name;
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Prefetch files";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* PrefetchModule::ModuleRun() {
+	return nullptr;
 }
