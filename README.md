@@ -8,12 +8,16 @@ This project is a framework of Windows system analysis and provide some system a
   ### Args
     gui_serve: 
         Start the GUI server and run the GtGui.exe will display the gui
+        
     info_module: 
         Info a runnable module
+        
     list_modules: 
         List runnable module
+        
     python: 
         Run a Python interpreter
+        
     run_module <module_name>:
         Run a module by module name
     
