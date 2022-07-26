@@ -47,7 +47,13 @@ This project is a framework of Windows system analysis and provide some system a
         Information gathering
         
     Some Files parse: 
-        Prefetch[almost done],Amcache[todo],memory[todo],JumpListFile[todo],SRUMFile[todo]
+        Prefetch[almost done],
+        Amcache[todo],
+        dmp[todo],
+        JumpListFile[todo],
+        SRUMFile[todo],
+        evtx[todo]
+        
   ### Extend API [todo]
     Many of api are not expose to python but implement in GodAgent.If you want to use those, this section may helpful.
 ## GtGui.exe
