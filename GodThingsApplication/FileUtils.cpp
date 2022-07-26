@@ -53,6 +53,11 @@ DWORD File::ReadBytes(PBYTE* pBytes) {
 	*pBytes = res;
 	return readSize;
 }
+BytesPair File::ReadAll() {
+	PBYTE pBytes = NULL;
+	auto size = this->ReadBytes(&pBytes);
+	return BytesPair(pBytes,size);
+}
 
 DWORD File::ReadBytes(PBYTE bytes,size_t size) {
 	DWORD _size = 0;
@@ -90,12 +95,19 @@ DWORD File::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
 	return dwReadBytes;
 }
 
+size_t File::WriteBytes(size_t pos, PBYTE bytes, size_t length) {
+	DWORD a;
+
+	WriteFile(this->hFile, bytes, length, &a, NULL);
+	return a;
+}
+
 File::~File() {
 	if (this->curBytes != NULL) {
 		LocalFree(this->curBytes);
 	}
 }
-File* FileUtils::Open(std::wstring filePath,std::wstring mode) {
+File* FileUtils::Open(std::wstring &filePath,std::wstring mode) {
 	File* file = new File();
 	if (file == NULL) {
 		return file;
@@ -144,39 +156,7 @@ std::vector<std::wstring> Dir::listFiles() {
 	return res;
 }
 
-#include <fstream>
-#include <iostream>
-PrefetchFile* PrefetchFile::NewPrefetchFile(std::wstring file, bool is_compressed) {
-	PrefetchFile* result = NULL;
-	try {
-		result = new PrefetchFile(file, is_compressed);
-	}
-	catch (std::exception ex) {
-		return NULL;
-	}
 
-	return result;
-}
-PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) {
-	HANDLE hFile = CreateFileW(
-		file.c_str(),
-		GENERIC_READ,
-		FILE_SHARE_READ,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
-	if (hFile == NULL) {
-		goto exception;
-	}
-	if (is_compressed) {
 
-	}
 
-exception:
-	if (hFile != NULL) {
-		CloseHandle(hFile);
-	}
-	throw std::exception();
-}
 

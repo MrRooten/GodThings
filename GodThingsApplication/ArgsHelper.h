@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
 #include "PythonUtils.h"
-#include "FileUtils.h"
+#include "FileInfo.h"
+#include "utils.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -69,11 +70,17 @@ public:
 	}
 
 	static void test() {
-		auto file = FileUtils::Open(L"C:\\test\\index.php", L"r");
-		BYTE b[100] = { 0 };
-		file->ReadBytes(b, 2);
-		file->ReadBytes(b, 2);
-		delete file;
+		std::wstring f = L"C:\\Users\\nsfocus\\Desktop\\新建文件夹 (2)\\CMD.EXE-0BD30981.pf";
+		PrefetchFile file(f,true);
+		file.Parse();
+		while (file.HasMoreFileMetrics()) {
+			auto a = file.NextFileMetrics();
+			wprintf(L"%s\n", a.filename.c_str());
+		}
+		auto ts = file.GetExecTime();
+		for (auto& t : ts) {
+			wprintf(L"%s\n", t.ToString().c_str());
+		}
 	}
 	static void MainArgs(int argc,wchar_t** argv) {
 		initialize init;

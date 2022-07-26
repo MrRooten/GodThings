@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 #include "public.h"
-
+#include "utils.h"
 class File {
 private:
 	HANDLE hFile;
@@ -16,6 +17,8 @@ public:
 	File();
 	BOOL Initialize(std::wstring filePath,DWORD mode);
 	DWORD ReadBytes(PBYTE *pBytes);
+	
+	BytesPair ReadAll();
 	DWORD ReadBytes(PBYTE bytes,size_t size);
 	DWORD ReadBytesBlock(DWORD size,PBYTE* pBytes);
 	size_t WriteBytes(size_t pos, PBYTE bytes, size_t length);
@@ -24,9 +27,9 @@ public:
 
 class FileUtils {
 public:
-	static File* Open(std::wstring filePath, std::wstring mode);
-	static BOOL Delete(std::wstring filePath);
-	static BOOL CreateLink(std::wstring filePath, std::wstring linkPath);
+	static File* Open(std::wstring &filePath, std::wstring mode);
+	static BOOL Delete(std::wstring &filePath);
+	static BOOL CreateLink(std::wstring &filePath, std::wstring linkPath);
 };
 
 class Dir {
@@ -44,10 +47,3 @@ public:
 	DWORD Initialize();
 };
 
-class PrefetchFile {
-	std::string header;
-public:
-	static PrefetchFile* NewPrefetchFile(std::wstring file, bool is_compressed);
-	PrefetchFile(std::wstring& file, bool is_compressed);
-	~PrefetchFile();
-};

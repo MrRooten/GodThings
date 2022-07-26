@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include "utils.h"
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
 
@@ -33,4 +34,28 @@ public:
 	std::vector<RegistryUtils> ListSubKeysChain();
 	std::wstring& GetPath();
 	std::wstring& GetKeyName();
+};
+
+class UserAssistParser {
+
+};
+
+class MUICacheParser {
+
+};
+
+class RunMRUParser {
+
+};
+
+class AppCompatFlagsParser {
+
+};
+
+class BackgroundActivityModeratorParser {
+
+};
+
+class RecentAppsParser {
+
 };

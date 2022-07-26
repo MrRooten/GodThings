@@ -4,11 +4,9 @@
 
 
 #include "public.h"
-//#ifdef _WIN64
+
 #include "Python/Python.h"
-//#elif _WIN32
-//#include "Python310/Python.h"
-//#endif
+
 #include <string>
 #include "Process.h"
 #include <functional>
