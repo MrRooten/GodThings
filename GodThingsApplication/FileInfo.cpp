@@ -512,7 +512,7 @@ void PrefetchFile::_process_section_c()
 }
 
 
-PrefetchFile* PrefetchFile::NewPrefetchFile(std::wstring file, bool is_compressed) {
+PrefetchFile* PrefetchFile::Open(std::wstring file, bool is_compressed) {
 	PrefetchFile* result = NULL;
 	try {
 		result = new PrefetchFile(file, is_compressed);

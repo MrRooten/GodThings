@@ -1,12 +1,14 @@
 #include "ObjectInfo.h"
-
+pNtQueryObject NtQueryObject = NULL;
 std::wstring ObjectInfo::GetObjectName(HANDLE hObject) {
     if (hObject == NULL) {
         return L"Unknown";
     }
     std::wstring res;
-    pNtQueryObject NtQueryObject = NULL;
-    NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
+    
+    if (NtQueryObject == NULL) {
+        NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
+    }
     if (NtQueryObject == NULL) {
         return L"Unknown";
     }
@@ -38,16 +40,17 @@ cleanup:
     return res;
 }
 #include "utils.h"
+
 std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
     if (hObject == NULL) {
         
         return L"Unknown";
     }
     std::wstring res;
-    pNtQueryObject NtQueryObject = NULL;
-    NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
     if (NtQueryObject == NULL) {
-        
+        NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
+    }
+    if (NtQueryObject == NULL) {
         return L"Unknown";
     }
     OBJECT_TYPE_INFORMATION* type = NULL;

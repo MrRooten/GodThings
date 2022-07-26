@@ -2,11 +2,8 @@
 #ifndef _PYTHON_UTILS_H
 #define _PYTHON_UTILS_H
 
-
 #include "public.h"
-
 #include "Python/Python.h"
-
 #include <string>
 #include "Process.h"
 #include <functional>

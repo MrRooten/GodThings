@@ -106,7 +106,7 @@ class PrefetchFile {
 	void _process_section_c();
 
 public:
-	static PrefetchFile* NewPrefetchFile(std::wstring file, bool is_compressed);
+	static PrefetchFile* Open(std::wstring file, bool is_compressed);
 	PrefetchFile(std::wstring& file, bool is_compressed);
 	DWORD Parse();
 	FileMetrics& NextFileMetrics();
@@ -128,10 +128,17 @@ class JumpListFile {
 };
 
 class SRUMFile {
-
+public:
+	static SRUMFile* Open(std::wstring file);
+	SRUMFile(std::wstring& file);
 };
 
 class ActivitiesCacheDB {
 
 };
 
+class EvtxFile {
+public:
+	static EvtxFile* Open(std::wstring file);
+	EvtxFile(std::wstring& file);
+};
