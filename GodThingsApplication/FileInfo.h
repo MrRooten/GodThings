@@ -81,7 +81,7 @@ public:
 };
 
 class PrefetchFile {
-	File* f;
+	GTFile* f;
 	BytesPair _bytes;
 	bool is_compressed;
 	uint32_t _format_version;
@@ -134,11 +134,67 @@ public:
 };
 
 class ActivitiesCacheDB {
+	
+};
+
+class EvtxEventRecord {
+	BytesBuffer signature;
+	uint32_t size;
+	uint64_t event_record_id;
+	uint64_t written_date;
+	uint32_t event_offset;
+	PBYTE evtx_bytes;
+	uint32_t this_offset;
+	BytesPair body;
+public:
+	EvtxEventRecord(PBYTE bytes, uint32_t offset);
+	EvtxEventRecord();
+	uint32_t GetSize();
+};
+
+class EvtxChunk {
+	BytesBuffer signature;
+	uint64_t first_event_record_number;
+	uint64_t last_event_record_number;
+	uint64_t first_event_record_id;
+	uint64_t last_event_record_id;
+	uint32_t header_size;
+	uint32_t last_event_record_offset;
+	uint32_t free_space_offset;
+	uint32_t event_records_checksum;
+	uint32_t checksum;
+	PBYTE evtx_bytes;
+	uint32_t this_offset;
+	EvtxEventRecord curRecord;
+	uint32_t cur_record_offset;
+public:
+	EvtxChunk(PBYTE bytes, uint32_t offset);
+	EvtxChunk();
+	EvtxEventRecord& NextRecord();
 
 };
 
 class EvtxFile {
+	GTFile* f;
+	BytesBuffer signature;
+	BytesBuffer first_chunk_number;
+	BytesBuffer last_chunk_number;
+	BytesBuffer next_record_id;
+	uint32_t header_size;
+	uint32_t minor_format_version;
+	uint32_t major_format_version;
+	uint32_t header_block_size;
+	uint32_t number_of_chunks;
+	uint32_t file_flags;
+	uint32_t checksum;
+	EvtxChunk curChunk;
+	uint32_t chk_index;
+	PBYTE bytes;
 public:
 	static EvtxFile* Open(std::wstring file);
 	EvtxFile(std::wstring& file);
+	EvtxFile();
+	DWORD Parse();
+	EvtxChunk& NextChunk();
+	~EvtxFile();
 };

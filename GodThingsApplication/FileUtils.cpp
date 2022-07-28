@@ -1,10 +1,10 @@
 #include "FileUtils.h"
 
-File::File() {
+GTFile::GTFile() {
 
 }
 
-BOOL File::Initialize(std::wstring filePath, DWORD mode) {
+BOOL GTFile::Initialize(std::wstring filePath, DWORD mode) {
 	this->hFile = CreateFileW(
 		filePath.c_str(),
 		mode,
@@ -20,7 +20,7 @@ BOOL File::Initialize(std::wstring filePath, DWORD mode) {
 	return TRUE;
 }
 
-DWORD File::ReadBytes(PBYTE* pBytes) {
+DWORD GTFile::ReadBytes(PBYTE* pBytes) {
 	LARGE_INTEGER size;
 	if (!GetFileSizeEx(this->hFile, &size)) {
 		*pBytes = NULL;
@@ -53,20 +53,20 @@ DWORD File::ReadBytes(PBYTE* pBytes) {
 	*pBytes = res;
 	return readSize;
 }
-BytesPair File::ReadAll() {
+BytesPair GTFile::ReadAll() {
 	PBYTE pBytes = NULL;
 	auto size = this->ReadBytes(&pBytes);
 	return BytesPair(pBytes,size);
 }
 
-DWORD File::ReadBytes(PBYTE bytes,size_t size) {
+DWORD GTFile::ReadBytes(PBYTE bytes,size_t size) {
 	DWORD _size = 0;
 	ReadFile(this->hFile, bytes, size, &_size, NULL);
 	return _size;
 }
 
 //Return number of read bytes
-DWORD File::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
+DWORD GTFile::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
 	if (size != this->_blockSize) {
 		if (this->curBytes != NULL) {
 			LocalFree(this->curBytes);
@@ -95,20 +95,20 @@ DWORD File::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
 	return dwReadBytes;
 }
 
-size_t File::WriteBytes(size_t pos, PBYTE bytes, size_t length) {
+size_t GTFile::WriteBytes(size_t pos, PBYTE bytes, size_t length) {
 	DWORD a;
 
 	WriteFile(this->hFile, bytes, length, &a, NULL);
 	return a;
 }
 
-File::~File() {
+GTFile::~GTFile() {
 	if (this->curBytes != NULL) {
 		LocalFree(this->curBytes);
 	}
 }
-File* FileUtils::Open(std::wstring &filePath,std::wstring mode) {
-	File* file = new File();
+GTFile* FileUtils::Open(std::wstring &filePath,std::wstring mode) {
+	GTFile* file = new GTFile();
 	if (file == NULL) {
 		return file;
 	}

@@ -4,7 +4,7 @@
 #include <map>
 #include "public.h"
 #include "utils.h"
-class File {
+class GTFile {
 private:
 	HANDLE hFile;
 	DWORD mode;
@@ -14,7 +14,7 @@ private:
 	PBYTE curBytes = NULL;
 	DWORD _blockSize = 0;
 public:
-	File();
+	GTFile();
 	BOOL Initialize(std::wstring filePath,DWORD mode);
 	DWORD ReadBytes(PBYTE *pBytes);
 	
@@ -22,12 +22,12 @@ public:
 	DWORD ReadBytes(PBYTE bytes,size_t size);
 	DWORD ReadBytesBlock(DWORD size,PBYTE* pBytes);
 	size_t WriteBytes(size_t pos, PBYTE bytes, size_t length);
-	~File();
+	~GTFile();
 };
 
 class FileUtils {
 public:
-	static File* Open(std::wstring &filePath, std::wstring mode);
+	static GTFile* Open(std::wstring &filePath, std::wstring mode);
 	static BOOL Delete(std::wstring &filePath);
 	static BOOL CreateLink(std::wstring &filePath, std::wstring linkPath);
 };

@@ -665,3 +665,108 @@ PrefetchFile::~PrefetchFile() {
 	}
 
 }
+
+EvtxFile* EvtxFile::Open(std::wstring file) {
+	EvtxFile* result = NULL;
+	try {
+		result = new EvtxFile(file);
+	}
+	catch (std::exception ex) {
+		delete result;
+		return NULL;
+	}
+
+	return result;
+}
+
+EvtxFile::EvtxFile(std::wstring& file) {
+	this->f = FileUtils::Open(file, L"r");
+	if (this->f == NULL) {
+		throw std::exception();
+	}
+	this->chk_index = 0;
+}
+
+EvtxFile::EvtxFile()
+{
+}
+
+
+DWORD EvtxFile::Parse() {
+	auto bytes = this->f->ReadAll();
+	this->bytes = bytes.first;
+	this->signature = NewBytesBuffer(bytes.first, 8);
+	this->first_chunk_number = NewBytesBuffer(bytes.first + 8, 8);
+	this->last_chunk_number = NewBytesBuffer(bytes.first + 16, 8);
+	this->next_record_id = NewBytesBuffer(bytes.first + 24, 8);
+	this->header_size = MPEBytes::BytesToINT32L(bytes.first + 32);
+	this->minor_format_version = MPEBytes::BytesToINT16L(bytes.first + 36);
+	this->major_format_version = MPEBytes::BytesToINT16L(bytes.first + 38);
+	this->header_block_size = MPEBytes::BytesToINT16L(bytes.first + 40);
+	this->number_of_chunks = MPEBytes::BytesToINT16L(bytes.first + 42);
+	this->file_flags = MPEBytes::BytesToINT32L(bytes.first + 120);
+	this->checksum = MPEBytes::BytesToINT32L(bytes.first + 124);
+	return 0;
+}
+
+EvtxChunk& EvtxFile::NextChunk() {
+	if (this->chk_index < this->number_of_chunks) {
+		this->curChunk = EvtxChunk(this->bytes, this->chk_index * 0x10000 + 0x1000);
+		this->chk_index++;
+	}
+	return this->curChunk;
+}
+
+EvtxFile::~EvtxFile() {
+
+}
+
+EvtxChunk::EvtxChunk(PBYTE bytes, uint32_t offset) {
+	this->cur_record_offset = 0x200;
+	this->evtx_bytes = bytes;
+	this->this_offset = offset;
+	PBYTE chunk = bytes + offset;
+	this->signature = NewBytesBuffer(chunk, 8);
+	this->first_event_record_number = MPEBytes::BytesToINT64L(chunk + 8);
+	this->last_event_record_number = MPEBytes::BytesToINT64L(chunk + 16);
+	this->first_event_record_id = MPEBytes::BytesToINT64L(chunk + 24);
+	this->last_event_record_id = MPEBytes::BytesToINT64L(chunk + 32);
+	this->header_size = MPEBytes::BytesToINT32L(chunk + 40);
+	this->last_event_record_offset = MPEBytes::BytesToINT32L(chunk + 44);
+	this->free_space_offset = MPEBytes::BytesToINT32L(chunk + 48);
+	this->checksum = MPEBytes::BytesToINT32L(chunk + 52);
+	this->checksum = MPEBytes::BytesToINT32L(chunk + 124);
+}
+
+EvtxChunk::EvtxChunk()
+{
+}
+
+EvtxEventRecord& EvtxChunk::NextRecord() {
+	if (this->cur_record_offset != this->last_event_record_offset) {
+		this->curRecord = EvtxEventRecord(this->evtx_bytes, cur_record_offset);
+		this->cur_record_offset = cur_record_offset + curRecord.GetSize();
+	}
+}
+
+
+EvtxEventRecord::EvtxEventRecord(PBYTE bytes, uint32_t offset) {
+	this->evtx_bytes = bytes;
+	PBYTE bs = bytes + offset;
+	this->signature = NewBytesBuffer(bs,4);
+	this->size = MPEBytes::BytesToINT32L(bs + 4);
+	this->event_record_id = MPEBytes::BytesToINT64L(bs + 8);
+	this->written_date = MPEBytes::BytesToINT32L(bs + 16);
+	this->event_offset = offset + 24;
+	this->body.first = bytes + offset + 24;
+	this->body.second = this->size - 28;
+
+}
+
+EvtxEventRecord::EvtxEventRecord() {
+
+}
+
+uint32_t EvtxEventRecord::GetSize() {
+	return this->size;
+}

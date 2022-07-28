@@ -117,6 +117,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)PythonLibs\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -185,6 +186,7 @@
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="ntapi.cpp" />
     <ClCompile Include="ObjectInfo.cpp" />
+    <ClCompile Include="OtherInfo.cpp" />
     <ClCompile Include="Parse.cpp" />
     <ClCompile Include="PE.cpp" />
     <ClCompile Include="PEInfo.cpp" />
@@ -219,6 +221,7 @@
     <ClInclude Include="NtObjectInfo.h" />
     <ClInclude Include="NtThreadInfo.h" />
     <ClInclude Include="ObjectInfo.h" />
+    <ClInclude Include="OtherInfo.h" />
     <ClInclude Include="parse.h" />
     <ClInclude Include="PE.h" />
     <ClInclude Include="PEInfo.h" />

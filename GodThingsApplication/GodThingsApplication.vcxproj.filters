@@ -99,6 +99,9 @@
     <ClCompile Include="DriverInfo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="OtherInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -204,6 +207,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DriverInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OtherInfo.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

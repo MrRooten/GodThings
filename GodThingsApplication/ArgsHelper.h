@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
+#include <set>
 #include "PythonUtils.h"
 #include "FileInfo.h"
 #include "utils.h"
+#include "OtherInfo.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -38,7 +40,7 @@ public:
 	static void ListModules() {
 		auto mgr = ModuleMgr::GetMgr();
 		for (auto& mod : mgr->modules) {
-			wprintf(L"%s\n", mod->Name.c_str());
+			wprintf(L"%s.%s\n", mod->Path.c_str(),mod->Name.c_str());
 		}
 	}
 
@@ -91,16 +93,22 @@ public:
 	}
 
 	static void test() {
-		std::wstring f = L"C:\\Users\\nsfocus\\Desktop\\新建文件夹 (2)\\CMD.EXE-0BD30981.pf";
-		PrefetchFile file(f,true);
-		file.Parse();
-		while (file.HasMoreFileMetrics()) {
-			auto a = file.NextFileMetrics();
-			wprintf(L"%s\n", a.filename.c_str());
+		//std::wstring f = L"C:\\Users\\nsfocus\\Desktop\\新建文件夹 (2)\\Microsoft-Windows-Diagnosis-DPS%4Operational.evtx";
+		//EvtxFile file(f);
+		//file.Parse();
+		auto mgr = SchduleTaskMgr::GetMgr();
+		mgr->GetTasks();
+	}
+
+	static void ListPaths() {
+		auto mgr = ModuleMgr::GetMgr();
+		std::set<std::wstring> paths;
+		for (auto mod : mgr->modules) {
+			paths.insert(mod->Path);
 		}
-		auto ts = file.GetExecTime();
-		for (auto& t : ts) {
-			wprintf(L"%s\n", t.ToString().c_str());
+
+		for (auto& path : paths) {
+			wprintf(L"%s\n", path.c_str());
 		}
 	}
 	static void MainArgs(int argc,wchar_t** argv) {
@@ -153,6 +161,9 @@ public:
 		}
 		else if (subcmd == L"test") {
 			test();
+		}
+		else if (subcmd == L"list_path") {
+
 		}
 	}
 };

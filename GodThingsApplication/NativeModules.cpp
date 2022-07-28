@@ -38,7 +38,7 @@ ResultSet* ProcessModule::ModuleRun() {
 
 ListTestModule::ListTestModule() {
 	this->Name = L"ListTest";
-	this->Path = L"ListTest";
+	this->Path = L"Test";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Test List";
@@ -54,7 +54,7 @@ ResultSet* ListTestModule::ModuleRun() {
 }
 
 ServiceModule::ServiceModule() {
-	this->Name = L"Service";
+	this->Name = L"Services";
 	this->Path = L"Service";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
@@ -90,7 +90,7 @@ ResultSet* ServiceModule::ModuleRun() {
 
 StartupModule::StartupModule() {
 	this->Name = L"Startup";
-	this->Path = this->Name;
+	this->Path = L"Other";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Startup Programs";
@@ -182,7 +182,7 @@ ResultSet* StartupModule::ModuleRun() {
 
 FilesRelateOpenCommandsModule::FilesRelateOpenCommandsModule() {
 	this->Name = L"FilesRelate";
-	this->Path = this->Name;
+	this->Path = L"Registry";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get files relate open programs";
@@ -211,7 +211,7 @@ ResultSet* FilesRelateOpenCommandsModule::ModuleRun() {
 
 NetworkModule::NetworkModule() {
 	this->Name = L"NetworkConnection";
-	this->Path = this->Name;
+	this->Path = L"Network";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Network Connection";
@@ -240,7 +240,7 @@ ResultSet* NetworkModule::ModuleRun() {
 
 Rundll32Backdoor::Rundll32Backdoor() {
 	this->Name = L"Rundll32Backdoor";
-	this->Path = this->Name;
+	this->Path = L"Process";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Rundll32 Backdoor";
@@ -270,7 +270,7 @@ ResultSet* Rundll32Backdoor::ModuleRun() {
 
 ShadowAccount::ShadowAccount() {
 	this->Name = L"ShadowAccount";
-	this->Path = this->Name;
+	this->Path = L"Account";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Shadow Account";
@@ -297,7 +297,7 @@ ResultSet* ShadowAccount::ModuleRun() {
 
 UnsignedRunningProcess::UnsignedRunningProcess() {
 	this->Name = L"UnsignedRunningProcess";
-	this->Path = this->Name;
+	this->Path = L"Process";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get programs that unsigned in processes";
@@ -328,7 +328,7 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 
 USBHistory::USBHistory() {
 	this->Name = L"USBHistory";
-	this->Path = this->Name;
+	this->Path = L"Registry";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get USB History";
@@ -354,7 +354,7 @@ ResultSet* USBHistory::ModuleRun() {
 
 PrefetchModule::PrefetchModule() {
 	this->Name = L"Prefetch";
-	this->Path = this->Name;
+	this->Path = L"File";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Prefetch files";
@@ -365,3 +365,4 @@ PrefetchModule::PrefetchModule() {
 ResultSet* PrefetchModule::ModuleRun() {
 	return nullptr;
 }
+
