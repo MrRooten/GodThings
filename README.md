@@ -52,7 +52,7 @@ This project is a framework of Windows system analysis and provide some system a
         dmp         [todo]
         JumpListFile[todo]
         SRUMFile    [todo]
-        evtx        [todo]
+        evtx        [doing]
     
     Registry parse:
         ShimCache (AppCompatCache)   [todo]
