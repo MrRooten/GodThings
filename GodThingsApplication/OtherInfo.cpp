@@ -226,4 +226,14 @@ SchduleTask::SchduleTask(IRegisteredTask* task) {
     this->_task = task;
 }
 
+std::wstring& SchduleTask::getPath() {
+    return this->path;
+}
+
+std::wstring& SchduleTask::getName() {
+    return this->name;
+}
+
+
+
 

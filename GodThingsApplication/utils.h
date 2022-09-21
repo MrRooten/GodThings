@@ -37,6 +37,8 @@ public:
 
 
 class GTTime {
+	FILETIME fTime;
+	SYSTEMTIME sysTime;
 public:
 	DWORD year = 0;
 	DWORD mouth = 0;
@@ -47,10 +49,18 @@ public:
 	DWORD millisecond = 0;
 	GTTime(FILETIME &filetime);
 	GTTime(SYSTEMTIME &systime);
+	GTTime(const char* time);
+	GTTime(const wchar_t* time);
+	GTTime();
 	std::wstring ToISO8601();
 	std::wstring ToString();
 	static GTTime GetTime();
 	ULONG64 ToNowULONG64();
+	bool operator<(GTTime& other);
+	bool operator>(GTTime& other);
+	bool operator==(GTTime& other);
+	bool operator>=(GTTime& other);
+	bool operator<=(GTTime& other);
 };
 
 enum LOG_LEVEL {

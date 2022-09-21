@@ -366,3 +366,113 @@ ResultSet* PrefetchModule::ModuleRun() {
 	return nullptr;
 }
 
+ListSchduleTask::ListSchduleTask() {
+	this->Name = L"ListSchduleTask";
+	this->Path = L"Other";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Prefetch files";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+#include "OtherInfo.h"
+ResultSet* ListSchduleTask::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	SchduleTaskMgr* mgr = SchduleTaskMgr::GetMgr();
+	auto tasks = mgr->GetTasks();
+	for (auto& task : tasks) {
+		result->PushDictOrdered("Name", StringUtils::ws2s(task.getName()));
+	}
+	result->SetType(DICT);
+	return result;
+}
+
+#include <thread>
+#include <chrono>
+LoopNetstat::LoopNetstat() {
+	this->Name = L"LookNetstat";
+	this->Path = L"Network";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Read Network stat in seconds";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+BOOL WINAPI consoleHandler(DWORD signal) {
+	if (signal == CTRL_C_EVENT) {
+		exit(0);
+	}
+
+	return TRUE;
+}
+
+std::vector<Connection> _what_is_second_doesnot_have(std::vector<Connection*> first, std::vector<Connection*> second) {
+	std::vector<Connection> res;
+	
+	return res;
+}
+
+ResultSet* LoopNetstat::ModuleRun() {
+	bool running = TRUE;
+	if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
+		return nullptr;
+	}
+	NetworkManager mgr;
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	std::vector<Connection*> last;
+	for (int i = 0; i < 1000000;i++) {
+		auto conns = mgr.GetAllConnections();
+		auto changes = _what_is_second_doesnot_have(conns, last);
+		//print changes
+
+	}
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+	std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+	return nullptr;
+}
+
+MailiousProcessDlls::MailiousProcessDlls() {
+	this->Name = L"UnsignedProcessDlls";
+	this->Path = L"Process";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"List a Dlls of Process that not signed by trust provider";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* MailiousProcessDlls::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	if (!this->args.contains("pid")) {
+		result->SetErrorMessage("Must set a pid to get dll information");
+		return result;
+	}
+	GTTime* t = NULL;
+	if (this->args.contains("date")) {
+		t = new GTTime(this->args["date"].c_str());
+	}
+	auto pid = stoi(this->args["pid"]);
+	Process* p = new Process(pid);
+	if (p == NULL) {
+		result->SetErrorMessage("Error: " + StringUtils::ws2s(GetLastErrorAsString()));
+		return result;
+	}
+	auto dlls = p->GetLoadedDlls();
+	for (auto& dll : dlls) {
+		auto path = dll.GetPath();
+		auto sign = VerifyEmbeddedSignature(path.c_str());
+		FileInfo dllInfo(path.c_str());
+		if (dllInfo.GetCreateTime() > *t) {
+			result->PushDictOrdered("Path", StringUtils::ws2s(path));
+			result->PushDictOrdered("Reasono", "Newer than date");
+		}
+		if (!sign->IsSignature()) {
+			result->PushDictOrdered("Path", StringUtils::ws2s(path));
+			result->PushDictOrdered("Reason", "Not signature");
+		}
+		delete sign;
+	}
+	result->SetType(DICT);
+	return result;
+}

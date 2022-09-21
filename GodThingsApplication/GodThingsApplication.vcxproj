@@ -89,6 +89,12 @@
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(ProjectDir)PythonLibs\amd64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -128,7 +134,8 @@
       <AdditionalLibraryDirectories>D:\windows\GodThings\GodThingsApplication\PythonLibs\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)PythonLibs\Win32\Python37.dll" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -159,6 +166,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)\PythonLibs\amd64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -180,7 +188,9 @@
     <ClCompile Include="FileInfo.cpp" />
     <ClCompile Include="FileUtils.cpp" />
     <ClCompile Include="GodAgent.cpp" />
+    <ClCompile Include="HackDetectModules.cpp" />
     <ClCompile Include="KernelUtils.cpp" />
+    <ClCompile Include="LuaUtils.cpp" />
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="NativeModules.cpp" />
     <ClCompile Include="Network.cpp" />
@@ -211,7 +221,9 @@
     <ClInclude Include="EvtInfo.h" />
     <ClInclude Include="FileInfo.h" />
     <ClInclude Include="FileUtils.h" />
+    <ClInclude Include="HackDetectModules.h" />
     <ClInclude Include="KernelUtils.h" />
+    <ClInclude Include="LuaUtils.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="NativeModules.h" />
     <ClInclude Include="NetworkUtils.h" />
@@ -237,6 +249,7 @@
     <ClInclude Include="NtSystemInfo.h" />
     <ClInclude Include="StringUtils.h" />
     <ClInclude Include="SystemInfo.h" />
+    <ClInclude Include="SystemUtils.h" />
     <ClInclude Include="TestNativeModule.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="VerifyUtils.h" />

@@ -5,6 +5,7 @@
 #include "FileInfo.h"
 #include "utils.h"
 #include "OtherInfo.h"
+#include "EvtInfo.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -12,7 +13,9 @@ public:
 
 		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\")+1).c_str());
 		wprintf(L"    pyfile <file>: Run python file\n");
+#ifdef PYTHON_ENABLE
 		wprintf(L"    python: Run python interpreter\n");
+#endif
 		wprintf(L"    gui_serve: Run the GUI Serve\n");
 		wprintf(L"    info_module: List the Module Information\n");
 		wprintf(L"    run_module <module>: Run a module\n");
@@ -44,11 +47,21 @@ public:
 		}
 	}
 
-	static void RunModule(wchar_t* moduleName,int argc,wchar_t** args) {
+	static void RunModule(wchar_t* moduleName,int len_args,wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
 		for (auto& mod : mgr->modules) {
 			if (mod->Name == moduleName) {
+				Module::Args parameters;
+				for (int i = 0; i < len_args; i++) {
+					auto _kv = StringUtils::Trim(args[i]);
+					auto kv = StringUtils::StringSplit(_kv, L"=");
+					parameters[StringUtils::ws2s(kv[0])] = StringUtils::ws2s(kv[1]);
+				}
+				mod->SetArgs(parameters);
 				ResultSet* res = mod->ModuleRun();
+				if (res == nullptr) {
+					return;
+				}
 				auto json = res->ToJsonObject();
 				auto data = json["Data"];
 				int size = 0;
@@ -66,6 +79,7 @@ public:
 					printf("\n");
 				}
 				delete res;
+				return;
 			}
 		}
 	}
@@ -93,11 +107,10 @@ public:
 	}
 
 	static void test() {
-		//std::wstring f = L"C:\\Users\\nsfocus\\Desktop\\新建文件夹 (2)\\Microsoft-Windows-Diagnosis-DPS%4Operational.evtx";
-		//EvtxFile file(f);
-		//file.Parse();
-		auto mgr = SchduleTaskMgr::GetMgr();
-		mgr->GetTasks();
+		FileInfo cmdFile(L"C:\\Windows\\System32\\cmd.exe");
+		GTTime time = cmdFile.GetCreateTime();
+		wprintf(L"%s\n", time.ToISO8601().c_str());
+		return;
 	}
 
 	static void ListPaths() {

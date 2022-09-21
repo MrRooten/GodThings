@@ -714,7 +714,19 @@ void ReadMft(PCWSTR szVolume)
         CloseHandle(hVolume);
     }
 }
-
+#include <esent.h>
+#include <stdio.h>
+#include <string>
 int main() {
-    ReadMft(L"C:");
+    JET_HANDLE handle;
+    unsigned long pulLow;
+    unsigned long pulHigh;
+    std::string s = "C:\\Users\\nsfocus\\Desktop\\test\\srudb.dat\0";
+    JET_ERR status = JetOpenFileA(s.c_str(), &handle, &pulLow, &pulHigh);
+    if (status != 0) {
+        printf("error\n");
+    }
+
+    return 0;
+
 }

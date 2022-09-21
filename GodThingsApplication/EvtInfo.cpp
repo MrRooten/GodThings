@@ -3,6 +3,7 @@
 #include <wctype.h>
 Evt::Evt(EVT_HANDLE hEvent) {
     this->_hEvent = hEvent;
+    this->_xml = this->GetXml();
 }
 
 Evt::Evt(std::wstring xml) {
@@ -41,8 +42,7 @@ DWORD Evt::SetXml() {
         }
     }
 
-    wprintf(L"\n\n%s", pRenderedContent);
-    this->xml = pRenderedContent;
+    this->_xml = pRenderedContent;
 
 cleanup:
 
@@ -51,11 +51,15 @@ cleanup:
 
     return status;
 }
-std::wstring Evt::GetXml() {
-    if (this->xml.size() == 0) {
+std::wstring& Evt::GetXml() {
+    if (this->_xml.size() == 0) {
         SetXml();
     }
-    return xml;
+    return this->_xml;
+}
+
+Evt::Evt()
+{
 }
 
 
@@ -238,7 +242,7 @@ std::wstring EvtFilter::GetXMLQuery() {
     resXML = StringUtils::StringsJoin(resVs, L" and ");
     return L"<QueryList>\n" \
         L"    <Query Path='" + this->logName + L"'>\n" \
-        L"        <Select Path='Application'> *[System[" + resXML + L"]]</Select>\n" \
+        L"        <Select Path='" + this->logName + L"'> *[System[" + resXML + L"]]</Select>\n" \
         L"    </Query>\n" \
         L"</QueryList>\n";
     /*return L"<QueryList>" \
@@ -248,8 +252,12 @@ std::wstring EvtFilter::GetXMLQuery() {
         L"</QueryList>";*/
 }
 
+EvtFilter::EvtFilter() {
+
+}
+
 #define ARRAY_SIZE 10
-DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback) {
+DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data) {
     DWORD status = ERROR_SUCCESS;
     EVT_HANDLE hResults = NULL;
     PEVT_VARIANT pPaths = NULL;
@@ -293,7 +301,7 @@ DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback) {
         // event for display. PrintEvent is shown in RenderingEvents.
         for (DWORD i = 0; i < dwReturned; i++) {
             Evt evt(hEvents[i]);
-            if (ERROR_SUCCESS == (status = callback(&evt))) {
+            if (ERROR_SUCCESS == (status = callback(&evt,data))) {
                 EvtClose(hEvents[i]);
                 hEvents[i] = NULL;
             }
@@ -313,4 +321,35 @@ cleanup:
     if (pStatuses)
         free(pStatuses);
     return 0;
+}
+
+DWORD _toEvtSet(Evt* evt,PVOID data) {
+    EvtSet* set = (EvtSet*)data;
+    auto cp = *evt;
+    set->AddEvt(cp);
+    wprintf(L"%s\n", evt->GetXml().c_str());
+    return 0;
+}
+EvtSet* EvtInfo::GetEvtSetByEventId(const wchar_t* ids,const wchar_t* logName) {
+    EvtInfo info;
+    EvtFilter filter;
+    filter.ids = ids;
+    filter.logName = logName;
+    wprintf(L"%s\n", filter.GetXMLQuery().c_str());
+    EvtSet* set = new EvtSet();
+    info.EnumEventLogs(filter, _toEvtSet, set);
+    return set;
+}
+
+std::vector<Evt>& EvtSet::GetAllEvts() {
+    return this->evts;
+}
+
+DWORD EvtSet::AddEvt(Evt evt) {
+    this->evts.push_back(evt);
+    return 0;
+}
+
+EvtSet::EvtSet()
+{
 }

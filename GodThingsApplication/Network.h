@@ -47,7 +47,7 @@ public:
 	IN_ADDR remoteIPv4;
 	DWORD localPort;
 	DWORD remotePort;
-	DWORD State;
+	DWORD State;	
 	DWORD owningPid;
 	Protocol protocol;
 	std::wstring GetLocalIPAsString();
@@ -55,6 +55,8 @@ public:
 	std::wstring GetRemoteIPAsString();
 
 	std::wstring GetStateAsString();
+
+	friend bool operator==(const Connection& conn1, const Connection& conn2);
 };
 
 class NetworkManager {

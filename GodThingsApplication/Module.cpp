@@ -220,6 +220,9 @@ DWORD ModuleMgr::LoadModules() {
 	UnsignedRunningProcess* unsignedProcess = new UnsignedRunningProcess();
 	ShadowAccount* shadowAccount = new ShadowAccount();
 	USBHistory* usbHistory = new USBHistory();
+	ListSchduleTask* task = new ListSchduleTask(); 
+	LoopNetstat* loop = new LoopNetstat();
+	MailiousProcessDlls* unsignedDlls = new MailiousProcessDlls();
 #ifdef  PYTHON_ENABLE
 
 	std::wstring currPath = std::filesystem::current_path().native().c_str();

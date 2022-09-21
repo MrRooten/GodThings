@@ -1,4 +1,5 @@
 #include "VerifyUtils.h"
+
 SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
 {
     LONG lStatus;
@@ -34,8 +35,20 @@ SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
 
     GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
     WINTRUST_DATA WinTrustData;
-
+    /*
+    WINTRUST_CATALOG_INFO catalogInfo;
+    memset(&catalogInfo, 0, sizeof(catalogInfo));
+    catalogInfo.cbStruct = sizeof(catalogInfo);
+    catalogInfo.pcwszCatalogFilePath = pwszSourceFile;
+    catalogInfo.pcwszMemberFilePath = NULL; // Information->FileName
+    HFILE FileHandle = OpenFile()
+    catalogInfo.hMemberFile = FileHandle;
+    catalogInfo.pcwszMemberTag = fileHashTag->Buffer;
+    catalogInfo.pbCalculatedFileHash = fileHash;
+    catalogInfo.cbCalculatedFileHash = fileHashLength;
+    catalogInfo.hCatAdmin = catAdminHandle;
     // Initialize the WinVerifyTrust input data structure.
+    */
 
     // Default all fields to 0.
     memset(&WinTrustData, 0, sizeof(WinTrustData));
@@ -65,6 +78,8 @@ SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
 
     // Not used.
     WinTrustData.pwszURLReference = NULL;
+
+    /*WinTrustData.pCatalog = &catalogInfo;*/
 
     // This is not applicable if there is no UI because it changes 
     // the UI to accommodate running applications instead of 

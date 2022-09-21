@@ -41,6 +41,14 @@ public:
 	PFILE_STAT_INFORMATION pStatInfo = NULL;
 	DWORD SetStatInfo();
 
+	GTTime GetCreateTime();
+
+	GTTime GetChangeTime();
+
+	GTTime GetLastAccessTime();
+
+	GTTime GetLastWriteTime();
+
 	PFILE_CASE_SENSITIVE_INFORMATION pCaseSensitiveInfo = NULL;
 	DWORD SetCaseSensitiveInfo();
 
@@ -69,7 +77,7 @@ public:
 //	~PEFileInfo();
 //};
 
-class FileMetrics {
+class FileMetrics : public FileInfo{
 public:
 	uint32_t _a_start_time;
 	uint32_t _a_duration;
@@ -80,7 +88,7 @@ public:
 	uint32_t _a_filename_nb_char;
 };
 
-class PrefetchFile {
+class PrefetchFile : public FileInfo{
 	GTFile* f;
 	BytesPair _bytes;
 	bool is_compressed;
@@ -116,18 +124,54 @@ public:
 };
 
 class DMPFile {
-
+public:
+	
 };
 
 class AMCacheFile {
-
+public:
+	
 };
 
 class JumpListFile {
-
+public:
+	
 };
 
-class SRUMFile {
+class SRUMFile : public FileInfo {
+	UINT32 checksum;
+	UINT32 signature;
+	UINT32 format_version;
+	UINT64 database_time;
+	BytesBuffer database_signature;
+	UINT32 database_state;
+	UINT64 consistent_position;
+	UINT64 consistent_time;
+	UINT64 attach_time;
+	UINT64 attach_position;
+	UINT64 detach_time;
+	UINT64 detach_position;
+	UINT32 Unknown_Dbid;
+	BytesBuffer log_signature;
+	BytesBuffer previous_full_backup;
+	BytesBuffer previous_incremental_backup;
+	BytesBuffer current_full_backup;
+	UINT32 shadowing_disabled;
+	UINT32 last_object_identifier;
+	UINT32 major_versionn;
+	UINT32 minor_version;
+	UINT32 build_number;
+	UINT32 service_pack_number;
+	UINT32 file_format_revision;
+	UINT32 page_size;
+	UINT32 repair_count;
+	UINT64 repair_time;
+	BytesBuffer unknown2;
+	UINT64 scrub_database_time;
+	UINT64 scrub_time;
+	UINT64 required_log;
+	UINT32 upgrade_exchange;
+
 public:
 	static SRUMFile* Open(std::wstring file);
 	SRUMFile(std::wstring& file);
@@ -150,6 +194,7 @@ public:
 	EvtxEventRecord(PBYTE bytes, uint32_t offset);
 	EvtxEventRecord();
 	uint32_t GetSize();
+	BytesBuffer GetBody();
 };
 
 class EvtxChunk {
@@ -171,6 +216,7 @@ public:
 	EvtxChunk(PBYTE bytes, uint32_t offset);
 	EvtxChunk();
 	EvtxEventRecord& NextRecord();
+	bool HasMoreRecords();
 
 };
 

@@ -526,6 +526,7 @@ DWORD Process::SetProcessCPUState() {
 	return res;
 }
 
+
 DWORD Process::SetProcessHandleState() {
 	NTSTATUS status;
 	ULONG returnLength = 0;
@@ -769,6 +770,52 @@ MemoryState* Process::GetMemoryState() {
 CPUState* Process::GetCPUState() {
 	this->SetProcessCPUState();
 	return this->cpuState;
+}
+
+std::vector<LoadedDll> Process::GetLoadedDlls() {
+	std::vector<LoadedDll> dlls;
+	DWORD size;
+	WCHAR path[1024];
+	HMODULE _tmp;
+	auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+		PROCESS_VM_READ,
+		FALSE, this->processId);
+	if (hProcess == NULL) {
+		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		return dlls;
+	}
+	EnumProcessModules(hProcess, &_tmp, 0, &size);
+	if (GetLastError() != ERROR_FILE_NOT_FOUND) {
+		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		CloseHandle(hProcess);
+		return dlls;
+	}
+
+	HMODULE* modules = (HMODULE*)LocalAlloc(GPTR,size);
+	if (modules == NULL) {
+		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		CloseHandle(hProcess);
+		return dlls;
+	}
+	
+	if (!EnumProcessModules(hProcess, modules, size, &size)) {
+		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		CloseHandle(hProcess);
+		LocalFree(modules);
+		return dlls;
+	}
+
+	DWORD length = size / sizeof(HMODULE);
+	for (DWORD i = 0; i < length; i++) {
+		LoadedDll dll(modules[i]);
+		GetModuleFileNameExW(hProcess, modules[i], path, 1024);
+		dll.SetPath(path);
+		dlls.push_back(dll);
+	}
+
+	CloseHandle(hProcess);
+	LocalFree(modules);
+	return dlls;
 }
 
 std::map<DWORD, std::wstring> Process::_pidProcessNameMap;
@@ -1150,4 +1197,20 @@ _ImageState::~_ImageState() {
 	if (this->info != NULL) {
 		delete this->info;
 	}
+}
+
+HMODULE LoadedDll::GetModule() {
+	return hModule;
+}
+
+void LoadedDll::SetPath(LPWSTR path) {
+	this->path = path;
+}
+
+std::wstring& LoadedDll::GetPath() {
+	return this->path;
+}
+
+LoadedDll::LoadedDll(HMODULE hModule) {
+	this->hModule = hModule;
 }

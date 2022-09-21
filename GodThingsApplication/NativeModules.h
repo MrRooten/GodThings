@@ -73,4 +73,58 @@ public:
 	PrefetchModule();
 	ResultSet* ModuleRun();
 };
+
+class ListSchduleTask : public NativeModule {
+public:
+	ListSchduleTask();
+	ResultSet* ModuleRun();
+};
+
+class SaveFiles : public NativeModule {
+public:
+	SaveFiles();
+	ResultSet* ModuleRun();
+};
+
+class PrefetchTimeline : public NativeModule {
+public:
+	PrefetchTimeline();
+	ResultSet* ModuleRun();
+};
+
+class DetailPrefetch : public NativeModule {
+public:
+	DetailPrefetch();
+	ResultSet* ModuleRun();
+};
+
+class DllInjectRoughDet : public NativeModule {
+public:
+	DllInjectRoughDet();
+	ResultSet* ModuleRun();
+};
+
+class UnsignedServices : public NativeModule {
+public:
+	UnsignedServices();
+	ResultSet* ModuleRun();
+};
+
+class RegularBackdoorDet : public NativeModule {
+public:
+	RegularBackdoorDet();
+	ResultSet* ModuleRun();
+};
+
+class LoopNetstat : public NativeModule {
+public:
+	LoopNetstat();
+	ResultSet* ModuleRun();
+};
+
+class MailiousProcessDlls : public NativeModule {
+public:
+	MailiousProcessDlls();
+	ResultSet* ModuleRun();
+};
 #endif
