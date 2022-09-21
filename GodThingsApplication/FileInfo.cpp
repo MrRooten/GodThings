@@ -263,6 +263,36 @@ DWORD FileInfo::SetStatInfo() {
 	return NtStatusHandler(status);
 }
 
+GTTime FileInfo::GetCreateTime() {
+	this->SetStatInfo();
+	FILETIME fTime;
+	fTime.dwLowDateTime = this->pStatInfo->CreationTime.LowPart;
+	fTime.dwHighDateTime = this->pStatInfo->CreationTime.HighPart;
+	return GTTime(fTime);
+}
+
+GTTime FileInfo::GetChangeTime() {
+	this->SetStatInfo();
+	this->pStatInfo->ChangeTime;
+	FILETIME fTime = (FILETIME)this->pStatInfo->ChangeTime.QuadPart;
+	return GTTime(fTime);
+}
+
+GTTime FileInfo::GetLastAccessTime() {
+	this->SetStatInfo();
+	this->pStatInfo->LastAccessTime;
+	FILETIME fTime = (FILETIME)this->pStatInfo->CreationTime.QuadPart;
+	return GTTime(fTime);
+}
+
+
+GTTime FileInfo::GetLastWriteTime() {
+	this->SetStatInfo();
+	this->pStatInfo->LastWriteTime;
+	FILETIME fTime = (FILETIME)this->pStatInfo->CreationTime.QuadPart;
+	return GTTime(fTime);
+}
+
 DWORD FileInfo::SetCaseSensitiveInfo() {
 	if (this->pCaseSensitiveInfo == NULL) {
 		this->pCaseSensitiveInfo = (PFILE_CASE_SENSITIVE_INFORMATION)GlobalAlloc(GPTR, sizeof FILE_CASE_SENSITIVE_INFORMATION);
@@ -525,7 +555,7 @@ PrefetchFile* PrefetchFile::Open(std::wstring file, bool is_compressed) {
 	return result;
 }
 
-PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) {
+PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) : FileInfo(file) {
 	auto f = FileUtils::Open(file, L"r");
 	this->is_compressed = is_compressed;
 
@@ -744,9 +774,14 @@ EvtxChunk::EvtxChunk()
 
 EvtxEventRecord& EvtxChunk::NextRecord() {
 	if (this->cur_record_offset != this->last_event_record_offset) {
-		this->curRecord = EvtxEventRecord(this->evtx_bytes, cur_record_offset);
+		this->curRecord = EvtxEventRecord(this->evtx_bytes, this->this_offset + cur_record_offset);
 		this->cur_record_offset = cur_record_offset + curRecord.GetSize();
 	}
+	return this->curRecord;
+}
+
+bool EvtxChunk::HasMoreRecords() {
+	return this->cur_record_offset <= this->last_event_record_offset;
 }
 
 
@@ -758,7 +793,7 @@ EvtxEventRecord::EvtxEventRecord(PBYTE bytes, uint32_t offset) {
 	this->event_record_id = MPEBytes::BytesToINT64L(bs + 8);
 	this->written_date = MPEBytes::BytesToINT32L(bs + 16);
 	this->event_offset = offset + 24;
-	this->body.first = bytes + offset + 24;
+	this->body.first = bs + 24;
 	this->body.second = this->size - 28;
 
 }
@@ -769,4 +804,8 @@ EvtxEventRecord::EvtxEventRecord() {
 
 uint32_t EvtxEventRecord::GetSize() {
 	return this->size;
+}
+
+BytesBuffer EvtxEventRecord::GetBody() {
+	return NewBytesBuffer(this->body.first+4, this->body.second);
 }

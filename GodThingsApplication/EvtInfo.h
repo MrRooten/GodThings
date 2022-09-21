@@ -17,8 +17,8 @@ private:
 public:
 	Evt(EVT_HANDLE hEvent);
 	Evt(std::wstring xml);
-	std::wstring xml;
-	std::wstring GetXml();
+	std::wstring& GetXml();
+	Evt();
 };
 
 class EvtFilter {
@@ -62,13 +62,23 @@ public:
 	std::wstring user;
 	std::wstring computer;
 	std::wstring GetXMLQuery();
+	EvtFilter();
 };
 
-typedef DWORD(*EvtCallback)(Evt* evt);
+typedef DWORD(*EvtCallback)(Evt* evt,PVOID data);
 
+class EvtSet {
+	std::vector<Evt> evts;
+public:
+	DWORD GetSize();
+	std::vector<Evt>& GetAllEvts();
+	DWORD AddEvt(Evt evt);
+	EvtSet();
+};
 class EvtInfo {
 public:
-	DWORD EnumEventLogs(EvtFilter filter, EvtCallback callback);
+	DWORD EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data);
+	static EvtSet* GetEvtSetByEventId(const wchar_t* ids,const wchar_t* logName);
 };
 
 #endif // !_EVT_INFO_H

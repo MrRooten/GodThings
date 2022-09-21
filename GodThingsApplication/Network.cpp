@@ -235,6 +235,7 @@ VOID NetworkManager::UpdateTCPConnections() {
 
 }
 
+
 NetworkManager::~NetworkManager() {
 	this->ClearConnection();
 }
@@ -319,4 +320,51 @@ std::wstring Connection::GetStateAsString() {
 		return L"MIB_TCP_STATE_DELETE_TCB";
 	}
 	return L"";
+}
+
+bool operator==(const Connection& conn1, const Connection& conn2) {
+	if (conn1.ipType != conn1.ipType) {
+		return false;
+	}
+
+	if (conn1.localPort != conn2.localPort) {
+		return false;
+	}
+
+	if (conn1.remotePort != conn2.remotePort) {
+		return false;
+	}
+
+	if (conn1.State != conn2.State) {
+		return false;
+	}
+
+	if (conn1.owningPid != conn2.owningPid) {
+		return false;
+	}
+
+	if (conn1.protocol != conn2.protocol) {
+		return false;
+	}
+
+	if (conn1.ipType == IPType::IPV4) {
+		if (memcmp(&conn1.localIPv4,&conn2.localIPv4,sizeof(IN_ADDR)) != 0) {
+			return false;
+		}
+
+		if (memcmp(&conn1.remoteIPv4, &conn2.remoteIPv4, sizeof(IN_ADDR)) != 0) {
+			return false;
+		}
+	}
+	else if (conn1.ipType == IPType::IPV6) {
+		if (memcmp(&conn1.localIPv6, &conn2.localIPv6, sizeof(IN6_ADDR)) != 0) {
+			return false;
+		}
+
+		if (memcmp(&conn1.remoteIPv6, &conn2.remoteIPv6, sizeof(IN6_ADDR)) != 0) {
+			return false;
+		}
+	}
+
+	return true;
 }

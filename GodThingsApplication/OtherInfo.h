@@ -23,6 +23,8 @@ class SchduleTask {
 	IRegisteredTask* _task;
 public:
 	SchduleTask(IRegisteredTask* task);
+	std::wstring& getPath();
+	std::wstring& getName();
 };
 
 

@@ -10,9 +10,8 @@
 #include "parse.h"
 #include "ProcessUtils.h"
 #include "ArgsHelper.h"
-#include "PEInfo.h"
-#include "Network.h"
-#include "DriverInfo.h"
+
+
 
 int wmain(int argc,wchar_t* argv[]) {
     InitKernelUtils();

@@ -102,6 +102,12 @@
     <ClCompile Include="OtherInfo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="LuaUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HackDetectModules.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -210,6 +216,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="OtherInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HackDetectModules.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

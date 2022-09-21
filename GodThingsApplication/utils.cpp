@@ -242,9 +242,103 @@ ULONG64 GTTime::ToNowULONG64() {
 	res += this->day * 24 * 60 * 60 * 1000;
 	return res;
 }
+bool GTTime::operator<(GTTime& other) {
+	if (this->year < other.year) {
+		return true;
+	}
+
+	if (this->mouth < other.mouth) {
+		return true;
+	}
+
+	if (this->day < other.day) {
+		return true;
+	}
+
+	if (this->hour < other.hour) {
+		return true;
+	}
+
+	if (this->minute < other.minute) {
+		return true;
+	}
+
+	if (this->second < other.second) {
+		return true;
+	}
+
+	if (this->millisecond < other.millisecond) {
+		return true;
+	}
+	return false;
+}
+bool GTTime::operator>(GTTime& other) {
+	if (*this < other) {
+		return false;
+	}
+
+	if (*this == other) {
+		return false;
+	}
+	return true;
+}
+bool GTTime::operator==(GTTime& other) {
+	if (this->year != other.year) {
+		return false;
+	}
+
+	if (this->mouth != other.mouth) {
+		return false;
+	}
+
+	if (this->day != other.day) {
+		return false;
+	}
+
+	if (this->hour != other.hour) {
+		return false;
+	}
+
+	if (this->minute != other.minute) {
+		return false;
+	}
+
+	if (this->second != other.second) {
+		return false;
+	}
+
+	if (this->millisecond != other.millisecond) {
+		return false;
+	}
+	return true;
+}
+bool GTTime::operator>=(GTTime& other) {
+	if (*this == other) {
+		return true;
+	}
+
+	if (*this > other) {
+		return true;
+	}
+
+	return false;
+}
+bool GTTime::operator<=(GTTime& other) {
+	if (*this == other) {
+		return true;
+	}
+
+	if (*this < other) {
+		return true;
+	}
+
+	return false;
+}
 GTTime::GTTime(FILETIME &filetime) {
+	this->fTime = filetime;
 	SYSTEMTIME utc;
 	FileTimeToSystemTime(std::addressof(filetime), std::addressof(utc));
+	this->sysTime = utc;
 	std::ostringstream stm;
 	const auto w2 = std::setw(2);
 	this->year = utc.wYear;
@@ -258,6 +352,8 @@ GTTime::GTTime(FILETIME &filetime) {
 GTTime::GTTime(SYSTEMTIME &utc) {
 	std::ostringstream stm;
 	const auto w2 = std::setw(2);
+	SystemTimeToFileTime(&utc, &this->fTime);
+	this->sysTime = utc;
 	this->year = utc.wYear;
 	this->mouth = utc.wMonth;
 	this->day = utc.wDay;
@@ -266,18 +362,55 @@ GTTime::GTTime(SYSTEMTIME &utc) {
 	this->second = utc.wSecond;
 	this->millisecond = utc.wMilliseconds;
 }
+GTTime::GTTime(const char* time) {
+	std::wstring s = StringUtils::s2ws(time);
+	new (this)GTTime(s.c_str());
+}
+GTTime::GTTime(const wchar_t* time) {
+	std::wstring s = time;
+	auto ss = StringUtils::StringSplit(s, L"-");
+	auto len = ss.size();
+	if (len > 0) {
+		this->year = std::stoi(ss[0]);
+	}
+
+	if (len > 1) {
+		this->mouth = std::stoi(ss[1]);
+	}
+
+	if (len > 2) {
+		this->day = std::stoi(ss[2]);
+	}
+
+	if (len > 3) {
+		this->hour = std::stoi(ss[3]);
+	}
+
+	if (len > 4) {
+		this->minute = std::stoi(ss[4]);
+	}
+
+	if (len > 5) {
+		this->second = std::stoi(ss[5]);
+	}
+
+	if (len > 6) {
+		this->second = std::stoi(ss[6]);
+	}
+}
+GTTime::GTTime() {
+	
+}
+
+std::wstring _helperISO8601(GTTime &t) {
+	WCHAR buf[100];
+	swprintf_s(buf, L"%d-%02d-%02dT%02d:%02d:%02d:%3dZ", t.year, t.mouth, t.day, t.hour, t.minute, t.second,t.millisecond);
+	return buf;
+}
+
 std::wstring GTTime::ToISO8601() {
-	struct std::tm tm;
-	std::wstringstream ss(this->ToString().c_str());
-	ss >> std::get_time(&tm, L"%Y-%m-%d %H:%M:%S"); // or just %T in this case
-	std::time_t t = mktime(&tm);
-
-	time(&t);
-	WCHAR buf[sizeof L"2011-10-08T07:07:09Z"];
-	wcsftime(buf, sizeof buf, L"%FT%TZ", gmtime(&t));
-
-	std::wstring res = buf;
-
-	res.replace(res.end()-1, res.end(), L".000Z");
-	return res;
+	FILETIME pUTC;
+	LocalFileTimeToFileTime(&this->fTime, &pUTC);
+	GTTime t(pUTC);
+	return _helperISO8601(t);
 }

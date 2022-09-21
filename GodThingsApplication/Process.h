@@ -126,6 +126,15 @@ typedef struct _ImageState {
 	~_ImageState();
 }ImageState;
 
+class LoadedDll {
+	HMODULE hModule;
+	std::wstring path;
+public:
+	HMODULE GetModule();
+	void SetPath(LPWSTR path);
+	std::wstring& GetPath();
+	LoadedDll(HMODULE hModule);
+};
 
 class Thread;
 class ProcessManager;
@@ -136,6 +145,7 @@ class Process {
 public:
 	std::vector<Thread*>* threads;
 	static std::map<DWORD, std::wstring> _pidProcessNameMap;
+
 	PID processId;
 	std::wstring processName;
 	std::wstring userName;
@@ -170,6 +180,7 @@ public:
 	IOState* GetIOState();
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
+	std::vector<LoadedDll> GetLoadedDlls();
 	std::wstring GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	//DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
