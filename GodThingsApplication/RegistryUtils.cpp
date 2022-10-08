@@ -62,7 +62,7 @@ DWORD RegistryUtils::GetValueType(std::wstring &valueName,PDWORD pType) {
 	status = RegGetValueW(this->hKey, this->registryPath.c_str(), NULL, RRF_RT_ANY, &res, NULL, NULL);
 	*pType = res;
 	if (GetLastError() != ERROR_SUCCESS) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:RegGetValeW:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG("Error RegGetValueW");
 	}
 	return status;
 }

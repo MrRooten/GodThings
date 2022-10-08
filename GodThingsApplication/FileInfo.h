@@ -13,21 +13,14 @@ public:
 	DWORD accessRights;
 	pNtQueryInformationFile NtQueryInformationFile = (pNtQueryInformationFile)NULL;
 	std::wstring fileName;
-	FileInfo(const std::wstring &fileName) {
-		this->fileName = fileName;
-	}
+	FileInfo(const std::wstring& fileName);
 
-	FileInfo(const std::string& fileName) {
-		this->fileName = StringUtils::s2ws(fileName);
-	}
+	FileInfo(const std::string& fileName);
 
-	FileInfo(const char* fileName) {
-		this->fileName = StringUtils::s2ws(fileName);
-	}
+	FileInfo(const char* fileName);
 
-	FileInfo(const wchar_t* fileName) {
-		this->fileName = fileName;
-	}
+	FileInfo(const wchar_t* fileName);
+
 	PFILE_BASIC_INFORMATION pBasicInfo = NULL;
 	DWORD SetBasicInfo();
 	std::vector<std::wstring> GetAttributes();
@@ -77,7 +70,7 @@ public:
 //	~PEFileInfo();
 //};
 
-class FileMetrics : public FileInfo{
+class FileMetrics{
 public:
 	uint32_t _a_start_time;
 	uint32_t _a_duration;
@@ -86,6 +79,7 @@ public:
 	uint32_t _a_filename_offset;
 	std::wstring filename;
 	uint32_t _a_filename_nb_char;
+	FileMetrics();
 };
 
 class PrefetchFile : public FileInfo{

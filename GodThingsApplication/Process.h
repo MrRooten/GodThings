@@ -141,61 +141,6 @@ class ProcessManager;
 
 class Process {
 	std::vector<Thread> _threads;
-	
-public:
-	std::vector<Thread*>* threads;
-	static std::map<DWORD, std::wstring> _pidProcessNameMap;
-
-	PID processId;
-	std::wstring processName;
-	std::wstring userName;
-	Process* parent = nullptr;
-	PID parentPID;
-	std::vector<Process*>* childProcesses = nullptr;
-	MemoryState* memoryState = new MemoryState();
-	CPUState* cpuState = new CPUState();
-	CPUState* latestCpuState = new CPUState();
-	IOState* ioState = new IOState();
-	HandleState* handleState = new HandleState();
-	ImageState* imageState = new ImageState();
-	SecurityState* securityState = new SecurityState();
-	Process(PID processId, ProcessManager* processesManager);
-	Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr);
-	Process(PID processId);
-	DWORD UpdateInfo();
-	DWORD KillProcess();
-	DWORD SuspendProcess();
-	DWORD ResumeProcess();
-	void ChangeProcessPriority(Priority priority);
-	void SetAffinity(Affinity affinity);
-	Affinity GetAffinity();
-	Priority GetPriority();
-	BOOL CreateDump(LPTSTR filename, MINIDUMP_TYPE dumpType);
-
-	PID GetPID();
-	std::wstring GetUser();
-	SecurityState* GetSecurityState();
-	ImageState* GetImageState();
-	HandleState* GetHandlesState();
-	IOState* GetIOState();
-	MemoryState* GetMemoryState();
-	CPUState* GetCPUState();
-	std::vector<LoadedDll> GetLoadedDlls();
-	std::wstring GetProcessName();
-	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
-	//DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
-	~Process();
-	HANDLE hProcess;
-	HANDLE processToken;
-	DWORD processRights;
-	//TOKEN_USER* tokenUser;
-	PROCESS_MEMORY_COUNTERS_EX pMemoryCounters;
-	IO_COUNTERS ioCounters;
-	//A Pointer to ProcessesMangager
-	ProcessManager* processesManager;
-	Affinity affinity;
-	void InitProcessStaticState();
-	//set Process User Name after setting Process Security State
 	DWORD SetProcessUserName();
 	//set Security State in Process
 	DWORD SetProcessSecurityState();
@@ -211,8 +156,72 @@ public:
 	DWORD SetProcessCPUState();
 	//set Process Session id
 	DWORD SetSessionId();
-	
+
 	DWORD SetThreads();
+
+	HANDLE GetMaxRightHandle();
+	
+	PROCESS_MEMORY_COUNTERS_EX pMemoryCounters;
+	IO_COUNTERS ioCounters;
+	//A Pointer to ProcessesMangager
+	ProcessManager* processesManager;
+	Affinity affinity;
+
+	std::vector<Process*>* childProcesses = nullptr;
+	MemoryState* memoryState = new MemoryState();
+	CPUState* cpuState = new CPUState();
+	CPUState* latestCpuState = new CPUState();
+	IOState* ioState = new IOState();
+	HandleState* handleState = new HandleState();
+	ImageState* imageState = new ImageState();
+	SecurityState* securityState = new SecurityState();
+
+	HANDLE hProcess;
+	HANDLE processToken;
+	DWORD processRights;
+public:
+	std::vector<Thread*>* threads;
+	static std::map<DWORD, std::wstring> _pidProcessNameMap;
+
+	PID processId;
+	std::wstring processName;
+	std::wstring userName;
+	Process* parent = nullptr;
+	PID parentPID;
+	
+	Process(PID processId, ProcessManager* processesManager);
+	Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr);
+	Process(PID processId);
+	DWORD UpdateInfo();
+	DWORD KillProcess();
+	DWORD SuspendProcess();
+	DWORD ResumeProcess();
+	void ChangeProcessPriority(Priority priority);
+	void SetAffinity(Affinity affinity);
+	Affinity GetAffinity();
+	Priority GetPriority();
+	BOOL CreateDump(LPWSTR filename, MINIDUMP_TYPE dumpType);
+
+	PID GetPID();
+	std::wstring GetUserName();
+	SecurityState* GetSecurityState();
+	ImageState* GetImageState();
+	HandleState* GetHandlesState();
+	IOState* GetIOState();
+	MemoryState* GetMemoryState();
+	CPUState* GetCPUState();
+	std::vector<LoadedDll> GetLoadedDlls();
+	std::wstring GetProcessName();
+	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
+	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
+	DWORD InjectDll(const LPWSTR filename);
+	~Process();
+
+	//TOKEN_USER* tokenUser;
+	
+	void InitProcessStaticState();
+	//set Process User Name after setting Process Security State
+	
 
 	/*PPROCESS_EXTENDED_BASIC_INFORMATION pExtendedBasicInfo = NULL;
 	DWORD SetExtendedBasicInfo();

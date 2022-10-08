@@ -38,7 +38,7 @@ DWORD GetStartupPrograms() {
 		hFind = FindFirstFileW(path.c_str(), &ffd);
 
 		if (INVALID_HANDLE_VALUE == hFind) {
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+			LOG_DEBUG("Error FindFirstFileW");
 			break;
 		}
 
@@ -276,7 +276,7 @@ DWORD GetProcesses() {
 		Process* process = item.second;
 		GTPrintln(L"%.4d %s %s %s %d", process->GetPID(), 
 			process->processName.c_str(), 
-			process->GetUser().c_str(),
+			process->GetUserName().c_str(),
 			process->GetImageState()->cmdline.c_str(),process->GetImageState()->cmdline.size());
 	}
 	return 0;

@@ -103,13 +103,13 @@ Process::Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr) {
 
 	if (this->hProcess == NULL) {
 		//fails to get process handle
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error occurs in OpenProcess:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_ERROR(L"Error occurs in OpenProcess");
 		return;
 	}
 
 	if (!OpenProcessToken(this->hProcess, TOKEN_QUERY, &this->processToken)) {
 		//fails to get process token handle
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error occurs in OpenProcessToken:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_ERROR(L"Error occurs in OpenProcessToken");
 	}
 	this->affinity = 0;
 	this->ioCounters = { 0 };
@@ -135,13 +135,13 @@ Process::Process(PID processId, ProcessManager* processesManager) {
 
 	if (this->hProcess == NULL) {
 		//fails to get process handle
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error occurs in OpenProcess:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_ERROR(L"Error occurs in OpenProcess");
 		return;
 	}
 
 	if (!OpenProcessToken(this->hProcess, TOKEN_QUERY, &this->processToken)) {
 		//fails to get process token handle
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error occurs in OpenProcessToken:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_ERROR(L"Error occurs in OpenProcessToken");
 	}
 
 	this->processId = processId;
@@ -171,13 +171,13 @@ Process::Process(PID processId) {
 
 	if (this->hProcess == NULL) {
 		//fails to get process handle
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error occurs in OpenProcess:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG( L"Error occurs in OpenProcess");
 		return;
 	}
 
 	if (!OpenProcessToken(this->hProcess, TOKEN_QUERY, &this->processToken)) {
 		//fails to get process token handle
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error occurs in OpenProcessToken:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG( L"Error occurs in OpenProcessToken");
 	}
 
 	this->processId = processId;
@@ -185,6 +185,36 @@ Process::Process(PID processId) {
 	this->ioCounters = { 0 };
 	this->pMemoryCounters = { 0 };
 	this->parentPID = 0;
+}
+
+DWORD Process::InjectDll(const LPWSTR filename) {
+	HANDLE hProcess = GTOpenProcess(this->GetPID(), PROCESS_ALL_ACCESS);
+	DWORD threadId;
+	if (hProcess == NULL) {
+		return GetLastError();
+	}
+
+	LPVOID loadAddr = GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "LoadLibraryW");
+	if (loadAddr == NULL) {
+		CloseHandle(hProcess);
+		return GetLastError();
+	}
+	
+	size_t len = (lstrlenW(filename)+1)*(sizeof(wchar_t));
+	auto addr = VirtualAllocEx(hProcess, 0, len, MEM_RESERVE | MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+	DWORD status = this->WriteMemoryToAddress(addr, (PBYTE)filename, len);
+	if (status != 0) {
+		CloseHandle(hProcess);
+		return status;
+	}
+	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadAddr, addr, 0, &threadId);
+	if (hThread == INVALID_HANDLE_VALUE || hThread == 0) {
+		CloseHandle(hProcess);
+		return GetLastError();
+	}
+	CloseHandle(hProcess);
+	CloseHandle(hThread);
+	return 0;
 }
 
 Process::~Process() {
@@ -253,6 +283,10 @@ DWORD Process::SetThreads() {
 	return 0;
 }
 
+HANDLE Process::GetMaxRightHandle() {
+	return HANDLE();
+}
+
 LSA_HANDLE GetPolicyHandle() {
 	LSA_OBJECT_ATTRIBUTES ObjectAttributes;
 	TCHAR* SystemName = NULL;
@@ -295,14 +329,14 @@ DWORD Process::SetProcessUserName() {
 	LSA_HANDLE policyHandle;
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 	if (hProcess == NULL) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error in GTOpenProcess:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG( L"Error in GTOpenProcess");
 		return GetLastError();
 	}
 	HANDLE processToken;
 	DWORD status;
 	
 	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &processToken)) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not Call OpenProcessToken:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG( L"Can not Call OpenProcessToken");
 		return GetLastError();
 	}
 	
@@ -315,14 +349,14 @@ DWORD Process::SetProcessUserName() {
 		GetTokenInformation(processToken, TokenUser, pTokenUser, dwSize, &dwSize);
 	}
 	else {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error Happen in GetTokenInformation:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG( L"Error Happen in GetTokenInformation");
 		return GetLastError();
 	}
 	
 	policyHandle = GetPolicyHandle();
 	if (policyHandle == NULL) {
 		//FAILS TO GET POLICY HANDLE
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error Happen in GetPolicyHandle:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG( L"Error Happen in GetPolicyHandle");
 		return GetLastError();
 	}
 
@@ -381,13 +415,13 @@ DWORD Process::SetProcessSecurityState() {
 	if (status == ERROR_INSUFFICIENT_BUFFER) {
 		this->securityState->groups = (PTOKEN_GROUPS)realloc(securityState->groups, dwTokenGroup);
 		if (this->securityState->groups == NULL) {
-			Logln(ERROR_LEVEL, L"[%s:%s:%d]:Can not alloc TOKEN_GROUPS:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(),GetLastErrorAsString());
+			LOG_ERROR(L"Can not alloc TOKEN_GROUPS");
 			return GetLastError();
 		}
 		
 		if (!GetTokenInformation(processToken, TokenGroups, securityState->groups, dwTokenGroup, &dwTokenGroup)) {
 			status = GetLastError();
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Something occurs in GetTokenInformation for TOKEN_GROUPS:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, status,GetLastErrorAsString());
+			LOG_DEBUG( L"Something occurs in GetTokenInformation for TOKEN_GROUPS");
 		}
 	}
 	DWORD dwTokenSessionId = 0;
@@ -410,13 +444,13 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->groupsWithPrivileges = (PTOKEN_GROUPS_AND_PRIVILEGES)
 			realloc(securityState->groupsWithPrivileges, dwTokenGroupsAndPrivileges);
 		if (this->securityState->groupsWithPrivileges == NULL) {
-			Logln(ERROR_LEVEL, L"[%s:%s:%d]:Can not alloc TOKEN_GROUPS_AND_PRIVILEGES:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+			LOG_ERROR(L"Can not alloc TOKEN_GROUPS_AND_PRIVILEGES");
 			return GetLastError();
 		}
 
 		if (!GetTokenInformation(processToken, TokenGroupsAndPrivileges, securityState->groupsWithPrivileges, dwTokenGroupsAndPrivileges, &dwTokenGroupsAndPrivileges)) {
 			status = GetLastError();
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Something occurs in GetTokenInformation for TokenGroupsAndPrivileges:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, status, GetLastErrorAsString());
+			LOG_DEBUG( L"Something occurs in GetTokenInformation for TokenGroupsAndPrivileges");
 		}
 	}
 
@@ -429,13 +463,13 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->privileges = (PTOKEN_PRIVILEGES)
 			realloc(securityState->privileges, dwPrivileges);
 		if (this->securityState->privileges == NULL) {
-			Logln(ERROR_LEVEL, L"[%s:%s:%d]:Can not alloc TOKEN_PRIVILEGES:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+			LOG_ERROR(L"Can not alloc TOKEN_PRIVILEGES");
 			return GetLastError();
 		}
 
 		if (!GetTokenInformation(processToken, TokenPrivileges, securityState->privileges, dwPrivileges, &dwPrivileges)) {
 			status = GetLastError();
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Something occurs in GetTokenInformation for TokenPrivileges:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, status, GetLastErrorAsString());
+			LOG_DEBUG( L"Something occurs in GetTokenInformation for TokenPrivileges");
 		}
 	}
 
@@ -448,13 +482,13 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->integrity = (PTOKEN_MANDATORY_LABEL)
 			realloc(securityState->integrity, dwTokenMandatoryLabel);
 		if (this->securityState->integrity == NULL) {
-			Logln(ERROR_LEVEL, L"[%s:%s:%d]:Can not alloc TOKEN_MANDATORY_LABEL:%d,%s", GetLastError(), GetLastErrorAsString());
+			LOG_ERROR(L"Can not alloc TOKEN_MANDATORY_LABEL");
 			return GetLastError();
 		}
 
 		if (!GetTokenInformation(processToken, TokenIntegrityLevel, securityState->integrity, dwTokenMandatoryLabel, &dwTokenMandatoryLabel)) {
 			status = GetLastError();
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Something occurs in GetTokenInformation for TokenIntegrityLevel:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, status, GetLastErrorAsString());
+			LOG_DEBUG( L"Something occurs in GetTokenInformation for TokenIntegrityLevel");
 		}
 	}
 	return 0;
@@ -708,13 +742,13 @@ DWORD Process::SetProcessIOState() {
 	return NtStatusHandler(status);
 }
 
-BOOL Process::CreateDump(LPTSTR filename, MINIDUMP_TYPE dumpType) {
+BOOL Process::CreateDump(LPWSTR filename, MINIDUMP_TYPE dumpType) {
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
-	if (hProcess = NULL) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can open process in CreateDump:%d,%s,%d", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString(), __LINE__);
+	if (hProcess == NULL) {
+		LOG_DEBUG( L"Can open process in CreateDump");
 		return 0;
 	}
-	HANDLE dumpFile = CreateFile(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE dumpFile = CreateFileW(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (dumpFile == INVALID_HANDLE_VALUE) {
 		//fails to create a file handle
 		return FALSE;
@@ -733,7 +767,7 @@ PID Process::GetPID() {
 	return processId;
 }
 
-std::wstring Process::GetUser() {
+std::wstring Process::GetUserName() {
 	if (this->userName.size() != 0) {
 		return this->userName;
 	}
@@ -781,25 +815,25 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 		PROCESS_VM_READ,
 		FALSE, this->processId);
 	if (hProcess == NULL) {
-		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		LOG_DEBUG( L"Error OpenProcess");
 		return dlls;
 	}
 	EnumProcessModules(hProcess, &_tmp, 0, &size);
 	if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		LOG_DEBUG( L"Error EnumProcessModules");
 		CloseHandle(hProcess);
 		return dlls;
 	}
 
 	HMODULE* modules = (HMODULE*)LocalAlloc(GPTR,size);
 	if (modules == NULL) {
-		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		LOG_DEBUG( L"Error LocalAlloc");
 		CloseHandle(hProcess);
 		return dlls;
 	}
 	
 	if (!EnumProcessModules(hProcess, modules, size, &size)) {
-		Logln(DEBUG_LEVEL, L"Error: %s", GetLastErrorAsString());
+		LOG_DEBUG( L"Error EnumProcessModules");
 		CloseHandle(hProcess);
 		LocalFree(modules);
 		return dlls;
@@ -863,18 +897,39 @@ DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
 	if (hProcess == NULL) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
+		LOG_DEBUG(L"Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
 		return GetLastError();
 	}
 	if (!ReadProcessMemory(hProcess, address, data, size, NULL)) {
 		if (GetLastError() == ERROR_ACCESS_DENIED) {
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Access denied to process memory");
+			LOG_DEBUG(L"Access denied to process memory");
 		}
 		else {
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Error ReadProcessMemory:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+			LOG_DEBUG(L"Error ReadProcessMemory");
 		}
 	}
 	status = GetLastError();
+	CloseHandle(hProcess);
+	return status;
+}
+
+DWORD Process::WriteMemoryToAddress(PVOID address, PBYTE inData, size_t size) {
+	DWORD status = 0;
+	SIZE_T writeBytes = 0;
+	HANDLE hProcess = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
+	if (hProcess == NULL) {
+		LOG_DEBUG(L"Access denied to process memory", __FILEW__, __FUNCTIONW__, __LINE__);
+		return GetLastError();
+	}
+	if (!WriteProcessMemory(hProcess, address, inData, size, &writeBytes)) {
+		if (GetLastError() == ERROR_ACCESS_DENIED) {
+			LOG_DEBUG(L"Access denied to process memory");
+		}
+		else {
+			LOG_DEBUG(L"Error WriteProcessMemory");
+		}
+	}
+	CloseHandle(hProcess);
 	return status;
 }
 
@@ -1006,12 +1061,12 @@ void Thread::Resume() {
 void Thread::Terminate() {
 	HANDLE hTread = OpenThread(THREAD_TERMINATE, FALSE, this->threadId);
 	if (hTread == NULL) {
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not open thread in Thread::Terminate:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG(L"Can not open thread in Thread::Terminate");
 		return;
 	}
 	if (!TerminateThread(hThread, 0)) {
 		//error when terminate thread
-		Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not terminate the thread:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+		LOG_DEBUG(L"Can not terminate the thread");
 		return;
 	}
 }
@@ -1104,7 +1159,7 @@ BOOL ProcessManager::SetAllProcesses() {
 			processesMap[pid]->processName = pe32.szExeFile;
 #endif // UNICODE
 			processesMap[pid]->InitProcessStaticState();
-			processesMap[pid]->SetProcessCPUState();
+			processesMap[pid]->GetCPUState();
 		}
 	} while (Process32Next(hProcessSnap, &pe32));
 

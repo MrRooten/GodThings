@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "OtherInfo.h"
 #include "EvtInfo.h"
+#include "Process.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -173,7 +174,10 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			test();
+			SetGloablLogLevel(DEBUG_LEVEL);
+			Process p(14632);
+			p.InjectDll((LPWSTR)L"C:\\SourceCode\\Godthings\\GodThings\\x64\\Release\\TestDll.dll");
+			LOG_DEBUG(L"");
 		}
 		else if (subcmd == L"list_path") {
 

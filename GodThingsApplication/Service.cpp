@@ -364,15 +364,14 @@ DWORD ServiceManager::SetAllServices() {
 		&numService,
 		NULL
 	)) {
-		Logln(ERROR_LEVEL, L"[%s:%s:%d]:EnumServiceStatusW Fails:%d", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError());
+		LOG_DEBUG(L"EnumServiceStatusW Fails");
 		this->error = GetLastError();
 	}
-	printf("%d %d\n", cbSize/sizeof(ENUM_SERVICE_STATUSW), cbSize);
 
 	for (size_t i = 0; i < numService; i++) {
 		Srv* service = new Srv();
 		if (service == NULL) {
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:Can not alloc space for service", __FILEW__, __FUNCTIONW__, __LINE__);
+			LOG_DEBUG(L"Can not alloc space for service");
 			continue;
 		}
 		service->serviceName = services[i].lpServiceName;

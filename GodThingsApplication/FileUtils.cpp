@@ -4,9 +4,9 @@ GTFile::GTFile() {
 
 }
 
-BOOL GTFile::Initialize(std::wstring filePath, DWORD mode) {
+BOOL GTFile::Initialize(const LPWSTR filePath, DWORD mode) {
 	this->hFile = CreateFileW(
-		filePath.c_str(),
+		filePath,
 		mode,
 		FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL,
@@ -14,7 +14,7 @@ BOOL GTFile::Initialize(std::wstring filePath, DWORD mode) {
 		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
-	if (this->hFile == NULL) {
+	if (this->hFile == INVALID_HANDLE_VALUE) {
 		return FALSE;
 	}
 	return TRUE;
@@ -107,25 +107,26 @@ GTFile::~GTFile() {
 		LocalFree(this->curBytes);
 	}
 }
-GTFile* FileUtils::Open(std::wstring &filePath,std::wstring mode) {
+GTFile* GTFileUtils::Open(LPCWSTR filePath,LPCWSTR mode) {
 	GTFile* file = new GTFile();
 	if (file == NULL) {
-		return file;
+		return NULL;
 	}
 	DWORD access = 0;
-	for (size_t i = 0; i < mode.size(); i++) {
-		if (mode[i] == L'R' || mode[i] == L'r') {
+	std::wstring_view m = mode;
+	for (size_t i = 0; i < m.size(); i++) {
+		if (m[i] == L'R' || m[i] == L'r') {
 			access = access | GENERIC_READ;
 		}
-		else if (mode[i] == L'W' || mode[i] == L'w') {
+		else if (m[i] == L'W' || m[i] == L'w') {
 			access = access | GENERIC_WRITE;
 		}
-		else if (mode[i] == L'X' || mode[i] == L'x') {
+		else if (m[i] == L'X' || m[i] == L'x') {
 			access = access | GENERIC_EXECUTE;
 		}
 	}
 
-	if (!file->Initialize(filePath, access)) {
+	if (!file->Initialize((LPWSTR)filePath, access)) {
 		delete file;
 		return NULL;
 	}

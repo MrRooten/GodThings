@@ -6,11 +6,11 @@ void PEInfo::Initialize(const wchar_t* path) {
 	pe->AnalyseFile(path, true);
 }
 
-PEInfo::PEInfo(const WCHAR* path) {
+PEInfo::PEInfo(const WCHAR* path) : FileInfo(path) {
 	this->Initialize(path);
 }
 
-PEInfo::PEInfo(const char* path) {
+PEInfo::PEInfo(const char* path) : FileInfo(path) {
 	this->Initialize(StringUtils::s2ws(path).c_str());
 }
 

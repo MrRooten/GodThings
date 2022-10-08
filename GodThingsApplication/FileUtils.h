@@ -15,7 +15,7 @@ private:
 	DWORD _blockSize = 0;
 public:
 	GTFile();
-	BOOL Initialize(std::wstring filePath,DWORD mode);
+	BOOL Initialize(LPWSTR filePath,DWORD mode);
 	DWORD ReadBytes(PBYTE *pBytes);
 	
 	BytesPair ReadAll();
@@ -25,11 +25,11 @@ public:
 	~GTFile();
 };
 
-class FileUtils {
+class GTFileUtils {
 public:
-	static GTFile* Open(std::wstring &filePath, std::wstring mode);
-	static BOOL Delete(std::wstring &filePath);
-	static BOOL CreateLink(std::wstring &filePath, std::wstring linkPath);
+	static GTFile* Open(LPCWSTR filePath, LPCWSTR mode);
+	static BOOL Delete(const LPWSTR filePath);
+	static BOOL CreateLink(const LPWSTR filePath, const LPWSTR linkPath);
 };
 
 class Dir {

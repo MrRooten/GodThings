@@ -51,9 +51,9 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
 
     if (lpvParam == NULL)
     {
-        Logln(DEBUG_LEVEL,L"\nERROR - Pipe Server Failure:\n");
-        Logln(DEBUG_LEVEL, L"   InstanceThread got an unexpected NULL value in lpvParam.\n");
-        Logln(DEBUG_LEVEL, L"   InstanceThread exitting.\n");
+        LOG_DEBUG(L"ERROR - Pipe Server Failure:");
+        LOG_DEBUG(L"InstanceThread got an unexpected NULL value in lpvParam.");
+        LOG_DEBUG(L"InstanceThread exitting.");
         if (pchReply != NULL) LocalFree(pchReply);
         if (pchRequest != NULL) LocalFree(pchRequest);
         return (DWORD)-1;
@@ -61,24 +61,24 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
 
     if (pchRequest == NULL)
     {
-        Logln(DEBUG_LEVEL, L"\nERROR - Pipe Server Failure:\n");
-        Logln(DEBUG_LEVEL, L"   InstanceThread got an unexpected NULL heap allocation.\n");
-        Logln(DEBUG_LEVEL, L"   InstanceThread exitting.\n");
+        LOG_DEBUG(L"ERROR - Pipe Server Failure:");
+        LOG_DEBUG(L"InstanceThread got an unexpected NULL heap allocation.");
+        LOG_DEBUG(L"InstanceThread exitting.");
         if (pchReply != NULL) LocalFree(pchReply);
         return (DWORD)-1;
     }
 
     if (pchReply == NULL)
     {
-        Logln(DEBUG_LEVEL, L"\nERROR - Pipe Server Failure:\n");
-        Logln(DEBUG_LEVEL, L"   InstanceThread got an unexpected NULL heap allocation.\n");
-        Logln(DEBUG_LEVEL, L"   InstanceThread exitting.\n");
+        LOG_DEBUG(L"ERROR - Pipe Server Failure:");
+        LOG_DEBUG(L"InstanceThread got an unexpected NULL heap allocation.");
+        LOG_DEBUG(L"InstanceThread exitting.");
         if (pchRequest != NULL) LocalFree(pchRequest);
         return (DWORD)-1;
     }
 
     // Print verbose messages. In production code, this should be for debugging only.
-    Logln(DEBUG_LEVEL, L"InstanceThread created, receiving and processing messages.\n");
+    LOG_DEBUG(L"InstanceThread created, receiving and processing messages.");
 
     // The thread's parameter is a handle to a pipe object instance. 
 
@@ -101,11 +101,11 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
         {
             if (GetLastError() == ERROR_BROKEN_PIPE)
             {
-                Logln(DEBUG_LEVEL, L"InstanceThread: client disconnected.\n");
+                LOG_DEBUG(L"InstanceThread: client disconnected.\n");
             }
             else
             {
-                Logln(DEBUG_LEVEL, L"InstanceThread ReadFile failed, GLE=%d,%s.\n", GetLastError(),GetLastErrorAsStringThreadSafe().c_str());
+                LOG_DEBUG(L"InstanceThread ReadFile failed");
             }
             break;
         }
@@ -126,7 +126,7 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
         printf("Write Size:%d\n", cbWritten);
         if (!fSuccess || cbReplyBytes != cbWritten)
         {
-            Logln(DEBUG_LEVEL, L"InstanceThread WriteFile failed, GLE=%d,%s.\n", GetLastError(), GetLastErrorAsStringThreadSafe().c_str());
+            LOG_DEBUG(L"InstanceThread WriteFile failed");
             break;
         }
         break;
@@ -188,7 +188,7 @@ VOID Serve() {
         if (fConnected)
         {
             i++;
-            printf("Client connected, creating a processing thread.\n");
+            printf("Client connected, creating a processing thread.");
             //PythonVM* vm = new PythonVM();
 #ifdef PYTHON_ENABLE
             std::thread t1([_hPipe](PyInterpreterState* state) {

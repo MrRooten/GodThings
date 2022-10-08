@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "StringUtils.h"
 
+LOG_LEVEL GlobalLogLevel = INFO_LEVEL;
 
 UINT16 MPEBytes::BytesToINT16B(PBYTE bytes) {
 	return (bytes[0] << 8) + bytes[1];
@@ -144,48 +145,34 @@ VOID GTPrintln(const WCHAR* messageFormat, ...) {
 	}
 }
 
+VOID SetGloablLogLevel(LOG_LEVEL level) {
+	GlobalLogLevel = level;
+}
+
 VOID Logln(LOG_LEVEL logLevel, const WCHAR* messageFormat, ...) {
-	wchar_t buffer[255] = { 0 };
+	wchar_t buffer[1024] = { 0 };
 	va_list vaList;//equal to Format + sizeof(FOrmat)
 	va_start(vaList, messageFormat);
-	_vsnwprintf(buffer, 255, messageFormat, vaList);
+	_vsnwprintf_s(buffer, 1024, messageFormat, vaList);
 	va_end(vaList);
-
 	if (logLevel <= GlobalLogLevel) {
 		if (logLevel == DEBUG_LEVEL) {
-			if (sizeof(TCHAR) != sizeof(CHAR))
-				wprintf(L"[DBG]:%s\n", buffer);
-			else {
-				const char* c = StringUtils::ws2s(buffer).c_str();
-				printf("[DBG]:%s\n", c);
-			}
+			wprintf_s(L"[DBG]:%s\n",buffer);
 		}
 		else if (logLevel == INFO_LEVEL) {
-			if (sizeof(TCHAR) != sizeof(CHAR))
-				wprintf(L"[INF]:%s\n", buffer);
-			else {
-				const char* c = StringUtils::ws2s(buffer).c_str();
-				printf("[INF]:%s\n", c);
-			}
+			wprintf_s(L"[INF]:%s\n", buffer);
 		}
 		else if (logLevel == WARNING_LEVEL) {
-			if (sizeof(TCHAR) != sizeof(CHAR))
-				wprintf(L"[WRN]:%s\n", buffer);
-			else {
-				const char* c = StringUtils::ws2s(buffer).c_str();
-				printf("[WRN]:%s\n", c);
-			}
+			wprintf_s(L"[WRN]:%s\n", buffer);
 		}
 		else if (logLevel == ERROR_LEVEL) {
-			if (sizeof(TCHAR) != sizeof(CHAR))
-				wprintf(L"[ERR]:%s\n", buffer);
-			else {
-				const char* c = StringUtils::ws2s(buffer).c_str();
-				printf("[ERR]:%s\n", c);
-			}
+			wprintf_s(L"[ERR]:%s\n", buffer);
 		}
 	}
 }
+
+
+
 static wchar_t message[100];
 LPWSTR GetLastErrorAsString() {
 	//Get the error message ID, if any.
@@ -195,7 +182,7 @@ LPWSTR GetLastErrorAsString() {
 	//Ask Win32 to give us the string version of that message ID.
 	//The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
 	size_t size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, NULL);
+		NULL, errorMessageID, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR)&messageBuffer, 0, NULL);
 
 	//Copy the error message into a std::string.
 	std::wstring message(messageBuffer, size);

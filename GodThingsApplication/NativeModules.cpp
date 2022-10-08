@@ -24,12 +24,11 @@ ResultSet* ProcessModule::ModuleRun() {
 		//result->dataDict["id"].push_back(std::to_string(item.first));
 		result->PushDictOrdered("id", std::to_string(item.first));
 		//result->dataDict["name"].push_back(StringUtils::ws2s(item.second->processName));
-		result->PushDictOrdered("name", StringUtils::ws2s(item.second->processName));
-		item.second->SetProcessUserName();
-		result->PushDictOrdered("userName", StringUtils::ws2s(item.second->userName));
-		item.second->SetProcessImageState();
-		result->PushDictOrdered("cmdline", StringUtils::ws2s(item.second->imageState->cmdline));
-		result->PushDictOrdered("filepath", StringUtils::ws2s(item.second->imageState->imageFileName));
+		result->PushDictOrdered("name", StringUtils::ws2s(item.second->GetProcessName()));
+
+		result->PushDictOrdered("userName", StringUtils::ws2s(item.second->GetUserName()));
+		result->PushDictOrdered("cmdline", StringUtils::ws2s(item.second->GetImageState()->cmdline));
+		result->PushDictOrdered("filepath", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
 	}
 	delete mgr;
 	result->SetType(DICT);
@@ -120,7 +119,7 @@ ResultSet* StartupModule::ModuleRun() {
 		hFind = FindFirstFileW(path.c_str(), &ffd);
 
 		if (INVALID_HANDLE_VALUE == hFind) {
-			Logln(DEBUG_LEVEL, L"[%s:%s:%d]:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__, GetLastError(), GetLastErrorAsString());
+			LOG_DEBUG(L"Can not find first file");
 			break;
 		}
 
@@ -312,13 +311,13 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 	for (auto item : mgr.processesMap) {
 		auto proName = item.second->processName;
 		auto iproName = StringUtils::ToLower(proName);
-		if (item.second->imageState->IsSigned() == false) {
+		if (item.second->GetImageState()->IsSigned() == false) {
 			Process* process = item.second;
 			auto imageState = process->GetImageState();
 			std::wstring cmdline = imageState->cmdline;
 			result->PushDictOrdered("pid", std::to_string(item.first));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
-			result->PushDictOrdered("info", StringUtils::ws2s(item.second->imageState->GetSignInfo()).c_str());
+			result->PushDictOrdered("info", StringUtils::ws2s(item.second->GetImageState()->GetSignInfo()).c_str());
 			result->report = "There is unsigned process running";
 		}
 	}

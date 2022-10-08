@@ -34,6 +34,24 @@ DWORD GetFileBasicInfo(LPCWSTR fileName, PFILE_BASIC_INFO* Pinfo) {
 	return 0;
 }
 
+FileInfo::FileInfo(const std::wstring& fileName) {
+	this->fileName = fileName;
+}
+
+FileInfo::FileInfo(const std::string& fileName) {
+	this->fileName = StringUtils::s2ws(fileName);
+}
+
+FileInfo::FileInfo(const char* fileName) {
+	this->fileName = StringUtils::s2ws(fileName);
+}
+
+FileInfo::FileInfo(const wchar_t* fileName) {
+	this->fileName = fileName;
+}
+
+
+
 DWORD FileInfo::SetBasicInfo() {
 	if (this->pBasicInfo == NULL) {
 		this->pBasicInfo = (PFILE_BASIC_INFORMATION)GlobalAlloc(GPTR, sizeof FILE_BASIC_INFORMATION);
@@ -556,7 +574,7 @@ PrefetchFile* PrefetchFile::Open(std::wstring file, bool is_compressed) {
 }
 
 PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) : FileInfo(file) {
-	auto f = FileUtils::Open(file, L"r");
+	auto f = GTFileUtils::Open(file.c_str(), L"r");
 	this->is_compressed = is_compressed;
 
 	if (f == NULL) {
@@ -710,7 +728,7 @@ EvtxFile* EvtxFile::Open(std::wstring file) {
 }
 
 EvtxFile::EvtxFile(std::wstring& file) {
-	this->f = FileUtils::Open(file, L"r");
+	this->f = GTFileUtils::Open(file.c_str(), L"r");
 	if (this->f == NULL) {
 		throw std::exception();
 	}
@@ -808,4 +826,7 @@ uint32_t EvtxEventRecord::GetSize() {
 
 BytesBuffer EvtxEventRecord::GetBody() {
 	return NewBytesBuffer(this->body.first+4, this->body.second);
+}
+
+FileMetrics::FileMetrics() {
 }

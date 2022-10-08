@@ -72,10 +72,14 @@ enum LOG_LEVEL {
 
 VOID GTPrintln(const WCHAR* messageFormat, ...);
 
-static LOG_LEVEL GlobalLogLevel = INFO_LEVEL;
+extern LOG_LEVEL GlobalLogLevel;
+VOID SetGloablLogLevel(LOG_LEVEL level);
 
 VOID Logln(LOG_LEVEL logLevel, const WCHAR* messageFormat, ...);
-
+#define LOG_DEBUG(msg) Logln(DEBUG_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_ERROR(msg) Logln(ERROR_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_WARN(msg) Logln(WARNING_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_INFO(msg) Logln(INFO_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
 LPWSTR GetLastErrorAsString();
 
 std::wstring GetLastErrorAsStringThreadSafe();
