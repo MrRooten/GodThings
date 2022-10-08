@@ -462,13 +462,9 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 		auto path = dll.GetPath();
 		auto sign = VerifyEmbeddedSignature(path.c_str());
 		FileInfo dllInfo(path.c_str());
-		if (dllInfo.GetCreateTime() > *t) {
-			result->PushDictOrdered("Path", StringUtils::ws2s(path));
-			result->PushDictOrdered("Reasono", "Newer than date");
-		}
 		if (!sign->IsSignature()) {
 			result->PushDictOrdered("Path", StringUtils::ws2s(path));
-			result->PushDictOrdered("Reason", "Not signature");
+			result->PushDictOrdered("Reason", "No signature");
 		}
 		delete sign;
 	}
