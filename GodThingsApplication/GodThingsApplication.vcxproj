@@ -194,7 +194,7 @@
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="NativeModules.cpp" />
     <ClCompile Include="Network.cpp" />
-    <ClCompile Include="ntapi.cpp" />
+    <ClCompile Include="NtAPI.cpp" />
     <ClCompile Include="ObjectInfo.cpp" />
     <ClCompile Include="OtherInfo.cpp" />
     <ClCompile Include="Parse.cpp" />
@@ -230,7 +230,7 @@
     <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="NtFileInfo.h" />
     <ClInclude Include="Network.h" />
-    <ClInclude Include="ntapi.h" />
+    <ClInclude Include="NtAPI.h" />
     <ClInclude Include="NtObjectInfo.h" />
     <ClInclude Include="NtThreadInfo.h" />
     <ClInclude Include="ObjectInfo.h" />

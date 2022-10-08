@@ -30,7 +30,7 @@
     <ClCompile Include="Network.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ntapi.cpp">
+    <ClCompile Include="NtAPI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="RegistryUtils.cpp">
@@ -125,7 +125,7 @@
     <ClInclude Include="Network.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ntapi.h">
+    <ClInclude Include="NtAPI.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="RegistryUtils.h">
