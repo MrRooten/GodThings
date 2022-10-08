@@ -86,30 +86,9 @@ Process::Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr) {
 	this->processId = (PID)pInfo->UniqueProcessId;
 	this->processName = pInfo->ImageName.Buffer;
 	this->processesManager = procMgr;
-	this->hProcess = GTOpenProcess(processId,PROCESS_ALL_ACCESS);
-	if (this->hProcess == NULL) {
-		this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
-		if (this->hProcess == NULL) {
-			this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_LIMITED_INFORMATION);
-		}
-		else {
-			this->processRights = PROCESS_QUERY_INFORMATION;
-		}
-	}
-	else {
-		this->processRights = PROCESS_ALL_ACCESS;
-	}
-
-
-	if (this->hProcess == NULL) {
-		//fails to get process handle
-		LOG_ERROR(L"Error occurs in OpenProcess");
-		return;
-	}
-
-	if (!OpenProcessToken(this->hProcess, TOKEN_QUERY, &this->processToken)) {
-		//fails to get process token handle
-		LOG_ERROR(L"Error occurs in OpenProcessToken");
+	this->_cachedHandle = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
+	if (this->_cachedHandle != NULL) {
+		this->_maxRight = (0x000F0000 | 0x00100000 | 0xFFFF);
 	}
 	this->affinity = 0;
 	this->ioCounters = { 0 };
@@ -118,30 +97,9 @@ Process::Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr) {
 }
 
 Process::Process(PID processId, ProcessManager* processesManager) {
-	this->hProcess = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
-	if (this->hProcess == NULL) {
-		this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
-		if (this->hProcess == NULL) {
-			this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_LIMITED_INFORMATION);
-		}
-		else {
-			this->processRights = PROCESS_QUERY_INFORMATION;
-		}
-	}
-	else {
-		this->processRights = PROCESS_ALL_ACCESS;
-	}
-
-
-	if (this->hProcess == NULL) {
-		//fails to get process handle
-		LOG_ERROR(L"Error occurs in OpenProcess");
-		return;
-	}
-
-	if (!OpenProcessToken(this->hProcess, TOKEN_QUERY, &this->processToken)) {
-		//fails to get process token handle
-		LOG_ERROR(L"Error occurs in OpenProcessToken");
+	this->_cachedHandle = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
+	if (this->_cachedHandle != NULL) {
+		this->_maxRight = (0x000F0000 | 0x00100000 | 0xFFFF);
 	}
 
 	this->processId = processId;
@@ -154,31 +112,10 @@ Process::Process(PID processId, ProcessManager* processesManager) {
 }
 
 Process::Process(PID processId) {
-	this->hProcess = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
-	if (this->hProcess == NULL) {
-		this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
-		if (this->hProcess == NULL) {
-			this->hProcess = GTOpenProcess(processId, PROCESS_QUERY_LIMITED_INFORMATION);
-		}
-		else {
-			this->processRights = PROCESS_QUERY_INFORMATION;
-		}
-	}
-	else {
-		this->processRights = PROCESS_ALL_ACCESS;
-	}
-
-
-	if (this->hProcess == NULL) {
-		//fails to get process handle
-		LOG_DEBUG( L"Error occurs in OpenProcess");
-		return;
-	}
-
-	if (!OpenProcessToken(this->hProcess, TOKEN_QUERY, &this->processToken)) {
-		//fails to get process token handle
-		LOG_DEBUG( L"Error occurs in OpenProcessToken");
-	}
+	this->_cachedHandle = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
+	if (this->_cachedHandle != NULL) {
+		this->_maxRight = (0x000F0000 | 0x00100000 | 0xFFFF);
+	} 
 
 	this->processId = processId;
 	this->affinity = 0;
@@ -188,7 +125,7 @@ Process::Process(PID processId) {
 }
 
 DWORD Process::InjectDll(const LPWSTR filename) {
-	HANDLE hProcess = GTOpenProcess(this->GetPID(), PROCESS_ALL_ACCESS);
+	HANDLE hProcess = GetCachedHandle(PROCESS_ALL_ACCESS);
 	DWORD threadId;
 	if (hProcess == NULL) {
 		return GetLastError();
@@ -218,7 +155,7 @@ DWORD Process::InjectDll(const LPWSTR filename) {
 }
 
 Process::~Process() {
-	CloseHandle(this->hProcess);
+	CloseHandle(this->_cachedHandle);
 
 	if (memoryState != nullptr)
 		delete this->memoryState;
@@ -250,7 +187,7 @@ Process::~Process() {
 
 
 DWORD Process::KillProcess() {
-	if (!TerminateProcess(this->hProcess, 0)) {
+	if (!TerminateProcess(this->GetCachedHandle(PROCESS_TERMINATE), 0)) {
 		return GetLastError();
 	}
 	return 0;
@@ -283,8 +220,19 @@ DWORD Process::SetThreads() {
 	return 0;
 }
 
-HANDLE Process::GetMaxRightHandle() {
-	return HANDLE();
+HANDLE Process::GetCachedHandle(DWORD accessRight) {
+	if ((accessRight | _maxRight) == _maxRight) {
+		return this->_cachedHandle;
+	}
+	HANDLE hProcess = GTOpenProcess(this->GetPID(), accessRight|_maxRight);
+	if (hProcess == NULL) {
+		return NULL;
+	}
+
+	_maxRight = (accessRight | _maxRight);
+	CloseHandle(this->_cachedHandle);
+	this->_cachedHandle = hProcess;
+	return this->_cachedHandle;
 }
 
 LSA_HANDLE GetPolicyHandle() {
@@ -313,14 +261,14 @@ DWORD Process::SuspendProcess() {
 	if (pfnNtSuspendProcess == NULL) {
 		return GetLastError();
 	}
-	pfnNtSuspendProcess(this->hProcess);
+	pfnNtSuspendProcess(GetCachedHandle(PROCESS_SUSPEND_RESUME));
 	return 0;
 }
 
 DWORD Process::ResumeProcess() {
 	NtSuspendProcess pfnNtResumeProcess = (NtResumeProcess)GetProcAddress(
 		GetModuleHandleW(L"ntdll"), "NtResumeProcess");
-	pfnNtResumeProcess(this->hProcess);
+	pfnNtResumeProcess(GetCachedHandle(PROCESS_SUSPEND_RESUME));
 	return 0;
 }
 DWORD Process::SetProcessUserName() {
@@ -405,9 +353,16 @@ DWORD Process::SetProcessSecurityState() {
 	}
 	DWORD dwTokenGroup = 0;
 	DWORD status = ERROR_SUCCESS;
-	if (this->processToken == NULL) {
-		return 0;
+	HANDLE processToken = NULL;
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+	if (hProcess == NULL) {
+		hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
 	}
+	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &processToken)) {
+		LOG_DEBUG(L"Error OpenProcessToken");
+		return GetLastError();
+	}
+
 	if (!GetTokenInformation(processToken, TokenGroups, securityState->groups, sizeof(TOKEN_GROUPS), &dwTokenGroup)) {
 		status = GetLastError();
 	}
@@ -415,7 +370,7 @@ DWORD Process::SetProcessSecurityState() {
 	if (status == ERROR_INSUFFICIENT_BUFFER) {
 		this->securityState->groups = (PTOKEN_GROUPS)realloc(securityState->groups, dwTokenGroup);
 		if (this->securityState->groups == NULL) {
-			LOG_ERROR(L"Can not alloc TOKEN_GROUPS");
+			LOG_DEBUG(L"Can not alloc TOKEN_GROUPS");
 			return GetLastError();
 		}
 		
@@ -444,7 +399,7 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->groupsWithPrivileges = (PTOKEN_GROUPS_AND_PRIVILEGES)
 			realloc(securityState->groupsWithPrivileges, dwTokenGroupsAndPrivileges);
 		if (this->securityState->groupsWithPrivileges == NULL) {
-			LOG_ERROR(L"Can not alloc TOKEN_GROUPS_AND_PRIVILEGES");
+			LOG_DEBUG(L"Can not alloc TOKEN_GROUPS_AND_PRIVILEGES");
 			return GetLastError();
 		}
 
@@ -463,7 +418,7 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->privileges = (PTOKEN_PRIVILEGES)
 			realloc(securityState->privileges, dwPrivileges);
 		if (this->securityState->privileges == NULL) {
-			LOG_ERROR(L"Can not alloc TOKEN_PRIVILEGES");
+			LOG_DEBUG(L"Can not alloc TOKEN_PRIVILEGES");
 			return GetLastError();
 		}
 
@@ -482,7 +437,7 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->integrity = (PTOKEN_MANDATORY_LABEL)
 			realloc(securityState->integrity, dwTokenMandatoryLabel);
 		if (this->securityState->integrity == NULL) {
-			LOG_ERROR(L"Can not alloc TOKEN_MANDATORY_LABEL");
+			LOG_DEBUG(L"Can not alloc TOKEN_MANDATORY_LABEL");
 			return GetLastError();
 		}
 
@@ -495,19 +450,20 @@ DWORD Process::SetProcessSecurityState() {
 }
 
 void Process::ChangeProcessPriority(Priority priority) {
-	if (!SetPriorityClass(this->hProcess, priority)) {
+	HANDLE hProcess = GetCachedHandle(PROCESS_SET_INFORMATION);
+	if (!SetPriorityClass(hProcess, priority)) {
 
 	}
 }
 
 Priority Process::GetPriority() {
-	return GetPriorityClass(this->hProcess);
+	return GetPriorityClass(GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION));
 }
 
 Affinity Process::GetAffinity() {
 	DWORD_PTR affinity;
 	DWORD_PTR systemAffinity;
-	if (!GetProcessAffinityMask(this->hProcess, &affinity, &systemAffinity)) {
+	if (!GetProcessAffinityMask(GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION), &affinity, &systemAffinity)) {
 
 	}
 
@@ -523,9 +479,6 @@ void Process::SetAffinity(Affinity affinity) {
 
 DWORD Process::SetProcessCPUState() {
 	DWORD res = 0;
-	if (this->hProcess == NULL) {
-		return 0;
-	}
 	if (this->latestCpuState == NULL) {
 		//error when alloc CPUState struct
 	}
@@ -533,7 +486,11 @@ DWORD Process::SetProcessCPUState() {
 	if (cpuState != NULL && latestCpuState != NULL)
 		*cpuState = *latestCpuState;
 
-	if (!GetProcessTimes(this->hProcess, &latestCpuState->createTime, &latestCpuState->exitTime, &latestCpuState->kernelTime, &latestCpuState->userTime)) {
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+	if (hProcess == NULL) {
+		hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
+	}
+	if (!GetProcessTimes(hProcess, &latestCpuState->createTime, &latestCpuState->exitTime, &latestCpuState->kernelTime, &latestCpuState->userTime)) {
 		//error when get Processes times
 		res = GetLastError();
 		return res;
@@ -546,8 +503,9 @@ DWORD Process::SetProcessCPUState() {
 	if (NtQueryInfomationProcess == NULL) {
 		return GetLastError();
 	}
+
 	NTSTATUS status = NtQueryInfomationProcess(
-		this->hProcess,
+		hProcess,
 		ProcessPriorityClass,
 		&priority,
 		sizeof(PROCESS_PRIORITY_CLASS),
@@ -632,7 +590,10 @@ DWORD Process::SetProcessImageState() {
 		SetLastError(6);
 		return GetLastError();
 	}
-
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+	if (hProcess == NULL) {
+		hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
+	}
 
 	//Get cmdline of process
 	PUNICODE_STRING123 cmdline = (PUNICODE_STRING123)LocalAlloc(GPTR, 1000);
@@ -685,11 +646,11 @@ DWORD Process::SetProcessMemoryState() {
 	if (NtQueryInformationProcess != NULL) {
 		DWORD size = 0;
 		VM_COUNTERS_EX2 counters2 = { 0 };
-		HANDLE process = GTOpenProcess(this->processId, PROCESS_QUERY_INFORMATION);
-		if (process == NULL) {
-			return GetLastError();
+		HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+		if (hProcess == NULL) {
+			hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
 		}
-		NTSTATUS status = NtQueryInformationProcess(this->hProcess, ProcessVmCounters, &counters2, sizeof(VM_COUNTERS_EX2), &size);
+		NTSTATUS status = NtQueryInformationProcess(hProcess, ProcessVmCounters, &counters2, sizeof(VM_COUNTERS_EX2), &size);
 		if (status != 0) {
 			return NtStatusHandler(status);
 		}
@@ -718,7 +679,11 @@ DWORD Process::SetProcessMemoryState() {
 DWORD Process::SetProcessIOState() {
 	ZeroMemory(this->ioState, sizeof(IOState));
 	IO_COUNTERS ioCounters;
-	if (!GetProcessIoCounters(this->hProcess, &ioCounters)) {
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+	if (hProcess == NULL) {
+		hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
+	}
+	if (!GetProcessIoCounters(hProcess, &ioCounters)) {
 		return GetLastError();
 	}
 
@@ -734,7 +699,7 @@ DWORD Process::SetProcessIOState() {
 	}
 	IO_PRIORITY_HINT ioPriority;
 	DWORD size;
-	NTSTATUS status = NtQueryInformationProcess(this->hProcess, ProcessIoPriority, &ioPriority, sizeof(IO_PRIORITY_HINT), &size);
+	NTSTATUS status = NtQueryInformationProcess(GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION), ProcessIoPriority, &ioPriority, sizeof(IO_PRIORITY_HINT), &size);
 	if (status != 0) {
 		return NtStatusHandler(status);
 	}
@@ -743,7 +708,7 @@ DWORD Process::SetProcessIOState() {
 }
 
 BOOL Process::CreateDump(LPWSTR filename, MINIDUMP_TYPE dumpType) {
-	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
+	HANDLE hProcess = GetCachedHandle(PROCESS_VM_READ);
 	if (hProcess == NULL) {
 		LOG_DEBUG( L"Can open process in CreateDump");
 		return 0;
@@ -811,9 +776,8 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	DWORD size;
 	WCHAR path[1024];
 	HMODULE _tmp;
-	auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
-		PROCESS_VM_READ,
-		FALSE, this->processId);
+	auto hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION |PROCESS_VM_READ);
+
 	if (hProcess == NULL) {
 		LOG_DEBUG( L"Error OpenProcess");
 		return dlls;
@@ -821,20 +785,17 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	EnumProcessModules(hProcess, &_tmp, 0, &size);
 	if (GetLastError() != ERROR_FILE_NOT_FOUND) {
 		LOG_DEBUG( L"Error EnumProcessModules");
-		CloseHandle(hProcess);
 		return dlls;
 	}
 
 	HMODULE* modules = (HMODULE*)LocalAlloc(GPTR,size);
 	if (modules == NULL) {
 		LOG_DEBUG( L"Error LocalAlloc");
-		CloseHandle(hProcess);
 		return dlls;
 	}
 	
 	if (!EnumProcessModules(hProcess, modules, size, &size)) {
 		LOG_DEBUG( L"Error EnumProcessModules");
-		CloseHandle(hProcess);
 		LocalFree(modules);
 		return dlls;
 	}
@@ -847,7 +808,6 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 		dlls.push_back(dll);
 	}
 
-	CloseHandle(hProcess);
 	LocalFree(modules);
 	return dlls;
 }
@@ -895,7 +855,7 @@ std::wstring Process::GetProcessName() {
 
 DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
-	HANDLE hProcess = GTOpenProcess(processId, PROCESS_VM_READ);
+	HANDLE hProcess = GetCachedHandle(PROCESS_VM_READ);
 	if (hProcess == NULL) {
 		LOG_DEBUG(L"Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
 		return GetLastError();
@@ -909,14 +869,13 @@ DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 		}
 	}
 	status = GetLastError();
-	CloseHandle(hProcess);
 	return status;
 }
 
 DWORD Process::WriteMemoryToAddress(PVOID address, PBYTE inData, size_t size) {
 	DWORD status = 0;
 	SIZE_T writeBytes = 0;
-	HANDLE hProcess = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
+	HANDLE hProcess = GetCachedHandle(PROCESS_ALL_ACCESS);
 	if (hProcess == NULL) {
 		LOG_DEBUG(L"Access denied to process memory", __FILEW__, __FUNCTIONW__, __LINE__);
 		return GetLastError();
@@ -929,7 +888,6 @@ DWORD Process::WriteMemoryToAddress(PVOID address, PBYTE inData, size_t size) {
 			LOG_DEBUG(L"Error WriteProcessMemory");
 		}
 	}
-	CloseHandle(hProcess);
 	return status;
 }
 

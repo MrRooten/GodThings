@@ -159,7 +159,9 @@ class Process {
 
 	DWORD SetThreads();
 
-	HANDLE GetMaxRightHandle();
+	HANDLE _cachedHandle = NULL;
+	DWORD _maxRight = 0;
+	HANDLE GetCachedHandle(DWORD accessRight);
 	
 	PROCESS_MEMORY_COUNTERS_EX pMemoryCounters;
 	IO_COUNTERS ioCounters;
@@ -176,9 +178,6 @@ class Process {
 	ImageState* imageState = new ImageState();
 	SecurityState* securityState = new SecurityState();
 
-	HANDLE hProcess;
-	HANDLE processToken;
-	DWORD processRights;
 public:
 	std::vector<Thread*>* threads;
 	static std::map<DWORD, std::wstring> _pidProcessNameMap;

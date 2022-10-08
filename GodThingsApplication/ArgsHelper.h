@@ -175,9 +175,9 @@ public:
 		}
 		else if (subcmd == L"test") {
 			SetGloablLogLevel(DEBUG_LEVEL);
-			Process p(14632);
-			p.InjectDll((LPWSTR)L"C:\\SourceCode\\Godthings\\GodThings\\x64\\Release\\TestDll.dll");
-			LOG_DEBUG(L"");
+			Process p(20904);
+			auto dlls = p.GetLoadedDlls();
+			printf("");
 		}
 		else if (subcmd == L"list_path") {
 
