@@ -127,4 +127,10 @@ public:
 	MailiousProcessDlls();
 	ResultSet* ModuleRun();
 };
+
+class MailiousCodeInjection : public NativeModule {
+public:
+	MailiousCodeInjection();
+	ResultSet* ModuleRun();
+};
 #endif

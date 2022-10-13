@@ -94,10 +94,9 @@ DWORD GetServices() {
 	ServiceManager svcMgr;
 	svcMgr.SetAllServices();
 	for (auto svcItem : svcMgr.services) {
-		wprintf(L"%s %s\n", svcItem->serviceName.c_str(), svcItem->filePath.c_str());
-		svcItem->SetDescription();
-		GTPrintln(L"\tDescription:%s", svcItem->pDescription->lpDescription);
-		GTPrintln(L"\tFailure Action:%s", svcItem->pFailureActions->lpCommand);
+		wprintf(L"%s %s\n", svcItem->GetServiceName().c_str(), svcItem->GetFilePath().c_str());
+		GTPrintln(L"\tDescription:%s", svcItem->GetDescription().c_str());
+		GTPrintln(L"\tFailure Action:%s", svcItem->GetFailureActionCommand());
 		GTPrintln(L"\tState:%s", svcItem->GetServiceStatus().c_str());
 	}
 	GTPrintln(L"");

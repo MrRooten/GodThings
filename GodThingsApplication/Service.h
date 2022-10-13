@@ -6,7 +6,6 @@
 
 class ServiceManager;
 class Srv {
-public:
 	std::wstring serviceName;
 	std::wstring displayName;
 	std::wstring filePath;
@@ -15,26 +14,19 @@ public:
 	SERVICE_STATUS serviceStatus;
 	std::vector<Srv*> dependentServices;
 	ServiceManager* pSrvManager = NULL;
-	HKEY srvRegKey;
-	~Srv();
-	DWORD Start();
-	DWORD Stop();
-	DWORD DeleteService();
-	std::wstring GetType();
-	std::wstring GetStartType();
 
 	DWORD SetConfig();
 
 	LPSERVICE_DELAYED_AUTO_START_INFO pDelayedAutoStartInfo = NULL;
 	DWORD SetDelayedAutoStartInfo();
 
-	LPSERVICE_DESCRIPTIONW pDescription;
+	std::wstring description;
 	DWORD SetDescription();
 
 	LPSERVICE_FAILURE_ACTIONSW pFailureActions;
 	DWORD SetFailureActions();
 
-	std::wstring GetServiceStatus();
+	
 	LPSERVICE_FAILURE_ACTIONS_FLAG pFailureActionsFlag;
 	DWORD SetFailureActionsFlag();
 
@@ -59,8 +51,48 @@ public:
 	DWORD SetDependentServices();
 
 	DWORD SetSrvRegKey();
+public:
+	
+	HKEY srvRegKey;
+	~Srv();
 
-	std::wstring GetDescription();
+	DWORD Start();
+
+	DWORD Stop();
+
+	DWORD DeleteService();
+
+	std::wstring GetType();
+
+	std::wstring GetStartType();
+
+	std::wstring& GetDescription();
+
+	VOID SetServiceName(LPCWSTR serviceName);
+
+	VOID SetDisplayName(LPCWSTR displayName);
+
+	VOID SetFilePath(LPCWSTR filePath);
+
+	VOID SetUserName(LPCWSTR userName);
+	
+	VOID SetServiceStatus(SERVICE_STATUS status);
+
+	VOID SetSrvManager(ServiceManager* mgr);
+
+	std::wstring GetServiceStatus();
+
+	std::wstring& GetServiceName();
+
+	std::wstring& GetDisplayName();
+
+	std::wstring& GetFilePath();
+
+	std::wstring& GetUserName();
+
+	std::wstring& GetSID();
+
+	LPWSTR GetFailureActionCommand();
 };
 
 
@@ -74,4 +106,5 @@ public:
 	ServiceManager();
 	~ServiceManager();
 	DWORD SetAllServices();
+	DWORD CreateService(LPCWSTR name, LPCWSTR displayName, DWORD type, DWORD startType, DWORD errorControl, LPCWSTR binaryPath);
 };

@@ -10,10 +10,7 @@ Srv::~Srv() {
 		this->pDelayedAutoStartInfo = NULL;
 	}
 
-	if (this->pDescription != NULL) {
-		GlobalFree(this->pDescription);
-		this->pDescription = NULL;
-	}
+
 
 	if (this->pFailureActions != NULL) {
 		GlobalFree(this->pFailureActions);
@@ -205,14 +202,15 @@ std::wstring Srv::GetServiceStatus() {
 }
 
 DWORD Srv::SetDescription() {
-	if (this->pDescription == NULL) {
-		this->pDescription = (LPSERVICE_DESCRIPTIONW)GlobalAlloc(GPTR, sizeof SERVICE_DESCRIPTIONW);
-		if (this->pDescription == NULL) {
+	LPSERVICE_DESCRIPTIONW pDescription = NULL;
+	if (pDescription == NULL) {
+		pDescription = (LPSERVICE_DESCRIPTIONW)GlobalAlloc(GPTR, sizeof SERVICE_DESCRIPTIONW);
+		if (pDescription == NULL) {
 			return GetLastError();
 		}
 	}
 	else {
-		ZeroMemory(this->pDescription, sizeof LPSERVICE_DESCRIPTIONW);
+		ZeroMemory(pDescription, sizeof LPSERVICE_DESCRIPTIONW);
 	}
 
 	SC_HANDLE hSCManager = NULL;
@@ -232,16 +230,16 @@ DWORD Srv::SetDescription() {
 	if (!QueryServiceConfig2W(
 		hService,
 		SERVICE_CONFIG_DESCRIPTION,
-		(LPBYTE)this->pDescription,
+		(LPBYTE)pDescription,
 		sizeof SERVICE_DESCRIPTIONW,
 		&dwSize
 	)) {
 		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-			this->pDescription = (LPSERVICE_DESCRIPTIONW)GlobalReAlloc(this->pDescription, dwSize, GMEM_MOVEABLE);
+			pDescription = (LPSERVICE_DESCRIPTIONW)GlobalReAlloc(pDescription, dwSize, GMEM_MOVEABLE);
 			if (!QueryServiceConfig2W(
 				hService,
 				SERVICE_CONFIG_DESCRIPTION,
-				(LPBYTE)this->pDescription,
+				(LPBYTE)pDescription,
 				dwSize,
 				&dwSize
 			)) {
@@ -256,6 +254,14 @@ DWORD Srv::SetDescription() {
 			return GetLastError();
 		}
 	}
+
+	if (pDescription->lpDescription == NULL) {
+		this->description = L"";
+	}
+	else {
+		this->description = pDescription->lpDescription;
+	}
+	GlobalFree(pDescription);
 	CloseServiceHandle(hService);
 	CloseServiceHandle(hSCManager);
 	return 0;
@@ -318,17 +324,71 @@ DWORD Srv::SetRequirePrivilegesInfo() {
 	CloseServiceHandle(hSCManager);
 	return 0;
 }
-std::wstring Srv::GetDescription() {
-	this->SetDescription();
-	std::wstring a = L"";
-	if (lstrlenW(this->pDescription->lpDescription) == 0) {
-		a = L"";
+std::wstring& Srv::GetDescription() {
+	if (this->description.size() == 0) {
+		this->SetDescription();
 	}
-	else {
-		a = this->pDescription->lpDescription;
-	}
-	return a;
+
+	return this->description;
 }
+VOID Srv::SetServiceName(LPCWSTR serviceName) {
+	this->serviceName = serviceName;
+}
+
+VOID Srv::SetDisplayName(LPCWSTR displayName) {
+	this->displayName = displayName;
+}
+
+VOID Srv::SetFilePath(LPCWSTR filePath) {
+	this->filePath = filePath;
+}
+
+VOID Srv::SetUserName(LPCWSTR userName) {
+	this->userName = userName;
+}
+
+VOID Srv::SetServiceStatus(SERVICE_STATUS status) {
+	this->serviceStatus = status;
+}
+
+VOID Srv::SetSrvManager(ServiceManager* mgr) {
+	this->pSrvManager = mgr;
+}
+
+std::wstring& Srv::GetServiceName() {
+	return this->serviceName;
+}
+
+std::wstring& Srv::GetDisplayName() {
+	return this->displayName;
+}
+
+std::wstring& Srv::GetFilePath() {
+	return this->filePath;
+}
+
+std::wstring& Srv::GetUserName() {
+	return this->userName;
+}
+
+std::wstring& Srv::GetSID() {
+	if (this->SID.size() == 0) {
+		//this->SetSIDInfo();
+	}
+
+	return this->SID;
+}
+
+LPWSTR Srv::GetFailureActionCommand() {
+	if (this->pFailureActions == NULL) {
+		this->SetFailureActions();
+	}
+
+	return this->pFailureActions->lpCommand;
+}
+
+
+
 ServiceManager::ServiceManager() {
 	this->hSCManger = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
 	if (this->hSCManger == INVALID_HANDLE_VALUE) {
@@ -374,17 +434,40 @@ DWORD ServiceManager::SetAllServices() {
 			LOG_DEBUG(L"Can not alloc space for service");
 			continue;
 		}
-		service->serviceName = services[i].lpServiceName;
-		service->displayName = services[i].lpDisplayName;
-		service->serviceStatus = services[i].ServiceStatus;
-		service->pSrvManager = this;
-		service->SetRequirePrivilegesInfo();
-		service->SetDescription();
-		service->SetConfig();
-		service->SetFailureActions();
+		service->SetServiceName(services[i].lpServiceName);
+		service->SetDisplayName(services[i].lpDisplayName);
+		service->SetServiceStatus(services[i].ServiceStatus);
+		service->SetSrvManager(this);
 		this->services.push_back(service);
 	}
 	GlobalFree(services);
+	return 0;
+}
+
+DWORD ServiceManager::CreateService(LPCWSTR name, LPCWSTR displayName, DWORD type, DWORD startType, DWORD errorControl, LPCWSTR binaryPath) {
+	if (this->hSCManger == NULL) {
+		return -1;
+	}
+
+	SC_HANDLE srv = CreateServiceW(
+		this->hSCManger,
+		name,
+		displayName,
+		SERVICE_ALL_ACCESS,
+		SERVICE_WIN32_OWN_PROCESS,
+		SERVICE_DEMAND_START,
+		SERVICE_ERROR_NORMAL,
+		binaryPath,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	);
+
+	if (srv == NULL) {
+		return GetLastError();
+	}
 	return 0;
 }
 

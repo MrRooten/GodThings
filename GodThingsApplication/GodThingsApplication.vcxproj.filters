@@ -108,6 +108,12 @@
     <ClCompile Include="HackDetectModules.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ShellCodeUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -228,6 +234,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="HookUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ShellCodeUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

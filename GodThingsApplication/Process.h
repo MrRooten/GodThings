@@ -136,6 +136,12 @@ public:
 	LoadedDll(HMODULE hModule);
 };
 
+class Segment {
+public:
+	Segment(PMEMORY_BASIC_INFORMATION32 info);
+	Segment(PMEMORY_BASIC_INFORMATION64 info);
+	Segment(PMEMORY_BASIC_INFORMATION info);
+};
 class Thread;
 class ProcessManager;
 
@@ -158,6 +164,11 @@ class Process {
 	DWORD SetSessionId();
 
 	DWORD SetThreads();
+
+	INT32 _is32 = -2;
+
+	std::vector<Segment> _segments;
+	DWORD SetSegments();
 
 	HANDLE _cachedHandle = NULL;
 	DWORD _maxRight = 0;
@@ -214,8 +225,10 @@ public:
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
 	DWORD InjectDll(const LPWSTR filename);
+	std::vector<Segment>& GetSegments();
 	~Process();
 
+	BOOL Is32Bit();
 	//TOKEN_USER* tokenUser;
 	
 	void InitProcessStaticState();
@@ -225,7 +238,7 @@ public:
 	/*PPROCESS_EXTENDED_BASIC_INFORMATION pExtendedBasicInfo = NULL;
 	DWORD SetExtendedBasicInfo();
 	BOOL IsProtected();
-	BOOL IsWow64();
+	
 	BOOL IsProcessDeleting();
 	BOOL IsCrossSessionCreate();
 	BOOL IsFrozen();

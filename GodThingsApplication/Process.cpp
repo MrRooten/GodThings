@@ -6,6 +6,7 @@
 #include "sddl.h"
 #include "NtSystemInfo.h"
 #include "ProcessUtils.h"
+#include "SystemUtils.h"
 typedef NTSTATUS(NTAPI* pfnNtQueryInformationProcess)(
 	IN  HANDLE ProcessHandle,
 	IN  int ProcessInformationClass,
@@ -154,6 +155,11 @@ DWORD Process::InjectDll(const LPWSTR filename) {
 	return 0;
 }
 
+std::vector<Segment>& Process::GetSegments() {
+	this->SetSegments();
+	return this->_segments;
+}
+
 Process::~Process() {
 	CloseHandle(this->_cachedHandle);
 
@@ -183,6 +189,38 @@ Process::~Process() {
 	if (latestCpuState != nullptr)
 		delete latestCpuState;
 
+}
+
+BOOL Process::Is32Bit() {
+	if (this->_is32 != -2) {
+		return this->_is32;
+	}
+	HANDLE hProcess = this->GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
+	BOOL ret = FALSE;
+	if (IsWow64Process(hProcess, &ret)) {
+		if (ret == true) {
+			this->_is32 = 1;
+			return ret;
+		}
+
+		auto arch = SystemUtils::GetSystemArchitecture();
+		if (arch == PROCESSOR_ARCHITECTURE_AMD64) {
+			this->_is32 = false;
+		}
+
+		if (arch == PROCESSOR_ARCHITECTURE_INTEL) {
+			this->_is32 = true;
+		}
+
+		if (arch == PROCESSOR_ARCHITECTURE_IA64) {
+			this->_is32 = false;
+		}
+
+		return this->_is32;
+	}
+
+
+	return TRUE;
 }
 
 
@@ -218,6 +256,20 @@ DWORD Process::SetThreads() {
 		CloseHandle(h);
 	}
 	return 0;
+}
+
+DWORD Process::SetSegments() {
+	SetLastError(0);
+	HANDLE h = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+	MEMORY_BASIC_INFORMATION _tmp_info = { 0 };
+	SIZE_T len = 0;
+	PVOID base = NULL;
+	for (int i = 0; i < 10; i++) {
+		VirtualQueryEx(h, base, &_tmp_info, sizeof(MEMORY_BASIC_INFORMATION) * 10);
+		base = (PVOID)((UINT64)_tmp_info.RegionSize + (UINT64)_tmp_info.BaseAddress);
+	}
+	
+	return GetLastError();
 }
 
 HANDLE Process::GetCachedHandle(DWORD accessRight) {

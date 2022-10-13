@@ -175,8 +175,8 @@ public:
 		}
 		else if (subcmd == L"test") {
 			SetGloablLogLevel(DEBUG_LEVEL);
-			Process p(20904);
-			auto dlls = p.GetLoadedDlls();
+			Process p(10412);
+			auto dlls = p.GetSegments();
 			printf("");
 		}
 		else if (subcmd == L"list_path") {

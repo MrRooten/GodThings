@@ -4,4 +4,6 @@
 class SystemUtils {
 public:
 	static DWORD GetSystemVersion();
+	static WORD arch;
+	static WORD GetSystemArchitecture();
 };

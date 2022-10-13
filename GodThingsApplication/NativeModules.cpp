@@ -68,17 +68,10 @@ ResultSet* ServiceModule::ModuleRun() {
 	mgr->SetAllServices();
 	for (auto item : mgr->services) {
 		//result->dataDict["serviceName"].push_back(StringUtils::ws2s(item->serviceName));
-		result->PushDictOrdered("serviceName", StringUtils::ws2s(item->serviceName));
+		result->PushDictOrdered("serviceName", StringUtils::ws2s(item->GetServiceName()));
 		//result->dataDict["serviceStatus"].push_back(StringUtils::ws2s(item->GetServiceStatus()));
 		result->PushDictOrdered("serviceStatus", StringUtils::ws2s(item->GetServiceStatus()));
-		item->SetDescription();
-		std::wstring a = L"";
-		if (lstrlenW(item->pDescription->lpDescription)==0) {
-			a = L"";
-		}
-		else {
-			a = item->pDescription->lpDescription;
-		}
+		auto a = item->GetDescription();
 		//result->dataDict["description"].push_back(StringUtils::ws2s(a));
 		result->PushDictOrdered("description", StringUtils::ws2s(a));
 	}
@@ -470,4 +463,18 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 	}
 	result->SetType(DICT);
 	return result;
+}
+
+MailiousCodeInjection::MailiousCodeInjection() {
+	this->Name = L"MailiousCodeInjection";
+	this->Path = L"Process";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Detect is there are mailious shellcode";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* MailiousCodeInjection::ModuleRun() {
+	return nullptr;
 }

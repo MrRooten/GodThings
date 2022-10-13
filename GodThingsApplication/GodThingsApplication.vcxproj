@@ -207,8 +207,10 @@
     <ClCompile Include="PythonUtils.cpp" />
     <ClCompile Include="RegistryUtils.cpp" />
     <ClCompile Include="Service.cpp" />
+    <ClCompile Include="ShellCodeUtils.cpp" />
     <ClCompile Include="StringUtils.cpp" />
     <ClCompile Include="SystemInfo.cpp" />
+    <ClCompile Include="SystemUtils.cpp" />
     <ClCompile Include="TestNativeModule.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="VerifyUtils.cpp" />
@@ -248,6 +250,7 @@
     <ClInclude Include="RegistryUtils.h" />
     <ClInclude Include="Service.h" />
     <ClInclude Include="NtSystemInfo.h" />
+    <ClInclude Include="ShellCodeUtils.h" />
     <ClInclude Include="StringUtils.h" />
     <ClInclude Include="SystemInfo.h" />
     <ClInclude Include="SystemUtils.h" />

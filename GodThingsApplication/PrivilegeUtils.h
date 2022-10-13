@@ -9,3 +9,4 @@ static PTOKEN_PRIVILEGES pPrivileges;
 
 BOOL HasPrivilege(std::wstring privilege);
 
+BOOL GetSystem();
