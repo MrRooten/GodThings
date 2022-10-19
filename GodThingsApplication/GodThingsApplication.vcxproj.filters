@@ -239,5 +239,11 @@
     <ClInclude Include="ShellCodeUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DCHackModules.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessHackModules.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

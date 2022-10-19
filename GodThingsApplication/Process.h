@@ -137,10 +137,27 @@ public:
 };
 
 class Segment {
+	UINT64 BaseAddress;
+	UINT64 AllocationBase;
+	DWORD AllocationProtect;
+	UINT64 RegionSize;
+	DWORD State;
+	DWORD Protect;
+	DWORD Type;
 public:
 	Segment(PMEMORY_BASIC_INFORMATION32 info);
 	Segment(PMEMORY_BASIC_INFORMATION64 info);
 	Segment(PMEMORY_BASIC_INFORMATION info);
+	DWORD GetType();
+	std::wstring GetTypeAsString();
+	DWORD GetProtect();
+	std::wstring GetProtectAsString();
+	UINT64 GetBaseAddress();
+	UINT64 GetAllocationBase();
+	DWORD GetAllocationProtect();
+	UINT64 GetRegionSize();
+	DWORD GetState();
+	std::wstring GetStateAsString();
 };
 class Thread;
 class ProcessManager;
@@ -188,7 +205,9 @@ class Process {
 	HandleState* handleState = new HandleState();
 	ImageState* imageState = new ImageState();
 	SecurityState* securityState = new SecurityState();
-
+	
+	PPROCESS_EXTENDED_BASIC_INFORMATION pExtendedBasicInfo = NULL;
+	DWORD SetExtendedBasicInfo();
 public:
 	std::vector<Thread*>* threads;
 	static std::map<DWORD, std::wstring> _pidProcessNameMap;
@@ -235,8 +254,7 @@ public:
 	//set Process User Name after setting Process Security State
 	
 
-	/*PPROCESS_EXTENDED_BASIC_INFORMATION pExtendedBasicInfo = NULL;
-	DWORD SetExtendedBasicInfo();
+	
 	BOOL IsProtected();
 	
 	BOOL IsProcessDeleting();
@@ -244,7 +262,7 @@ public:
 	BOOL IsFrozen();
 	BOOL IsStronglyNamed();
 	BOOL IsSecureProcess();
-	BOOL IsSubsystemProcess();*/
+	BOOL IsSubsystemProcess();
 };
 
 class Thread {

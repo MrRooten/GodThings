@@ -264,9 +264,15 @@ DWORD Process::SetSegments() {
 	MEMORY_BASIC_INFORMATION _tmp_info = { 0 };
 	SIZE_T len = 0;
 	PVOID base = NULL;
-	for (int i = 0; i < 10; i++) {
+	MEMORY_BASIC_INFORMATION _last = { 0 };
+	for (int i = 0; i < 10000; i++) {
 		VirtualQueryEx(h, base, &_tmp_info, sizeof(MEMORY_BASIC_INFORMATION) * 10);
+		if (GetLastError() == ERROR_INVALID_PARAMETER) {
+			break;
+		}
+		this->_segments.push_back(Segment(&_tmp_info));
 		base = (PVOID)((UINT64)_tmp_info.RegionSize + (UINT64)_tmp_info.BaseAddress);
+		_last = _tmp_info;
 	}
 	
 	return GetLastError();
@@ -308,8 +314,7 @@ LSA_HANDLE GetPolicyHandle() {
 }
 
 DWORD Process::SuspendProcess() {
-	NtSuspendProcess pfnNtSuspendProcess = (NtSuspendProcess)GetProcAddress(
-		GetModuleHandleW(L"ntdll"), "NtSuspendProcess");
+	NtSuspendProcess pfnNtSuspendProcess = (NtSuspendProcess)GetNativeProc("NtSuspendProcess");
 	if (pfnNtSuspendProcess == NULL) {
 		return GetLastError();
 	}
@@ -318,11 +323,32 @@ DWORD Process::SuspendProcess() {
 }
 
 DWORD Process::ResumeProcess() {
-	NtSuspendProcess pfnNtResumeProcess = (NtResumeProcess)GetProcAddress(
-		GetModuleHandleW(L"ntdll"), "NtResumeProcess");
+	NtSuspendProcess pfnNtResumeProcess = (NtResumeProcess)GetNativeProc("NtResumeProcess");
 	pfnNtResumeProcess(GetCachedHandle(PROCESS_SUSPEND_RESUME));
 	return 0;
 }
+
+DWORD Process::SetExtendedBasicInfo() {
+	if (this->pExtendedBasicInfo == NULL) {
+		this->pExtendedBasicInfo = (PROCESS_EXTENDED_BASIC_INFORMATION*)LocalAlloc(GPTR,sizeof(PROCESS_EXTENDED_BASIC_INFORMATION));
+		if (this->pExtendedBasicInfo == NULL) {
+			return GetLastError();
+		}
+	}
+	pNtQueryInformationProcess NtQueryInfomationProcess;
+	NtQueryInfomationProcess = (pNtQueryInformationProcess)GetNativeProc("NtQueryInformationProcess");
+	if (NtQueryInfomationProcess == NULL) {
+		return GetLastError();
+	}
+	DWORD length = 0;
+	DWORD status = NtQueryInfomationProcess(GetCachedHandle(PROCESS_QUERY_INFORMATION), ProcessBasicInformation, this->pExtendedBasicInfo, sizeof(PROCESS_EXTENDED_BASIC_INFORMATION), &length);
+	if (!NT_SUCCESS(status)) {
+		return NtStatusHandler(status);
+	}
+
+	return NtStatusHandler(status);
+}
+
 DWORD Process::SetProcessUserName() {
 	SetLastError(ERROR_SUCCESS);
 	DWORD res = 0;
@@ -361,10 +387,13 @@ DWORD Process::SetProcessUserName() {
 	}
 
 	if (processToken == NULL) {
-		return NULL;
+		return GetLastError();
 	}
 	
 	PSID sids[1];
+	if (pTokenUser == NULL) {
+		return GetLastError();
+	}
 	sids[0] = pTokenUser->User.Sid;
 	PLSA_TRANSLATED_NAME names = NULL;
 	PLSA_REFERENCED_DOMAIN_LIST referencedNames = NULL;
@@ -1279,3 +1308,46 @@ std::wstring& LoadedDll::GetPath() {
 LoadedDll::LoadedDll(HMODULE hModule) {
 	this->hModule = hModule;
 }
+
+Segment::Segment(PMEMORY_BASIC_INFORMATION info) {
+}
+
+DWORD Segment::GetType() {
+	return this->Type;
+}
+
+DWORD Segment::GetProtect()
+{
+	return this->Protect;
+}
+
+UINT64 Segment::GetAllocationBase()
+{
+	return this->AllocationBase;
+}
+
+UINT64 Segment::GetBaseAddress()
+{
+	return this->BaseAddress;
+}
+
+DWORD Segment::GetAllocationProtect() {
+	return this->AllocationProtect;
+}
+
+UINT64 Segment::GetRegionSize()
+{
+	return UINT64();
+}
+
+std::wstring Segment::GetStateAsString()
+{
+	return std::wstring();
+}
+
+DWORD Segment::GetState()
+{
+	return this->State;
+}
+
+
