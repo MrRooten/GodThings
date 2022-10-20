@@ -39,19 +39,19 @@ DWORD NetworkManager::SetTCPConnection() {
 	pGetTcp6Table2 GetTcp6Table2 = NULL;
 	pTcpTable = (PMIB_TCPTABLE2)LocalAlloc(GPTR, size);
 	if (pTcpTable == NULL) {
-		LOG_ERROR(L"Error in Alloc Space");
+		LOG_ERROR_REASON(L"Error in Alloc Space");
 		goto cleanup;
 	}
 	
 	status = GetTcpTable2(pTcpTable, &size, TRUE);
 	if (status != NO_ERROR && status != ERROR_INSUFFICIENT_BUFFER) {
-		LOG_ERROR(L"Error in GetTcpTable2");
+		LOG_ERROR_REASON(L"Error in GetTcpTable2");
 		goto cleanup;
 	}
 	for (int i = 0; i < 8 && status == ERROR_INSUFFICIENT_BUFFER;i++) {
 		pTcpTable = (PMIB_TCPTABLE2)LocalReAlloc(pTcpTable, size, GPTR|GMEM_MOVEABLE);
 		if (pTcpTable == NULL) {
-			LOG_ERROR(L"Error in Alloc Space");
+			LOG_ERROR_REASON(L"Error in Alloc Space");
 			goto cleanup;
 		}
 		status = GetTcpTable2(pTcpTable, &size, TRUE);
@@ -63,19 +63,19 @@ DWORD NetworkManager::SetTCPConnection() {
 		size = 0x1000;
 		pTcp6Table = (PMIB_TCP6TABLE2)LocalAlloc(GPTR, size);
 		if (pTcp6Table == NULL) {
-			LOG_ERROR(L"Error in Alloc Space");
+			LOG_ERROR_REASON(L"Error in Alloc Space");
 			goto cleanup;
 		}
 
 		status = GetTcp6Table2(pTcp6Table, &size, TRUE);
 		if (status != NO_ERROR && status != ERROR_INSUFFICIENT_BUFFER) {
-			LOG_ERROR(L"Error in Get Tcp6Table2");
+			LOG_ERROR_REASON(L"Error in Get Tcp6Table2");
 			goto cleanup;
 		}
 		for (int i = 0; i < 8 && status == ERROR_INSUFFICIENT_BUFFER; i++) {
 			pTcp6Table = (PMIB_TCP6TABLE2)LocalReAlloc(pTcp6Table, size, GPTR | GMEM_MOVEABLE);
 			if (pTcpTable == NULL) {
-				LOG_ERROR(L"Error in Alloc Space");
+				LOG_ERROR_REASON(L"Error in Alloc Space");
 				goto cleanup;
 			}
 			status = GetTcp6Table2(pTcp6Table, &size, TRUE);
@@ -86,7 +86,7 @@ DWORD NetworkManager::SetTCPConnection() {
 	for (size_t i = 0; i < num; i++) {
 		Connection* conn = new Connection();
 		if (conn == nullptr) {
-			LOG_ERROR(L"Can not new Connection()");
+			LOG_ERROR_REASON(L"Can not new Connection()");
 			break;
 		}
 		conn->localIPv4.S_un.S_addr = pTcpTable->table[i].dwLocalAddr;
@@ -103,7 +103,7 @@ DWORD NetworkManager::SetTCPConnection() {
 		for (size_t i = 0; i < num; i++) {
 			Connection* conn = new Connection();
 			if (conn == nullptr) {
-				LOG_ERROR(L"Can not new Connection()");
+				LOG_ERROR_REASON(L"Can not new Connection()");
 				break;
 			}
 			conn->localIPv6 = pTcp6Table->table[i].LocalAddr;
@@ -150,7 +150,7 @@ DWORD NetworkManager::SetUDPConnection() {
 		for (DWORD i = 0; i < udp4Table->dwNumEntries; i++) {
 			Connection* conn = new Connection();
 			if (conn == nullptr) {
-				LOG_ERROR(L"Can not new Connection()");
+				LOG_ERROR_REASON(L"Can not new Connection()");
 				break;
 			}
 			conn->localIPv4 = NetworkUtils::ConvertDWORDToIN_ADDR(udp4Table->table[i].dwLocalAddr);
@@ -184,7 +184,7 @@ DWORD NetworkManager::SetUDPConnection() {
 		for (DWORD i = 0; i < udp6Table->dwNumEntries; i++) {
 			Connection* conn = new Connection();
 			if (conn == nullptr) {
-				LOG_ERROR(L"Can not new Connection()");
+				LOG_ERROR_REASON(L"Can not new Connection()");
 				break;
 			}
 			conn->localIPv6 = NetworkUtils::ConvertBytesToIN_ADDR6(udp6Table->table[i].ucLocalAddr);

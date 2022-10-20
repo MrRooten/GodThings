@@ -38,7 +38,7 @@ DWORD GetStartupPrograms() {
 		hFind = FindFirstFileW(path.c_str(), &ffd);
 
 		if (INVALID_HANDLE_VALUE == hFind) {
-			LOG_DEBUG("Error FindFirstFileW");
+			LOG_DEBUG_REASON("Error FindFirstFileW");
 			break;
 		}
 

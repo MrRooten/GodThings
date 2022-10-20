@@ -59,9 +59,9 @@ typedef struct _SecurityState {
 	PTOKEN_MANDATORY_LABEL integrity;
 	_SecurityState();
 	~_SecurityState();
-	std::vector<std::wstring> GetSIDsString();
-	std::vector<std::wstring> GetPrivilegesAsString();
-	std::wstring GetIntegrityAsString();
+	std::vector<GTWString> GetSIDsString();
+	std::vector<GTWString> GetPrivilegesAsString();
+	GTWString GetIntegrityAsString();
 }SecurityState;
 
 typedef struct _CPUState {
@@ -113,26 +113,26 @@ typedef struct _HandleState {
 }HandleState;
 
 typedef struct _ImageState {
-	std::wstring imageFileName;
-	std::wstring filePath;
-	std::wstring GetFilePath();
+	GTWString imageFileName;
+	GTWString filePath;
+	GTWString GetFilePath();
 	//TCHAR path[MAX_PATH];
-	std::wstring cmdline;
+	GTWString cmdline;
 	SignatureInfomation* info = NULL;
 	//TCHAR currentDirectory[MAX_PATH];
 	bool IsSigned();
 	
-	std::wstring GetSignInfo();
+	GTWString GetSignInfo();
 	~_ImageState();
 }ImageState;
 
 class LoadedDll {
 	HMODULE hModule;
-	std::wstring path;
+	GTWString path;
 public:
 	HMODULE GetModule();
 	void SetPath(LPWSTR path);
-	std::wstring& GetPath();
+	GTWString& GetPath();
 	LoadedDll(HMODULE hModule);
 };
 
@@ -149,15 +149,15 @@ public:
 	Segment(PMEMORY_BASIC_INFORMATION64 info);
 	Segment(PMEMORY_BASIC_INFORMATION info);
 	DWORD GetType();
-	std::wstring GetTypeAsString();
+	GTWString GetTypeAsString();
 	DWORD GetProtect();
-	std::wstring GetProtectAsString();
+	GTWString GetProtectAsString();
 	UINT64 GetBaseAddress();
 	UINT64 GetAllocationBase();
 	DWORD GetAllocationProtect();
 	UINT64 GetRegionSize();
 	DWORD GetState();
-	std::wstring GetStateAsString();
+	GTWString GetStateAsString();
 };
 class Thread;
 class ProcessManager;
@@ -210,11 +210,11 @@ class Process {
 	DWORD SetExtendedBasicInfo();
 public:
 	std::vector<Thread*>* threads;
-	static std::map<DWORD, std::wstring> _pidProcessNameMap;
+	static std::map<DWORD, GTWString> _pidProcessNameMap;
 
 	PID processId;
-	std::wstring processName;
-	std::wstring userName;
+	GTWString processName;
+	GTWString userName;
 	Process* parent = nullptr;
 	PID parentPID;
 	
@@ -232,7 +232,7 @@ public:
 	BOOL CreateDump(LPWSTR filename, MINIDUMP_TYPE dumpType);
 
 	PID GetPID();
-	std::wstring GetUserName();
+	GTWString GetUserName();
 	SecurityState* GetSecurityState();
 	ImageState* GetImageState();
 	HandleState* GetHandlesState();
@@ -240,7 +240,7 @@ public:
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
 	std::vector<LoadedDll> GetLoadedDlls();
-	std::wstring GetProcessName();
+	GTWString GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
 	DWORD InjectDll(const LPWSTR filename);

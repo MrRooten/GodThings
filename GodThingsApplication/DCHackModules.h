@@ -54,3 +54,9 @@ public:
 	RunCommandWithSystem();
 	ResultSet* ModuleRun();
 };
+
+class UnconstrainedDelegation : NativeModule {
+public:
+	UnconstrainedDelegation();
+	ResultSet* ModuleRun();
+};

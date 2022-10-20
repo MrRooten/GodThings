@@ -7,6 +7,9 @@
 #include "OtherInfo.h"
 #include "EvtInfo.h"
 #include "Process.h"
+#include "Service.h"
+#include "ProcServer.h"
+#include "Module.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t *file) {
@@ -175,8 +178,14 @@ public:
 		}
 		else if (subcmd == L"test") {
 			SetGloablLogLevel(DEBUG_LEVEL);
-			Process p(10908);
-			auto dlls = p.GetSegments();
+			ServiceManager mgr;
+			mgr.SetAllServices();
+			for (auto& s : mgr.services) {
+				if (s->GetServiceStatus() == L"SERVICE_RUNNING") {
+					auto pid = s->GetOwningPid();
+					printf("");
+				}
+			}
 			printf("");
 		}
 		else if (subcmd == L"list_path") {

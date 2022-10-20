@@ -76,10 +76,14 @@ extern LOG_LEVEL GlobalLogLevel;
 VOID SetGloablLogLevel(LOG_LEVEL level);
 
 VOID Logln(LOG_LEVEL logLevel, const WCHAR* messageFormat, ...);
-#define LOG_DEBUG(msg) Logln(DEBUG_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
-#define LOG_ERROR(msg) Logln(ERROR_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
-#define LOG_WARN(msg) Logln(WARNING_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
-#define LOG_INFO(msg) Logln(INFO_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_DEBUG_REASON(msg) Logln(DEBUG_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_ERROR_REASON(msg) Logln(ERROR_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_WARN_REASON(msg) Logln(WARNING_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_INFO_REASON(msg) Logln(INFO_LEVEL, L"[%s:%s:%d]:%s:%d,%s", __FILEW__, __FUNCTIONW__, __LINE__,msg, GetLastError(), GetLastErrorAsString())
+#define LOG_DEBUG(msg) Logln(DEBUG_LEVEL, L"[%s:%s:%d]:%s", __FILEW__, __FUNCTIONW__, __LINE__,msg)
+#define LOG_ERROR(msg) Logln(ERROR_LEVEL, L"[%s:%s:%d]:%s", __FILEW__, __FUNCTIONW__, __LINE__,msg)
+#define LOG_WARN(msg) Logln(WARNING_LEVEL, L"[%s:%s:%d]:%s", __FILEW__, __FUNCTIONW__, __LINE__,msg)
+#define LOG_INFO(msg) Logln(INFO_LEVEL, L"[%s:%s:%d]:%s", __FILEW__, __FUNCTIONW__, __LINE__,msg)
 LPWSTR GetLastErrorAsString();
 
 std::wstring GetLastErrorAsStringThreadSafe();
@@ -89,4 +93,8 @@ std::wstring s2ws(const std::string& str);
 #define BytesBuffer std::string
 #define NewBytesBuffer(bs,len) BytesBuffer(reinterpret_cast<char const*>(bs),len)
 using BytesPair = std::pair<PBYTE, size_t>;
+using GTRawString = BYTE*;
+typedef WCHAR* GTRawWString;
+typedef std::wstring GTWString;
+typedef std::string GTString;
 #endif

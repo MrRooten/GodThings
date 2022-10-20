@@ -14,7 +14,7 @@ class Srv {
 	SERVICE_STATUS serviceStatus;
 	std::vector<Srv*> dependentServices;
 	ServiceManager* pSrvManager = NULL;
-
+	
 	DWORD SetConfig();
 
 	LPSERVICE_DELAYED_AUTO_START_INFO pDelayedAutoStartInfo = NULL;
@@ -51,6 +51,9 @@ class Srv {
 	DWORD SetDependentServices();
 
 	DWORD SetSrvRegKey();
+
+	LPSERVICE_STATUS_PROCESS pStatusProcess = NULL;
+	DWORD SetStatusProcess();
 public:
 	
 	HKEY srvRegKey;
@@ -93,6 +96,8 @@ public:
 	std::wstring& GetSID();
 
 	LPWSTR GetFailureActionCommand();
+
+	DWORD GetOwningPid();
 };
 
 

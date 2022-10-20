@@ -112,7 +112,7 @@ ResultSet* StartupModule::ModuleRun() {
 		hFind = FindFirstFileW(path.c_str(), &ffd);
 
 		if (INVALID_HANDLE_VALUE == hFind) {
-			LOG_DEBUG(L"Can not find first file");
+			LOG_DEBUG_REASON(L"Can not find first file");
 			break;
 		}
 
@@ -476,5 +476,19 @@ MailiousCodeInjection::MailiousCodeInjection() {
 }
 
 ResultSet* MailiousCodeInjection::ModuleRun() {
+	return nullptr;
+}
+
+ValidSvcHost::ValidSvcHost() {
+	this->Name = L"ValidSvcHost";
+	this->Path = L"Service";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Detect if there are svchost that suspicious";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* ValidSvcHost::ModuleRun() {
 	return nullptr;
 }

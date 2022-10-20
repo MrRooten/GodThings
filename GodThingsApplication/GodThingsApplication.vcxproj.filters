@@ -114,6 +114,12 @@
     <ClCompile Include="SystemUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="LDAPUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DCHackModules.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -243,6 +249,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ProcessHackModules.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Kerberos.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LDAPUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

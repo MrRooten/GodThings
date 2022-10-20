@@ -4,6 +4,27 @@ DWORD Srv::Start() {
 	return 0;
 }
 
+DWORD Srv::SetStatusProcess() {
+	if (this->pStatusProcess == NULL) {
+		this->pStatusProcess = (LPSERVICE_STATUS_PROCESS)LocalAlloc(GPTR, sizeof(SERVICE_STATUS_PROCESS));
+		if (this->pStatusProcess == NULL) {
+			return GetLastError();
+		}
+	}
+	SC_HANDLE hSCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
+	SC_HANDLE hService = OpenServiceW(hSCManager, this->serviceName.c_str(), SERVICE_QUERY_CONFIG|SERVICE_QUERY_STATUS);
+	if (hService == NULL) {
+		CloseServiceHandle(hSCManager);
+		return GetLastError();
+	}
+	DWORD ret = 0;
+	if (!QueryServiceStatusEx(hService, SC_STATUS_PROCESS_INFO, (PBYTE)this->pStatusProcess, sizeof(SERVICE_STATUS_PROCESS), &ret)) {
+		return GetLastError();
+	}
+
+	return GetLastError();
+}
+
 Srv::~Srv() {
 	if (this->pDelayedAutoStartInfo != NULL) {
 		GlobalFree(this->pDelayedAutoStartInfo);
@@ -20,6 +41,11 @@ Srv::~Srv() {
 	if (this->pRequiredPrivilegesInfo != NULL) {
 		GlobalFree(this->pRequiredPrivilegesInfo);
 		this->pRequiredPrivilegesInfo = NULL;
+	}
+
+	if (this->pStatusProcess != NULL) {
+		LocalFree(this->pStatusProcess);
+		this->pStatusProcess = NULL;
 	}
 
 }
@@ -387,6 +413,15 @@ LPWSTR Srv::GetFailureActionCommand() {
 	return this->pFailureActions->lpCommand;
 }
 
+DWORD Srv::GetOwningPid() {
+	auto ret = this->SetStatusProcess();
+	if (ret != 0) {
+		return -1;
+	}
+
+	return this->pStatusProcess->dwProcessId;
+}
+
 
 
 ServiceManager::ServiceManager() {
@@ -424,14 +459,14 @@ DWORD ServiceManager::SetAllServices() {
 		&numService,
 		NULL
 	)) {
-		LOG_DEBUG(L"EnumServiceStatusW Fails");
+		LOG_DEBUG_REASON(L"EnumServiceStatusW Fails");
 		this->error = GetLastError();
 	}
 
 	for (size_t i = 0; i < numService; i++) {
 		Srv* service = new Srv();
 		if (service == NULL) {
-			LOG_DEBUG(L"Can not alloc space for service");
+			LOG_DEBUG_REASON(L"Can not alloc space for service");
 			continue;
 		}
 		service->SetServiceName(services[i].lpServiceName);

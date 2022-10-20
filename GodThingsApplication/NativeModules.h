@@ -133,4 +133,10 @@ public:
 	MailiousCodeInjection();
 	ResultSet* ModuleRun();
 };
+
+class ValidSvcHost : public NativeModule {
+public:
+	ValidSvcHost();
+	ResultSet* ModuleRun();
+};
 #endif

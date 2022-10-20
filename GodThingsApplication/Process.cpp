@@ -33,8 +33,8 @@ _SecurityState::~_SecurityState() {
 	free(this->integrity);
 	free(this->privileges);
 }
-std::vector<std::wstring> _SecurityState::GetSIDsString() {
-	std::vector<std::wstring> res;
+std::vector<GTWString> _SecurityState::GetSIDsString() {
+	std::vector<GTWString> res;
 	for (int i = 0; i < this->groups->GroupCount; i++) {
 		LPWSTR buffer = NULL;
 		if (!ConvertSidToStringSidW(this->groups->Groups[i].Sid, &buffer)) {
@@ -51,8 +51,8 @@ std::vector<std::wstring> _SecurityState::GetSIDsString() {
 }
 
 
-std::vector<std::wstring> _SecurityState::GetPrivilegesAsString() {
-	std::vector<std::wstring> res;
+std::vector<GTWString> _SecurityState::GetPrivilegesAsString() {
+	std::vector<GTWString> res;
 	for (int i = 0; i < this->privileges->PrivilegeCount; i++) {
 		WCHAR privilegeName[100] = { 0 };
 		DWORD size = 100;
@@ -64,7 +64,7 @@ std::vector<std::wstring> _SecurityState::GetPrivilegesAsString() {
 	return res;
 }
 
-std::wstring _SecurityState::GetIntegrityAsString() {
+GTWString _SecurityState::GetIntegrityAsString() {
 	LPWSTR buffer = NULL;
 	if (!ConvertSidToStringSidW(this->integrity->Label.Sid, &buffer)) {
 		return L"";
@@ -73,7 +73,7 @@ std::wstring _SecurityState::GetIntegrityAsString() {
 		return L"";
 	}
 
-	std::wstring res = buffer;
+	GTWString res = buffer;
 	LocalFree(buffer);
 	return res;
 }
@@ -355,14 +355,14 @@ DWORD Process::SetProcessUserName() {
 	LSA_HANDLE policyHandle;
 	HANDLE hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
 	if (hProcess == NULL) {
-		LOG_DEBUG( L"Error in GTOpenProcess");
+		LOG_DEBUG_REASON( L"Error in GTOpenProcess");
 		return GetLastError();
 	}
 	HANDLE processToken;
 	DWORD status;
 	
 	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &processToken)) {
-		LOG_DEBUG( L"Can not Call OpenProcessToken");
+		LOG_DEBUG_REASON( L"Can not Call OpenProcessToken");
 		return GetLastError();
 	}
 	
@@ -375,14 +375,14 @@ DWORD Process::SetProcessUserName() {
 		GetTokenInformation(processToken, TokenUser, pTokenUser, dwSize, &dwSize);
 	}
 	else {
-		LOG_DEBUG( L"Error Happen in GetTokenInformation");
+		LOG_DEBUG_REASON( L"Error Happen in GetTokenInformation");
 		return GetLastError();
 	}
 	
 	policyHandle = GetPolicyHandle();
 	if (policyHandle == NULL) {
 		//FAILS TO GET POLICY HANDLE
-		LOG_DEBUG( L"Error Happen in GetPolicyHandle");
+		LOG_DEBUG_REASON( L"Error Happen in GetPolicyHandle");
 		return GetLastError();
 	}
 
@@ -440,7 +440,7 @@ DWORD Process::SetProcessSecurityState() {
 		hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
 	}
 	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &processToken)) {
-		LOG_DEBUG(L"Error OpenProcessToken");
+		LOG_DEBUG_REASON(L"Error OpenProcessToken");
 		return GetLastError();
 	}
 
@@ -451,13 +451,13 @@ DWORD Process::SetProcessSecurityState() {
 	if (status == ERROR_INSUFFICIENT_BUFFER) {
 		this->securityState->groups = (PTOKEN_GROUPS)realloc(securityState->groups, dwTokenGroup);
 		if (this->securityState->groups == NULL) {
-			LOG_DEBUG(L"Can not alloc TOKEN_GROUPS");
+			LOG_DEBUG_REASON(L"Can not alloc TOKEN_GROUPS");
 			return GetLastError();
 		}
 		
 		if (!GetTokenInformation(processToken, TokenGroups, securityState->groups, dwTokenGroup, &dwTokenGroup)) {
 			status = GetLastError();
-			LOG_DEBUG( L"Something occurs in GetTokenInformation for TOKEN_GROUPS");
+			LOG_DEBUG_REASON( L"Something occurs in GetTokenInformation for TOKEN_GROUPS");
 		}
 	}
 	DWORD dwTokenSessionId = 0;
@@ -480,13 +480,13 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->groupsWithPrivileges = (PTOKEN_GROUPS_AND_PRIVILEGES)
 			realloc(securityState->groupsWithPrivileges, dwTokenGroupsAndPrivileges);
 		if (this->securityState->groupsWithPrivileges == NULL) {
-			LOG_DEBUG(L"Can not alloc TOKEN_GROUPS_AND_PRIVILEGES");
+			LOG_DEBUG_REASON(L"Can not alloc TOKEN_GROUPS_AND_PRIVILEGES");
 			return GetLastError();
 		}
 
 		if (!GetTokenInformation(processToken, TokenGroupsAndPrivileges, securityState->groupsWithPrivileges, dwTokenGroupsAndPrivileges, &dwTokenGroupsAndPrivileges)) {
 			status = GetLastError();
-			LOG_DEBUG( L"Something occurs in GetTokenInformation for TokenGroupsAndPrivileges");
+			LOG_DEBUG_REASON( L"Something occurs in GetTokenInformation for TokenGroupsAndPrivileges");
 		}
 	}
 
@@ -499,13 +499,13 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->privileges = (PTOKEN_PRIVILEGES)
 			realloc(securityState->privileges, dwPrivileges);
 		if (this->securityState->privileges == NULL) {
-			LOG_DEBUG(L"Can not alloc TOKEN_PRIVILEGES");
+			LOG_DEBUG_REASON(L"Can not alloc TOKEN_PRIVILEGES");
 			return GetLastError();
 		}
 
 		if (!GetTokenInformation(processToken, TokenPrivileges, securityState->privileges, dwPrivileges, &dwPrivileges)) {
 			status = GetLastError();
-			LOG_DEBUG( L"Something occurs in GetTokenInformation for TokenPrivileges");
+			LOG_DEBUG_REASON( L"Something occurs in GetTokenInformation for TokenPrivileges");
 		}
 	}
 
@@ -518,13 +518,13 @@ DWORD Process::SetProcessSecurityState() {
 		this->securityState->integrity = (PTOKEN_MANDATORY_LABEL)
 			realloc(securityState->integrity, dwTokenMandatoryLabel);
 		if (this->securityState->integrity == NULL) {
-			LOG_DEBUG(L"Can not alloc TOKEN_MANDATORY_LABEL");
+			LOG_DEBUG_REASON(L"Can not alloc TOKEN_MANDATORY_LABEL");
 			return GetLastError();
 		}
 
 		if (!GetTokenInformation(processToken, TokenIntegrityLevel, securityState->integrity, dwTokenMandatoryLabel, &dwTokenMandatoryLabel)) {
 			status = GetLastError();
-			LOG_DEBUG( L"Something occurs in GetTokenInformation for TokenIntegrityLevel");
+			LOG_DEBUG_REASON( L"Something occurs in GetTokenInformation for TokenIntegrityLevel");
 		}
 	}
 	return 0;
@@ -791,7 +791,7 @@ DWORD Process::SetProcessIOState() {
 BOOL Process::CreateDump(LPWSTR filename, MINIDUMP_TYPE dumpType) {
 	HANDLE hProcess = GetCachedHandle(PROCESS_VM_READ);
 	if (hProcess == NULL) {
-		LOG_DEBUG( L"Can open process in CreateDump");
+		LOG_DEBUG_REASON( L"Can open process in CreateDump");
 		return 0;
 	}
 	HANDLE dumpFile = CreateFileW(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -813,7 +813,7 @@ PID Process::GetPID() {
 	return processId;
 }
 
-std::wstring Process::GetUserName() {
+GTWString Process::GetUserName() {
 	if (this->userName.size() != 0) {
 		return this->userName;
 	}
@@ -860,23 +860,23 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	auto hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION |PROCESS_VM_READ);
 
 	if (hProcess == NULL) {
-		LOG_DEBUG( L"Error OpenProcess");
+		LOG_DEBUG_REASON( L"Error OpenProcess");
 		return dlls;
 	}
 	EnumProcessModules(hProcess, &_tmp, 0, &size);
 	if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-		LOG_DEBUG( L"Error EnumProcessModules");
+		LOG_DEBUG_REASON( L"Error EnumProcessModules");
 		return dlls;
 	}
 
 	HMODULE* modules = (HMODULE*)LocalAlloc(GPTR,size);
 	if (modules == NULL) {
-		LOG_DEBUG( L"Error LocalAlloc");
+		LOG_DEBUG_REASON( L"Error LocalAlloc");
 		return dlls;
 	}
 	
 	if (!EnumProcessModules(hProcess, modules, size, &size)) {
-		LOG_DEBUG( L"Error EnumProcessModules");
+		LOG_DEBUG_REASON( L"Error EnumProcessModules");
 		LocalFree(modules);
 		return dlls;
 	}
@@ -893,8 +893,8 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	return dlls;
 }
 
-std::map<DWORD, std::wstring> Process::_pidProcessNameMap;
-std::wstring Process::GetProcessName() {
+std::map<DWORD, GTWString> Process::_pidProcessNameMap;
+GTWString Process::GetProcessName() {
 	if (this->processName.size() != 0) {
 		return this->processName;
 	}
@@ -938,15 +938,15 @@ DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
 	HANDLE hProcess = GetCachedHandle(PROCESS_VM_READ);
 	if (hProcess == NULL) {
-		LOG_DEBUG(L"Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
+		LOG_DEBUG_REASON(L"Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
 		return GetLastError();
 	}
 	if (!ReadProcessMemory(hProcess, address, data, size, NULL)) {
 		if (GetLastError() == ERROR_ACCESS_DENIED) {
-			LOG_DEBUG(L"Access denied to process memory");
+			LOG_DEBUG_REASON(L"Access denied to process memory");
 		}
 		else {
-			LOG_DEBUG(L"Error ReadProcessMemory");
+			LOG_DEBUG_REASON(L"Error ReadProcessMemory");
 		}
 	}
 	status = GetLastError();
@@ -958,15 +958,15 @@ DWORD Process::WriteMemoryToAddress(PVOID address, PBYTE inData, size_t size) {
 	SIZE_T writeBytes = 0;
 	HANDLE hProcess = GetCachedHandle(PROCESS_ALL_ACCESS);
 	if (hProcess == NULL) {
-		LOG_DEBUG(L"Access denied to process memory", __FILEW__, __FUNCTIONW__, __LINE__);
+		LOG_DEBUG_REASON(L"Access denied to process memory", __FILEW__, __FUNCTIONW__, __LINE__);
 		return GetLastError();
 	}
 	if (!WriteProcessMemory(hProcess, address, inData, size, &writeBytes)) {
 		if (GetLastError() == ERROR_ACCESS_DENIED) {
-			LOG_DEBUG(L"Access denied to process memory");
+			LOG_DEBUG_REASON(L"Access denied to process memory");
 		}
 		else {
-			LOG_DEBUG(L"Error WriteProcessMemory");
+			LOG_DEBUG_REASON(L"Error WriteProcessMemory");
 		}
 	}
 	return status;
@@ -1100,12 +1100,12 @@ void Thread::Resume() {
 void Thread::Terminate() {
 	HANDLE hTread = OpenThread(THREAD_TERMINATE, FALSE, this->threadId);
 	if (hTread == NULL) {
-		LOG_DEBUG(L"Can not open thread in Thread::Terminate");
+		LOG_DEBUG_REASON(L"Can not open thread in Thread::Terminate");
 		return;
 	}
 	if (!TerminateThread(hThread, 0)) {
 		//error when terminate thread
-		LOG_DEBUG(L"Can not terminate the thread");
+		LOG_DEBUG_REASON(L"Can not terminate the thread");
 		return;
 	}
 }
@@ -1283,7 +1283,7 @@ bool _ImageState::IsSigned() {
 	return false;
 }
 
-std::wstring _ImageState::GetSignInfo() {
+GTWString _ImageState::GetSignInfo() {
 	return this->info->info;
 }
 
@@ -1301,7 +1301,7 @@ void LoadedDll::SetPath(LPWSTR path) {
 	this->path = path;
 }
 
-std::wstring& LoadedDll::GetPath() {
+GTWString& LoadedDll::GetPath() {
 	return this->path;
 }
 
@@ -1340,9 +1340,9 @@ UINT64 Segment::GetRegionSize()
 	return UINT64();
 }
 
-std::wstring Segment::GetStateAsString()
+GTWString Segment::GetStateAsString()
 {
-	return std::wstring();
+	return GTWString();
 }
 
 DWORD Segment::GetState()
