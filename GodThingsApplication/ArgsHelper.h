@@ -54,7 +54,8 @@ public:
 	static void RunModule(wchar_t* moduleName,int len_args,wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
 		for (auto& mod : mgr->modules) {
-			if (mod->Name == moduleName) {
+			auto fullPath = mod->Path + L"." + mod->Name;
+			if (fullPath == moduleName) {
 				Module::Args parameters;
 				for (int i = 0; i < len_args; i++) {
 					auto _kv = StringUtils::Trim(args[i]);

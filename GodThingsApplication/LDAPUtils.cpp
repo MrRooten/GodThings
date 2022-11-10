@@ -91,8 +91,18 @@ PLDAPMessage* LDAPResult::GetMessageAddr() {
 	return &message;
 }
 
+GTWString LDAPResult::GetReason()
+{
+	return GTWString();
+}
+
 BOOL LDAPResult::Ok() {
 	return this->errorCode == LDAP_SUCCESS;
+}
+
+VOID LDAPResult::SetCode(DWORD errorCode)
+{
+	return VOID();
 }
 
 LDAPResult::~LDAPResult() {

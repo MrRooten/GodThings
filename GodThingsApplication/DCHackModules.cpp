@@ -43,7 +43,7 @@ ResultSet* UnconstrainedDelegation::ModuleRun() {
 
 	LOG_INFO(L"Auth to LDAP server...");
 	LDAPIdentity identity((GTRawWString)username.c_str(), (GTRawWString)domain.c_str(), (GTRawWString)password.c_str(), 0);
-	result = session.Authenticate(&identity, LDAP_AUTH_NEGOTIATE);
+	result = session.Authenticate(identity, LDAP_AUTH_NEGOTIATE);
 	if (!result.Ok()) {
 		LOG_ERROR(result.GetReason().c_str());
 		return res;

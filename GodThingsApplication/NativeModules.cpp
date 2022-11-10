@@ -436,30 +436,47 @@ MailiousProcessDlls::MailiousProcessDlls() {
 
 ResultSet* MailiousProcessDlls::ModuleRun() {
 	ResultSet* result = new ResultSet();
+	std::vector<PID> pids;
 	if (!this->args.contains("pid")) {
 		result->SetErrorMessage("Must set a pid to get dll information");
 		return result;
 	}
-	GTTime* t = NULL;
-	if (this->args.contains("date")) {
-		t = new GTTime(this->args["date"].c_str());
-	}
-	auto pid = stoi(this->args["pid"]);
-	Process* p = new Process(pid);
-	if (p == NULL) {
-		result->SetErrorMessage("Error: " + StringUtils::ws2s(GetLastErrorAsString()));
-		return result;
-	}
-	auto dlls = p->GetLoadedDlls();
-	for (auto& dll : dlls) {
-		auto path = dll.GetPath();
-		auto sign = VerifyEmbeddedSignature(path.c_str());
-		FileInfo dllInfo(path.c_str());
-		if (!sign->IsSignature()) {
-			result->PushDictOrdered("Path", StringUtils::ws2s(path));
-			result->PushDictOrdered("Reason", "No signature");
+
+	if (this->args["pid"] == "*") {
+		auto mgr = ProcessManager::GetMgr();
+		mgr->SetAllProcesses();
+		for (auto pid : mgr->processesMap) {
+			pids.push_back(pid.first);
 		}
-		delete sign;
+	}
+	else {
+		auto pid = stoi(this->args["pid"]);
+		pids.push_back(pid);
+	}
+	for (auto pid : pids) {
+		GTTime* t = NULL;
+		if (this->args.contains("date")) {
+			t = new GTTime(this->args["date"].c_str());
+		}
+		Process* p = new Process(pid);
+		if (p == NULL) {
+			result->SetErrorMessage("Error: " + StringUtils::ws2s(GetLastErrorAsString()));
+			return result;
+		}
+		auto dlls = p->GetLoadedDlls();
+		if (dlls.size() == 0) {
+			continue;
+		}
+		for (auto& dll : dlls) {
+			auto path = dll.GetPath();
+			auto sign = VerifyEmbeddedSignature(path.c_str());
+			FileInfo dllInfo(path.c_str());
+			if (!sign->IsSignature()) {
+				result->PushDictOrdered("Path", StringUtils::ws2s(path));
+				result->PushDictOrdered("Reason", "No signature");
+			}
+			delete sign;
+		}
 	}
 	result->SetType(DICT);
 	return result;
