@@ -223,6 +223,7 @@ DWORD ModuleMgr::LoadModules() {
 	ListSchduleTask* task = new ListSchduleTask(); 
 	LoopNetstat* loop = new LoopNetstat();
 	MailiousProcessDlls* unsignedDlls = new MailiousProcessDlls();
+	new RecentRunning();
 #ifdef  PYTHON_ENABLE
 
 	std::wstring currPath = std::filesystem::current_path().native().c_str();

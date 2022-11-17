@@ -220,6 +220,23 @@ std::wstring GTTime::ToString() {
 	return buf;
 }
 
+FILETIME UnixTimeToFileTime(time_t t) {
+	// Note that LONGLONG is a 64-bit value
+	LONGLONG ll;
+	FILETIME ft;
+
+	ll = Int32x32To64(t, 10000000) + 116444736000000000;
+	ft.dwLowDateTime = (DWORD)ll;
+	ft.dwHighDateTime = ll >> 32;
+	return ft;
+}
+
+GTTime GTTime::FromTimeStamp(UINT32 timestamp) {
+	time_t t = timestamp;
+	auto ft = UnixTimeToFileTime(t);
+	return GTTime(ft);
+}
+
 ULONG64 GTTime::ToNowULONG64() {
 	ULONG64 res = 0;
 	res += this->millisecond;
@@ -397,7 +414,7 @@ std::wstring _helperISO8601(GTTime &t) {
 
 std::wstring GTTime::ToISO8601() {
 	FILETIME pUTC;
-	LocalFileTimeToFileTime(&this->fTime, &pUTC);
+	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);
 	return _helperISO8601(t);
 }

@@ -32,12 +32,23 @@ public:
 	FILETIME GetLastWriteTime();
 	std::vector<std::wstring> ListSubKeys();
 	std::vector<RegistryUtils> ListSubKeysChain();
+	RegistryUtils GetSubkeyByName(const wchar_t* name);
 	std::wstring& GetPath();
 	std::wstring& GetKeyName();
 };
 
 class UserAssistParser {
-
+	GTTime lastRun;
+	INT32 runCount;
+	GTTime focusTime;
+	INT32 focusCount;
+public:
+	UserAssistParser(BytesBuffer buffer);
+	UserAssistParser();
+	INT32 GetRunCount();
+	std::wstring GetLastRun();
+	GTTime& GetFocusTime();
+	INT32 GetFocusCount();
 };
 
 class MUICacheParser {

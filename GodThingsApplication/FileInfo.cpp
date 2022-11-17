@@ -563,7 +563,7 @@ void PrefetchFile::_process_section_c()
 PrefetchFile* PrefetchFile::Open(std::wstring file, bool is_compressed) {
 	PrefetchFile* result = NULL;
 	try {
-		result = new PrefetchFile(file, is_compressed);
+		result = new PrefetchFile(file);
 	}
 	catch (std::exception ex) {
 		delete result;
@@ -573,9 +573,8 @@ PrefetchFile* PrefetchFile::Open(std::wstring file, bool is_compressed) {
 	return result;
 }
 
-PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) : FileInfo(file) {
+PrefetchFile::PrefetchFile(std::wstring& file) : FileInfo(file) {
 	auto f = GTFileUtils::Open(file.c_str(), L"r");
-	this->is_compressed = is_compressed;
 
 	if (f == NULL) {
 		throw std::exception();
@@ -588,7 +587,14 @@ PrefetchFile::PrefetchFile(std::wstring& file, bool is_compressed) : FileInfo(fi
 pRtlDecompressBufferEx RtlDecompressBufferEx = NULL;
 pRtlGetCompressionWorkSpaceSize RtlGetCompressionWorkSpaceSize = NULL;
 DWORD PrefetchFile::Parse() {
+	bool is_compressed = true;
 	this->_bytes = f->ReadAll();
+	if (memcmp(this->_bytes.first, "MAM\x04", 4) == 0) {
+		is_compressed = true;
+	}
+	else {
+		is_compressed = false;
+	}
 	NTSTATUS status = 0;
 	if (is_compressed) {
 		if (RtlDecompressBufferEx == NULL) {

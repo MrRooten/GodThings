@@ -139,4 +139,10 @@ public:
 	ValidSvcHost();
 	ResultSet* ModuleRun();
 };
+
+class RecentRunning : public NativeModule {
+public:
+	RecentRunning();
+	ResultSet* ModuleRun();
+};
 #endif

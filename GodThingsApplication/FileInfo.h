@@ -109,7 +109,7 @@ class PrefetchFile : public FileInfo{
 
 public:
 	static PrefetchFile* Open(std::wstring file, bool is_compressed);
-	PrefetchFile(std::wstring& file, bool is_compressed);
+	PrefetchFile(std::wstring& file);
 	DWORD Parse();
 	FileMetrics& NextFileMetrics();
 	std::vector<GTTime> GetExecTime();

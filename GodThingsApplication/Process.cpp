@@ -857,8 +857,8 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	DWORD size;
 	WCHAR path[1024];
 	HMODULE _tmp;
-	auto hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION |PROCESS_VM_READ);
-
+	//auto hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION |PROCESS_VM_READ);
+	auto hProcess = GTOpenProcess(this->GetPID(),PROCESS_QUERY_INFORMATION | PROCESS_VM_READ);
 	if (hProcess == NULL) {
 		LOG_DEBUG_REASON( L"Error OpenProcess");
 		return dlls;
@@ -872,12 +872,14 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	HMODULE* modules = (HMODULE*)LocalAlloc(GPTR,size);
 	if (modules == NULL) {
 		LOG_DEBUG_REASON( L"Error LocalAlloc");
+		CloseHandle(hProcess);
 		return dlls;
 	}
 	
 	if (!EnumProcessModules(hProcess, modules, size, &size)) {
 		LOG_DEBUG_REASON( L"Error EnumProcessModules");
 		LocalFree(modules);
+		CloseHandle(hProcess);
 		return dlls;
 	}
 
@@ -890,6 +892,7 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	}
 
 	LocalFree(modules);
+	CloseHandle(hProcess);
 	return dlls;
 }
 

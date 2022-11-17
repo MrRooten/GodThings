@@ -458,7 +458,13 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 		if (this->args.contains("date")) {
 			t = new GTTime(this->args["date"].c_str());
 		}
-		Process* p = new Process(pid);
+		Process* p = NULL;
+		if (this->args["pid"] == "*") {
+			p = ProcessManager::GetMgr()->processesMap[pid];
+		}
+		else {
+			p = new Process(pid);
+		}
 		if (p == NULL) {
 			result->SetErrorMessage("Error: " + StringUtils::ws2s(GetLastErrorAsString()));
 			return result;
@@ -472,6 +478,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 			auto sign = VerifyEmbeddedSignature(path.c_str());
 			FileInfo dllInfo(path.c_str());
 			if (!sign->IsSignature()) {
+				result->PushDictOrdered("Pid", to_string(pid));
 				result->PushDictOrdered("Path", StringUtils::ws2s(path));
 				result->PushDictOrdered("Reason", "No signature");
 			}
@@ -507,5 +514,75 @@ ValidSvcHost::ValidSvcHost() {
 }
 
 ResultSet* ValidSvcHost::ModuleRun() {
+	return nullptr;
+}
+
+RecentRunning::RecentRunning() {
+	this->Name = L"RecentRunning";
+	this->Path = L"System";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get System recent running process";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+std::wstring ROT13(std::wstring source) {
+	std::wstring transformed;
+	for (size_t i = 0; i < source.size(); ++i) {
+		if ((source[i] >= L'a' && source[i] <= L'z') || (source[i] >= L'A' && source[i] <= L'Z')) {
+			if (source[i] >= L'a' && source[i] <= L'z') {
+				transformed.append(1, (((source[i] - L'a') + 13) % 26) + L'a');
+			} else 
+			if (source[i] >= L'A' && source[i] <= L'Z') {
+				transformed.append(1, (((source[i] - L'A') + 13) % 26) + L'A');
+			}
+		}
+		else {
+			transformed.append(1, source[i]);
+		}
+	}
+	return transformed;
+}
+
+ResultSet* RecentRunning::ModuleRun() {
+	std::wstring userAssist = L"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist";
+	RegistryUtils userAssistReg(userAssist);
+	auto subs = userAssistReg.ListSubKeys();
+	std::map<std::wstring, UserAssistParser> assistMap;
+	for (auto& sub : subs) {
+		std::wstring key = userAssist + L"\\" + sub + L"\\count";
+		RegistryUtils utils(key);
+		auto names = utils.ListValueNames();
+		for (auto& _name : names) {
+			auto name = ROT13(_name);
+			auto buffer = RegistryUtils::GetValueStatic(key.c_str(), _name.c_str());
+			UserAssistParser parser(buffer);
+			assistMap[name] = parser;
+			//wprintf(L"%s %d %s\n", name.c_str(),parser.GetRunCount(), parser.GetLastRun().c_str());
+		}
+	}
+
+	Dir d(L"C:\\Windows\\Prefetch");
+
+	auto files = d.listFiles();
+	std::vector<std::wstring> pfs;
+	for (auto& f : files) {
+		if (f.ends_with(L".pf")) {
+			pfs.push_back(f);
+		}
+	}
+	files.clear();
+
+	for (auto& pf : pfs) {
+		auto s = L"C:\\Windows\\Prefetch\\" + pf;
+		PrefetchFile* f = new PrefetchFile(s);
+		f->Parse();
+		while (f->HasMoreFileMetrics()) {
+			auto met = f->NextFileMetrics();
+			printf("hello");
+		}
+		delete f;
+	}
 	return nullptr;
 }

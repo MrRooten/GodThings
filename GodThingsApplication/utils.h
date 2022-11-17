@@ -35,6 +35,18 @@ public:
 	~MPEBytes();
 };
 
+#define get_i64b(bs) (INT64)MPEBytes::BytesToINT64B((PBYTE)bs)
+#define get_i32b(bs) (INT32)MPEBytes::BytesToINT32B((PBYTE)bs)
+#define get_i64l(bs) (INT64)MPEBytes::BytesToINT64L((PBYTE)bs)
+#define get_i32l(bs) (INT32)MPEBytes::BytesToINT32L((PBYTE)bs)
+#define get_i16b(bs) (INT16)MPEBytes::BytesToINT16B((PBYTE)bs)
+#define get_i16l(bs) (INT16)MPEBytes::BytesToINT16L((PBYTE)bs)
+#define get_u64b(bs) MPEBytes::BytesToINT64B((PBYTE)bs)
+#define get_u32b(bs) MPEBytes::BytesToINT32B((PBYTE)bs)
+#define get_u64l(bs) MPEBytes::BytesToINT64L((PBYTE)bs)
+#define get_u32l(bs) MPEBytes::BytesToINT32L((PBYTE)bs)
+#define get_u16b(bs) MPEBytes::BytesToINT16B((PBYTE)bs)
+#define get_u16l(bs) MPEBytes::BytesToINT16L((PBYTE)bs)
 
 class GTTime {
 	FILETIME fTime;
@@ -55,6 +67,7 @@ public:
 	std::wstring ToISO8601();
 	std::wstring ToString();
 	static GTTime GetTime();
+	static GTTime FromTimeStamp(UINT32 timestamp);
 	ULONG64 ToNowULONG64();
 	bool operator<(GTTime& other);
 	bool operator>(GTTime& other);

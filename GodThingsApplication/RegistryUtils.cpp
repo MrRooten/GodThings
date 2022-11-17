@@ -270,3 +270,58 @@ FILETIME RegistryUtils::GetLastWriteTime() {
 	RegCloseKey(key);
 	return ft;
 }
+
+UserAssistParser::UserAssistParser(BytesBuffer buffer) {
+	UINT32 focusCount = 0;
+	UINT64 focusTime = 0;
+	UINT64 last_run = 0;
+	UINT32 run = 0;
+	if (buffer.size() > 16) {
+		run = get_u32l(buffer.c_str() + 4);
+		this->runCount = run;
+		last_run = get_u64l(buffer.c_str() + 8);
+		FILETIME ft;
+		ft.dwLowDateTime = last_run && 0xffffffff;
+		ft.dwHighDateTime = last_run >> 32;
+		this->lastRun = GTTime(ft);
+		if (buffer.size() > 68) {
+			focusCount = get_u32l(buffer.c_str() + 8);
+			this->focusCount = focusCount;
+			focusTime = get_u32l(buffer.c_str() + 12);
+			ft.dwLowDateTime = focusTime && 0xffffffff;
+			ft.dwHighDateTime = focusTime >> 32;
+			this->focusTime = GTTime(ft);
+			last_run = get_u64l(buffer.c_str() + 60);
+			ft.dwLowDateTime = last_run && 0xffffffff;
+			ft.dwHighDateTime = last_run >> 32;
+			this->lastRun = GTTime(ft);
+		}
+	}
+	
+}
+
+UserAssistParser::UserAssistParser()
+{
+}
+
+INT32 UserAssistParser::GetRunCount() {
+	return this->runCount;
+}
+
+std::wstring UserAssistParser::GetLastRun() {
+	if (this->lastRun.year < 1970) {
+		return L"";
+	}
+
+	return lastRun.ToISO8601();
+}
+
+GTTime& UserAssistParser::GetFocusTime()
+{
+	return focusTime;
+}
+
+INT32 UserAssistParser::GetFocusCount()
+{
+	return this->focusCount;
+}

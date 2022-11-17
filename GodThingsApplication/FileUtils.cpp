@@ -140,19 +140,19 @@ Dir::Dir(const wchar_t* dirpath) {
 }
 
 std::vector<std::wstring> Dir::listFiles() {
-	WIN32_FIND_DATAW ffd;
+	WIN32_FIND_DATAW ffd = { 0 };
 	std::vector<std::wstring> res;
-	HANDLE hFind = FindFirstFileW(this->dirpath.c_str(), &ffd);
-	do
-	{
-		if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-		{
-			continue;
-		}
-		else
-		{
-			res.push_back(ffd.cFileName);
-		}
+	std::wstring path;
+	if (this->dirpath.ends_with(L"\\")) {
+		path = this->dirpath + L"*";
+	}
+	else {
+		path = this->dirpath + L"\\*";
+	}
+	HANDLE hFind = FindFirstFileW(path.c_str(), &ffd);
+	do {
+		res.push_back(ffd.cFileName);
+		
 	} while (FindNextFileW(hFind, &ffd) != 0);
 	return res;
 }
