@@ -130,6 +130,7 @@ public:
 		}
 	}
 	static void MainArgs(int argc,wchar_t** argv) {
+		setlocale(LC_ALL, "chs");
 #ifdef PYTHON_ENABLE
 		initialize init;
 #endif // PYTHON_ENABLE

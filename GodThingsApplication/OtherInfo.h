@@ -9,6 +9,7 @@
 #include <taskschd.h>
 #include <vector>
 #include <functional>
+#include "utils.h"
 #pragma comment(lib, "taskschd.lib")
 #pragma comment(lib, "comsupp.lib")
 
@@ -25,6 +26,10 @@ public:
 	SchduleTask(IRegisteredTask* task);
 	std::wstring& getPath();
 	std::wstring& getName();
+	GTTime GetStartTime();
+	GTTime GetEndTime();
+	std::wstring GetState();
+
 };
 
 
@@ -32,12 +37,10 @@ class SchduleTaskMgr {
 	HRESULT hr1;
 	HRESULT hr2;
 	ITaskFolder* pRootFolder;
-
 public:
 	static SchduleTaskMgr* _single;
 	static SchduleTaskMgr* GetMgr();
 	SchduleTaskMgr();
-	SchduleTask& NextTask();
 	std::vector<SchduleTask> GetTasks();
 	void EnumTasks(std::function<void(SchduleTask*)> callback);
 	~SchduleTaskMgr();

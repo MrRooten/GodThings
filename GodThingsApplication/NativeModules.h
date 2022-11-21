@@ -116,9 +116,9 @@ public:
 	ResultSet* ModuleRun();
 };
 
-class LoopNetstat : public NativeModule {
+class WatchNetstat : public NativeModule {
 public:
-	LoopNetstat();
+	WatchNetstat();
 	ResultSet* ModuleRun();
 };
 

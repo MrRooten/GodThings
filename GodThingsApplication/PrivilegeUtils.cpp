@@ -1,5 +1,5 @@
 #include "PrivilegeUtils.h"
-
+#include "sddl.h"
 BOOL HasPrivilege(std::wstring privilege) {
 	HANDLE hToken = GetCurrentProcessToken();
 	if (pPrivileges == NULL) {
@@ -21,6 +21,22 @@ BOOL HasPrivilege(std::wstring privilege) {
 	}
 
 	return FALSE;
+}
+
+GTWString ConvertSidToUsername(const WCHAR* sid) {
+	PSID out;
+	if (!ConvertStringSidToSidW(sid, &out)) {
+		return L"";
+	}
+	DWORD dwName = 100;
+	WCHAR outName[100];
+	DWORD dwDomain = 256;
+	WCHAR outDomain[256];
+	SID_NAME_USE use;
+	if (!LookupAccountSidW(NULL,out, outName, &dwName, outDomain, &dwDomain, &use)) {
+		return L"";
+	}
+	return outName;
 }
 
 

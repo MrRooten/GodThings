@@ -148,6 +148,9 @@ std::vector<std::wstring> RegistryUtils::ListSubKeys() {
 	std::vector<std::wstring> res;
 	HKEY regKey;
 	DWORD status = RegOpenKeyW(hKey, this->registryPath.c_str(), &regKey);
+	if (status != 0) {
+		return std::vector<std::wstring>();
+	}
 	while ((status = RegEnumKeyW(regKey, i, name, size)) != ERROR_NO_MORE_ITEMS) {
 		res.push_back(name);
 		i++;
@@ -313,7 +316,7 @@ std::wstring UserAssistParser::GetLastRun() {
 		return L"";
 	}
 
-	return lastRun.ToISO8601();
+	return lastRun.ToString();
 }
 
 GTTime& UserAssistParser::GetFocusTime()

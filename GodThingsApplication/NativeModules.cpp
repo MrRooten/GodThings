@@ -336,7 +336,7 @@ ResultSet* USBHistory::ModuleRun() {
 	auto subkeys = utils.ListSubKeysChain();
 	for (auto& subkey : subkeys) {
 		auto time = subkey.GetLastWriteTime();
-		wprintf(L"%s %s\n", subkey.GetKeyName().c_str(), GTTime(time).ToString().c_str());
+		//wprintf(L"%s %s\n", subkey.GetKeyName().c_str(), GTTime(time).ToString().c_str());
 		result->PushDictOrdered("Device Name", StringUtils::ws2s(subkey.GetKeyName()));
 		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).ToString()));
 	}
@@ -374,6 +374,7 @@ ResultSet* ListSchduleTask::ModuleRun() {
 	auto tasks = mgr->GetTasks();
 	for (auto& task : tasks) {
 		result->PushDictOrdered("Name", StringUtils::ws2s(task.getName()));
+		result->PushDictOrdered("Path", StringUtils::ws2s(task.getPath()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -381,8 +382,8 @@ ResultSet* ListSchduleTask::ModuleRun() {
 
 #include <thread>
 #include <chrono>
-LoopNetstat::LoopNetstat() {
-	this->Name = L"LookNetstat";
+WatchNetstat::WatchNetstat() {
+	this->Name = L"WatchNetstat";
 	this->Path = L"Network";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
@@ -404,7 +405,7 @@ std::vector<Connection> _what_is_second_doesnot_have(std::vector<Connection*> fi
 	return res;
 }
 
-ResultSet* LoopNetstat::ModuleRun() {
+ResultSet* WatchNetstat::ModuleRun() {
 	bool running = TRUE;
 	if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
 		return nullptr;
@@ -544,22 +545,32 @@ std::wstring ROT13(std::wstring source) {
 	}
 	return transformed;
 }
-
+#include "PrivilegeUtils.h"
 ResultSet* RecentRunning::ModuleRun() {
-	std::wstring userAssist = L"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist";
-	RegistryUtils userAssistReg(userAssist);
-	auto subs = userAssistReg.ListSubKeys();
-	std::map<std::wstring, UserAssistParser> assistMap;
-	for (auto& sub : subs) {
-		std::wstring key = userAssist + L"\\" + sub + L"\\count";
-		RegistryUtils utils(key);
-		auto names = utils.ListValueNames();
-		for (auto& _name : names) {
-			auto name = ROT13(_name);
-			auto buffer = RegistryUtils::GetValueStatic(key.c_str(), _name.c_str());
-			UserAssistParser parser(buffer);
-			assistMap[name] = parser;
-			//wprintf(L"%s %d %s\n", name.c_str(),parser.GetRunCount(), parser.GetLastRun().c_str());
+	std::wstring alluserAssist = L"HKEY_USERS";
+	RegistryUtils allUserAssistReg(alluserAssist);
+	auto users = allUserAssistReg.ListSubKeys();
+	for (auto& user : users) {
+		if (user == L".DEFAULT") {
+			continue;
+		}
+
+		wprintf(L"%s %s\n", user.c_str(),ConvertSidToUsername(user.c_str()));
+		std::wstring userAssist = L"HKEY_USERS\\" + user + L"\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist";
+		RegistryUtils userAssistReg(userAssist);
+		auto subs = userAssistReg.ListSubKeys();
+		std::map<std::wstring, UserAssistParser> assistMap;
+		for (auto& sub : subs) {
+			std::wstring key = userAssist + L"\\" + sub + L"\\count";
+			RegistryUtils utils(key);
+			auto names = utils.ListValueNames();
+			for (auto& _name : names) {
+				auto name = ROT13(_name);
+				auto buffer = RegistryUtils::GetValueStatic(key.c_str(), _name.c_str());
+				UserAssistParser parser(buffer);
+				assistMap[name] = parser;
+				wprintf(L"\t%s %d %s\n", name.c_str(), parser.GetRunCount(), parser.GetLastRun().c_str());
+			}
 		}
 	}
 
@@ -573,14 +584,17 @@ ResultSet* RecentRunning::ModuleRun() {
 		}
 	}
 	files.clear();
-
 	for (auto& pf : pfs) {
 		auto s = L"C:\\Windows\\Prefetch\\" + pf;
 		PrefetchFile* f = new PrefetchFile(s);
 		f->Parse();
-		while (f->HasMoreFileMetrics()) {
-			auto met = f->NextFileMetrics();
-			printf("hello");
+		wprintf(L"%s\n", pf.c_str());
+		auto times = f->GetExecTime();
+		for (auto& time : times) {
+			if (time.year < 1970) {
+				continue;
+			}
+			wprintf(L"\t%s\n", time.ToString().c_str());
 		}
 		delete f;
 	}

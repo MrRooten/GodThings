@@ -171,3 +171,9 @@ DWORD SystemInfo::SetFlagsInfo() {
 		&dwSize);
 	return NtStatusHandler(status);
 }
+
+POSVERSIONINFOEXW SystemInfo::GetSystemVersion() {
+	POSVERSIONINFOEXW version;
+	//GetVersionExW((LPOSVERSIONINFOW)&version);
+	return version;
+}

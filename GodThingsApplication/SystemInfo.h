@@ -1,6 +1,7 @@
 #pragma once
 #include "NtSystemInfo.h"
 #include <string>
+#include "utils.h"
 class SystemInfo {
 public:
 	SystemInfo();
@@ -58,5 +59,7 @@ public:
 
 	PSYSTEM_DPC_BEHAVIOR_INFORMATION pDPCBehaviorInfo = NULL;
 	DWORD SetDPCBehaviorInfo();
+
+	static POSVERSIONINFOEXW GetSystemVersion();
 
 };

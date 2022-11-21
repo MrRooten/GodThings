@@ -70,45 +70,6 @@ SchduleTaskMgr::SchduleTaskMgr() {
 
 }
 
-SchduleTask& SchduleTaskMgr::NextTask() {
-    IRegisteredTaskCollection* pTaskCollection = NULL;
-    HRESULT hr = pRootFolder->GetTasks(NULL, &pTaskCollection);
-    LONG count = 0;
-    pTaskCollection->get_Count(&count);
-    TASK_STATE taskState;
-    for (LONG i = 0; i < count; i++) {
-        IRegisteredTask* pRegisteredTask = NULL;
-        hr = pTaskCollection->get_Item(_variant_t(i + 1), &pRegisteredTask);
-
-        if (SUCCEEDED(hr))
-        {
-            BSTR taskName = NULL;
-            hr = pRegisteredTask->get_Name(&taskName);
-            if (SUCCEEDED(hr))
-            {
-                printf("\nTask Name: %S", taskName);
-                SysFreeString(taskName);
-
-                hr = pRegisteredTask->get_State(&taskState);
-                if (SUCCEEDED(hr))
-                    printf("\n\tState: %d", taskState);
-                else
-                    printf("\n\tCannot get the registered task state: %x", hr);
-            }
-            else
-            {
-                printf("\nCannot get the registered task name: %x", hr);
-            }
-            pRegisteredTask->Release();
-        }
-        else
-        {
-            printf("\nCannot get the registered task item at index=%d: %x", i + 1, hr);
-        }
-    }
-
-}
-
 static void _get_tasks_helper(std::vector<SchduleTask>& save,ITaskFolder* folder) {
     IRegisteredTaskCollection* pTaskCollection = NULL;
     HRESULT hr = folder->GetTasks(NULL, &pTaskCollection);
@@ -233,6 +194,16 @@ std::wstring& SchduleTask::getPath() {
 std::wstring& SchduleTask::getName() {
     return this->name;
 }
+
+GTTime SchduleTask::GetStartTime() {
+    return GTTime(this->start_time);
+}
+
+GTTime SchduleTask::GetEndTime() {
+    return GTTime(this->end_time);
+}
+
+
 
 
 

@@ -215,8 +215,11 @@ std::wstring s2ws(const std::string& str) {
 }
 
 std::wstring GTTime::ToString() {
+	FILETIME pUTC;
+	FileTimeToLocalFileTime(&this->fTime, &pUTC);
+	GTTime t(pUTC);
 	WCHAR buf[100];
-	swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d",this->year,this->mouth,this->day,this->hour,this->minute,this->second);
+	swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d",t.year,t.mouth,t.day,t.hour,t.minute,t.second);
 	return buf;
 }
 

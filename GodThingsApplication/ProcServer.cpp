@@ -32,7 +32,7 @@ BOOL ProcServer::Initialize() {
 DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state);
 VOID GetAnswerToRequest(LPTSTR, LPTSTR, LPDWORD);
 std::mutex handle_lock;
-DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
+DWORD WINAPI InstanceThread(LPVOID lpvParam)
 // This routine is a thread processing function to read from and reply to a client
 // via the open pipe connection passed from the main loop. Note this allows
 // the main loop to continue executing, potentially creating more threads of
@@ -114,7 +114,7 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state)
         //GetAnswerToRequest(pchRequest, pchReply, &cbReplyBytes);
         std::string s(pchRequest, cbBytesRead + 1);
         ProcHandler handler(s);
-        handler.Process(state);
+        handler.Process();
         auto result = handler.GetResult();
         // Write the reply to the pipe. 
         fSuccess = WriteFile(
@@ -190,16 +190,15 @@ VOID Serve() {
             i++;
             printf("Client connected, creating a processing thread.");
             //PythonVM* vm = new PythonVM();
-#ifdef PYTHON_ENABLE
-            std::thread t1([_hPipe](PyInterpreterState* state) {
-                sub_interpreter::thread_scope scope(state);
-                InstanceThread((LPVOID)_hPipe, state);
+
+            std::thread t1([_hPipe]() {
+                InstanceThread((LPVOID)_hPipe);
               
-                }, s1.interp());
+                });
             //_f.wait();
             //printf("Wait\n");
             t1.detach();
-#endif
+
 
             // Create a thread for this client. 
 
@@ -220,7 +219,7 @@ ProcHandler::ProcHandler(std::string &Message) {
 }
 #include <mutex>
 std::mutex locker;
-DWORD ProcHandler::Process(PyInterpreterState* state) {
+DWORD ProcHandler::Process() {
     Json::Reader reader;
     Json::Value root;
     std::cout << "Client Message:" << this->message << std::endl;

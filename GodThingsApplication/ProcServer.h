@@ -9,7 +9,7 @@ private:
 	std::string result;
 public:
 	ProcHandler(std::string &Message);
-	DWORD Process(PyInterpreterState* state);
+	DWORD Process();
 	std::string GetResult();
 
 };

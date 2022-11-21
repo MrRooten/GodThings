@@ -221,7 +221,7 @@ DWORD ModuleMgr::LoadModules() {
 	ShadowAccount* shadowAccount = new ShadowAccount();
 	USBHistory* usbHistory = new USBHistory();
 	ListSchduleTask* task = new ListSchduleTask(); 
-	LoopNetstat* loop = new LoopNetstat();
+	WatchNetstat* loop = new WatchNetstat();
 	MailiousProcessDlls* unsignedDlls = new MailiousProcessDlls();
 	new RecentRunning();
 #ifdef  PYTHON_ENABLE
