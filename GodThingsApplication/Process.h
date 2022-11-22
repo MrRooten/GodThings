@@ -137,13 +137,13 @@ public:
 };
 
 class Segment {
-	UINT64 BaseAddress;
-	UINT64 AllocationBase;
-	DWORD AllocationProtect;
-	UINT64 RegionSize;
-	DWORD State;
-	DWORD Protect;
-	DWORD Type;
+	UINT64 baseAddress;
+	UINT64 allocationBase;
+	DWORD allocationProtect;
+	UINT64 regionSize;
+	DWORD state;
+	DWORD protect;
+	DWORD type;
 public:
 	Segment(PMEMORY_BASIC_INFORMATION32 info);
 	Segment(PMEMORY_BASIC_INFORMATION64 info);

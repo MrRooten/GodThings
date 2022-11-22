@@ -1313,29 +1313,31 @@ LoadedDll::LoadedDll(HMODULE hModule) {
 }
 
 Segment::Segment(PMEMORY_BASIC_INFORMATION info) {
+	this->baseAddress = (UINT64)info->BaseAddress;
+	this->allocationBase = (UINT64)info->AllocationBase;
 }
 
 DWORD Segment::GetType() {
-	return this->Type;
+	return this->type;
 }
 
 DWORD Segment::GetProtect()
 {
-	return this->Protect;
+	return this->protect;
 }
 
 UINT64 Segment::GetAllocationBase()
 {
-	return this->AllocationBase;
+	return this->allocationBase;
 }
 
 UINT64 Segment::GetBaseAddress()
 {
-	return this->BaseAddress;
+	return this->baseAddress;
 }
 
 DWORD Segment::GetAllocationProtect() {
-	return this->AllocationProtect;
+	return this->allocationProtect;
 }
 
 UINT64 Segment::GetRegionSize()
@@ -1350,7 +1352,7 @@ GTWString Segment::GetStateAsString()
 
 DWORD Segment::GetState()
 {
-	return this->State;
+	return this->state;
 }
 
 
