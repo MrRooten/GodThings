@@ -35,3 +35,5 @@ typedef enum _VERIFY_RESULT
     VrBadSignature
 } VERIFY_RESULT, * PVERIFY_RESULT;
 
+DWORD VerifyCatalogSignature(_In_ LPCWSTR pwszSourceFile,
+    _In_ bool UseStrongSigPolicy);

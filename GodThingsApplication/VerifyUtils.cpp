@@ -1,5 +1,5 @@
 #include "VerifyUtils.h"
-
+#include "mscat.h"
 SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
 {
     LONG lStatus;
@@ -190,6 +190,151 @@ SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         NULL,
         &WVTPolicyGUID,
         &WinTrustData);
-
+    if (info->isSignature == false) {
+        auto result = VerifyCatalogSignature(pwszSourceFile, false);
+        if (result == 0) {
+            info->isSignature = true;
+            info->info = L"Catalog verify";
+        }
+    }
     return info;
+}
+
+
+DWORD VerifyCatalogSignature(_In_ LPCWSTR pwszSourceFile,
+    _In_ bool UseStrongSigPolicy)
+{
+    DWORD Error = ERROR_SUCCESS;
+    bool Found = false;
+    HCATADMIN CatAdminHandle = NULL;
+    HCATINFO CatInfoHandle = NULL;
+    DWORD HashLength = 0;
+    PBYTE HashData = NULL;
+    CERT_STRONG_SIGN_PARA SigningPolicy = {};
+    HANDLE FileHandle = CreateFileW(pwszSourceFile,
+        GENERIC_READ,
+        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+    if (UseStrongSigPolicy != false)
+    {
+        SigningPolicy.cbSize = sizeof(CERT_STRONG_SIGN_PARA);
+        SigningPolicy.dwInfoChoice = CERT_STRONG_SIGN_OID_INFO_CHOICE;
+        SigningPolicy.pszOID = (LPSTR)szOID_CERT_STRONG_SIGN_OS_CURRENT;
+        if (!CryptCATAdminAcquireContext2(
+            &CatAdminHandle,
+            NULL,
+            BCRYPT_SHA256_ALGORITHM,
+            &SigningPolicy,
+            0))
+        {
+            Error = GetLastError();
+            goto Cleanup;
+        }
+    }
+    else
+    {
+        if (!CryptCATAdminAcquireContext2(
+            &CatAdminHandle,
+            NULL,
+            BCRYPT_SHA256_ALGORITHM,
+            NULL,
+            0))
+        {
+            Error = GetLastError();
+            goto Cleanup;
+        }
+    }
+
+    // Get size of hash to be used
+    if (!CryptCATAdminCalcHashFromFileHandle2(
+        CatAdminHandle,
+        FileHandle,
+        &HashLength,
+        NULL,
+        NULL))
+    {
+        Error = GetLastError();
+        goto Cleanup;
+    }
+
+    HashData = (PBYTE)HeapAlloc(GetProcessHeap(), 0, HashLength);
+    if (HashData == NULL)
+    {
+        Error = ERROR_OUTOFMEMORY;
+        goto Cleanup;
+    }
+
+    // Generate hash for a give file
+    if (!CryptCATAdminCalcHashFromFileHandle2(
+        CatAdminHandle,
+        FileHandle,
+        &HashLength,
+        HashData,
+        NULL))
+    {
+        Error = GetLastError();
+        goto Cleanup;
+    }
+
+    // Find the first catalog containing this hash
+    CatInfoHandle = NULL;
+    CatInfoHandle = CryptCATAdminEnumCatalogFromHash(
+        CatAdminHandle,
+        HashData,
+        HashLength,
+        0,
+        &CatInfoHandle);
+
+    while (CatInfoHandle != NULL)
+    {
+        CATALOG_INFO catalogInfo = {};
+        catalogInfo.cbStruct = sizeof(catalogInfo);
+        Found = true;
+
+        if (!CryptCATCatalogInfoFromContext(
+            CatInfoHandle,
+            &catalogInfo,
+            0))
+        {
+            Error = GetLastError();
+            break;
+        }
+
+        //wprintf(L"Hash was found in catalog %s\n\n", catalogInfo.wszCatalogFile);
+
+        // Look for the next catalog containing the file's hash
+        CatInfoHandle = CryptCATAdminEnumCatalogFromHash(
+            CatAdminHandle,
+            HashData,
+            HashLength,
+            0,
+            &CatInfoHandle);
+    }
+
+    if (Found != true)
+    {
+        //wprintf(L"Hash was not found in any catalogs.\n");
+        Error = 1;
+    }
+
+Cleanup:
+    if (CatAdminHandle != NULL)
+    {
+        if (CatInfoHandle != NULL)
+        {
+            CryptCATAdminReleaseCatalogContext(CatAdminHandle, CatInfoHandle, 0);
+        }
+
+        CryptCATAdminReleaseContext(CatAdminHandle, 0);
+    }
+
+    if (HashData != NULL)
+    {
+        HeapFree(GetProcessHeap(), 0, HashData);
+    }
+
+    return Error;
 }

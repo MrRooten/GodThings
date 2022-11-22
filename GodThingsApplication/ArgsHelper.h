@@ -180,15 +180,8 @@ public:
 		}
 		else if (subcmd == L"test") {
 			SetGloablLogLevel(DEBUG_LEVEL);
-			ServiceManager mgr;
-			mgr.SetAllServices();
-			for (auto& s : mgr.services) {
-				if (s->GetServiceStatus() == L"SERVICE_RUNNING") {
-					auto pid = s->GetOwningPid();
-					printf("");
-				}
-			}
-			printf("");
+			auto s = VerifyCatalogSignature(L"C:\\Windows\\System32\\dwm.exe", true);
+			printf("%d\n", s);
 		}
 		else if (subcmd == L"list_path") {
 
