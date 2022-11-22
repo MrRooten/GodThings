@@ -17,7 +17,9 @@ public:
 
 	static std::wstring ToUpper(std::wstring const& str);
 
-	static std::wstring StringsJoin(std::vector<std::wstring> vs, std::wstring delim);
+	static std::wstring StringsJoin(std::vector<std::wstring> &vs, std::wstring &delim);
+
+	static std::wstring StringsJoin(std::vector<std::wstring>& vs, const wchar_t* delim);
 
 	static std::vector<std::wstring> StringSplit(std::wstring s, std::wstring delim);
 

@@ -385,7 +385,7 @@ ResultSet* ListSchduleTask::ModuleRun() {
 WatchNetstat::WatchNetstat() {
 	this->Name = L"WatchNetstat";
 	this->Path = L"Network";
-	this->Type = L"Native";
+	this->Type = L"LastMode";
 	this->Class = L"GetInfo";
 	this->Description = L"Read Network stat in seconds";
 	auto mgr = ModuleMgr::GetMgr();
@@ -547,6 +547,7 @@ std::wstring ROT13(std::wstring source) {
 }
 #include "PrivilegeUtils.h"
 ResultSet* RecentRunning::ModuleRun() {
+	ResultSet* result = new ResultSet();
 	std::wstring alluserAssist = L"HKEY_USERS";
 	RegistryUtils allUserAssistReg(alluserAssist);
 	auto users = allUserAssistReg.ListSubKeys();
@@ -555,7 +556,7 @@ ResultSet* RecentRunning::ModuleRun() {
 			continue;
 		}
 
-		wprintf(L"%s %s\n", user.c_str(),ConvertSidToUsername(user.c_str()));
+		//wprintf(L"%s %s\n", user.c_str(),ConvertSidToUsername(user.c_str()));
 		std::wstring userAssist = L"HKEY_USERS\\" + user + L"\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist";
 		RegistryUtils userAssistReg(userAssist);
 		auto subs = userAssistReg.ListSubKeys();
@@ -569,7 +570,9 @@ ResultSet* RecentRunning::ModuleRun() {
 				auto buffer = RegistryUtils::GetValueStatic(key.c_str(), _name.c_str());
 				UserAssistParser parser(buffer);
 				assistMap[name] = parser;
-				wprintf(L"\t%s %d %s\n", name.c_str(), parser.GetRunCount(), parser.GetLastRun().c_str());
+				//wprintf(L"\t%s %d %s\n", name.c_str(), parser.GetRunCount(), parser.GetLastRun().c_str());
+				result->PushDictOrdered("name", StringUtils::ws2s(name));
+				result->PushDictOrdered("exec", StringUtils::ws2s(parser.GetLastRun()));
 			}
 		}
 	}
@@ -588,15 +591,19 @@ ResultSet* RecentRunning::ModuleRun() {
 		auto s = L"C:\\Windows\\Prefetch\\" + pf;
 		PrefetchFile* f = new PrefetchFile(s);
 		f->Parse();
-		wprintf(L"%s\n", pf.c_str());
+		//wprintf(L"%s\n", pf.c_str());
 		auto times = f->GetExecTime();
 		for (auto& time : times) {
 			if (time.year < 1970) {
 				continue;
 			}
-			wprintf(L"\t%s\n", time.ToString().c_str());
+			//wprintf(L"\t%s\n", time.ToString().c_str());
+			result->PushDictOrdered("name", StringUtils::ws2s(pf));
+			result->PushDictOrdered("exec", StringUtils::ws2s(time.ToString()));
 		}
 		delete f;
 	}
-	return nullptr;
+
+	result->SetType(DICT);
+	return result;
 }

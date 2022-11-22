@@ -86,18 +86,6 @@ public:
 	ResultSet* ModuleRun();
 };
 
-class PrefetchTimeline : public NativeModule {
-public:
-	PrefetchTimeline();
-	ResultSet* ModuleRun();
-};
-
-class DetailPrefetch : public NativeModule {
-public:
-	DetailPrefetch();
-	ResultSet* ModuleRun();
-};
-
 class DllInjectRoughDet : public NativeModule {
 public:
 	DllInjectRoughDet();

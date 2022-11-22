@@ -1315,16 +1315,21 @@ LoadedDll::LoadedDll(HMODULE hModule) {
 Segment::Segment(PMEMORY_BASIC_INFORMATION info) {
 	this->baseAddress = (UINT64)info->BaseAddress;
 	this->allocationBase = (UINT64)info->AllocationBase;
+	this->allocationProtect = (DWORD)info->AllocationProtect;
+	this->regionSize = info->RegionSize;
+	this->state = info->State;
+	this->protect = info->Protect;
+	this->type = info->Type;
 }
 
 DWORD Segment::GetType() {
 	return this->type;
 }
 
-DWORD Segment::GetProtect()
-{
+DWORD Segment::GetProtect() {
 	return this->protect;
 }
+
 
 UINT64 Segment::GetAllocationBase()
 {
@@ -1345,9 +1350,18 @@ UINT64 Segment::GetRegionSize()
 	return UINT64();
 }
 
-GTWString Segment::GetStateAsString()
-{
-	return GTWString();
+GTWString Segment::GetStateAsString() {
+	std::vector<GTWString> result;
+	if ((this->state | MEM_COMMIT) != 0) {
+		result.push_back(L"MEM_COMMIT");
+	}
+	if ((this->state | MEM_FREE) != 0) {
+		result.push_back(L"MEM_FREE");
+	}
+	if ((this->state | MEM_RESERVE) != 0) {
+		result.push_back(L"MEM_RESERVE");
+	}
+	return StringUtils::StringsJoin(result, L"|");
 }
 
 DWORD Segment::GetState()
@@ -1356,3 +1370,18 @@ DWORD Segment::GetState()
 }
 
 
+GTWString Segment::GetTypeAsString() {
+	std::vector<GTWString> result;
+	if ((this->type | MEM_IMAGE) != 0) {
+		result.push_back(L"MEM_IMAGE");
+	}
+
+	if ((this->type | MEM_MAPPED) != 0) {
+		result.push_back(L"MEM_MAPPED");
+	}
+
+	if ((this->type | MEM_PRIVATE) != 0) {
+		result.push_back(L"MEM_RPIVATE");
+	}
+	return StringUtils::StringsJoin(result, L"|");
+}

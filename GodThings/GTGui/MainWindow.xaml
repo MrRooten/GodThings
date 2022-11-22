@@ -38,12 +38,12 @@
                 <Label Width="Auto" Height="Auto" Content="状态栏" FontFamily="Arial" FontSize="12"/>
             </StackPanel>
             <!--Left-->
-            <StackPanel Width="130" Height="Auto" Background="White" DockPanel.Dock="Left">
-            <TreeView Background="GhostWhite" x:Name="ItemTree">
+            <DockPanel Width="200" Height="Auto" Background="White" DockPanel.Dock="Left">
+            <TreeView Background="GhostWhite" x:Name="ItemTree" DockPanel.Dock="Top">
                 
 
             </TreeView>
-            </StackPanel>
+            </DockPanel>
 
             <!--Right-->
             <Grid Width="Auto" Height="Auto" Background="White">

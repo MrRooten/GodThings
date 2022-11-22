@@ -33,7 +33,19 @@ std::wstring StringUtils::ToUpper(std::wstring const& str) {
     return res;
 }
 
-std::wstring StringUtils::StringsJoin(std::vector<std::wstring> vs, std::wstring delim) {
+std::wstring StringUtils::StringsJoin(std::vector<std::wstring> &vs, std::wstring &delim) {
+    std::wstring res;
+
+    for (auto p = vs.begin();
+        p != vs.end(); ++p) {
+        res += *p;
+        if (p != vs.end() - 1)
+            res += delim;
+    }
+    return res;
+}
+
+std::wstring StringUtils::StringsJoin(std::vector<std::wstring>& vs, const wchar_t* delim) {
     std::wstring res;
 
     for (auto p = vs.begin();

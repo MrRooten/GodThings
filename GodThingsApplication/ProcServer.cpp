@@ -32,22 +32,13 @@ BOOL ProcServer::Initialize() {
 DWORD WINAPI InstanceThread(LPVOID lpvParam, PyInterpreterState* state);
 VOID GetAnswerToRequest(LPTSTR, LPTSTR, LPDWORD);
 std::mutex handle_lock;
-DWORD WINAPI InstanceThread(LPVOID lpvParam)
-// This routine is a thread processing function to read from and reply to a client
-// via the open pipe connection passed from the main loop. Note this allows
-// the main loop to continue executing, potentially creating more threads of
-// of this procedure to run concurrently, depending on the number of incoming
-// client connections.
-{
+DWORD WINAPI InstanceThread(LPVOID lpvParam) {
     CHAR* pchRequest = (CHAR*)LocalAlloc(GPTR, BufferSize);
     CHAR* pchReply = (CHAR*)LocalAlloc(GPTR, BufferSize);
 
     DWORD cbBytesRead = 0, cbReplyBytes = 0, cbWritten = 0;
     BOOL fSuccess = FALSE;
     HANDLE hPipe = NULL;
-
-    // Do some extra error checking since the app will keep running even if this
-    // thread fails.
 
     if (lpvParam == NULL)
     {
@@ -77,19 +68,13 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam)
         return (DWORD)-1;
     }
 
-    // Print verbose messages. In production code, this should be for debugging only.
     LOG_DEBUG_REASON(L"InstanceThread created, receiving and processing messages.");
 
-    // The thread's parameter is a handle to a pipe object instance. 
 
     hPipe = (HANDLE)lpvParam;
 
-    // Loop until done reading
-    while (1)
-    {
+    while (1) {
         
-        // Read client requests from the pipe. This simplistic code only allows messages
-        // up to BUFSIZE characters in length.
         fSuccess = ReadFile(
             hPipe,        // handle to pipe 
             pchRequest,    // buffer to receive data 
@@ -97,26 +82,21 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam)
             &cbBytesRead, // number of bytes read 
             NULL);        // not overlapped I/O 
 
-        if (!fSuccess || cbBytesRead == 0)
-        {
-            if (GetLastError() == ERROR_BROKEN_PIPE)
-            {
+        if (!fSuccess || cbBytesRead == 0) {
+            if (GetLastError() == ERROR_BROKEN_PIPE) {
                 LOG_DEBUG_REASON(L"InstanceThread: client disconnected.\n");
             }
-            else
-            {
+            else {
                 LOG_DEBUG_REASON(L"InstanceThread ReadFile failed");
             }
             break;
         }
 
-        // Process the incoming message.
-        //GetAnswerToRequest(pchRequest, pchReply, &cbReplyBytes);
         std::string s(pchRequest, cbBytesRead + 1);
         ProcHandler handler(s);
         handler.Process();
         auto result = handler.GetResult();
-        // Write the reply to the pipe. 
+
         fSuccess = WriteFile(
             hPipe,        // handle to pipe 
             result.c_str(),     // buffer to write from 
@@ -133,9 +113,6 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam)
         SetLastError(0);
     }
 
-    // Flush the pipe to allow the client to read the pipe's contents 
-    // before disconnecting. Then disconnect the pipe, and close the 
-    // handle to this pipe instance. 
     FlushFileBuffers(hPipe);
     DisconnectNamedPipe(hPipe);
     CloseHandle(hPipe);
@@ -236,6 +213,9 @@ DWORD ProcHandler::Process() {
             auto Mgr = ModuleMgr::GetMgr();
             size_t len = Mgr->modules.size();
             for (int i = 0; i < len; i++) {
+                //if (Mgr->modules[i]->Type == L"LastMode") {
+                //    continue;
+                //}
                 result["list_modules"][i] = Mgr->modules[i]->GetModuleMetaJson();
             }
         }
