@@ -62,6 +62,12 @@ public:
 	Json::Value ToJsonObject();
 };
 
+enum RunType{
+	ModuleAuto,
+	ModuleNeedArgs,
+	ModuleNotImplement
+};
+
 class Module {
 public:
 	std::wstring Name;
@@ -69,6 +75,7 @@ public:
 	std::wstring Class;
 	std::wstring Path;
 	std::wstring Description;
+	RunType RunType = ModuleAuto;
 #ifdef  PYTHON_ENABLE
 	PyInterpreterState* state;
 #endif //  PYTHON_ENABLE

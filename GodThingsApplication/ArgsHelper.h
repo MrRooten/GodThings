@@ -16,12 +16,12 @@ public:
 		std::wstring f(file);
 
 		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\")+1).c_str());
-		wprintf(L"    pyfile <file>: Run python file\n");
 #ifdef PYTHON_ENABLE
+		wprintf(L"    pyfile <file>: Run python file\n");
 		wprintf(L"    python: Run python interpreter\n");
 #endif
 		wprintf(L"    gui_serve: Run the GUI Serve\n");
-		wprintf(L"    info_module: List the Module Information\n");
+		wprintf(L"    info_module: Module Information\n");
 		wprintf(L"    run_module <module>: Run a module\n");
 	}
 
@@ -56,6 +56,11 @@ public:
 		for (auto& mod : mgr->modules) {
 			auto fullPath = mod->Path + L"." + mod->Name;
 			if (fullPath == moduleName) {
+				if (mod->RunType == ModuleNotImplement) {
+					wprintf(L"This module is not impl\n...");
+					wprintf(L"Sorry for waiting update...\n");
+					continue;
+				}
 				Module::Args parameters;
 				for (int i = 0; i < len_args; i++) {
 					auto _kv = StringUtils::Trim(args[i]);
@@ -87,6 +92,40 @@ public:
 				return;
 			}
 		}
+	}
+
+	static void RunAllModules() {
+		auto mgr = ModuleMgr::GetMgr();
+		for (auto& mod : mgr->modules) {
+			if (mod->RunType != ModuleAuto) {
+				continue;
+			}
+			wprintf(L"%s Module Running...\n", mod->Name.c_str());
+			ResultSet* res = mod->ModuleRun();
+			if (res == nullptr) {
+				wprintf(L"%s Module Ending...\n", mod->Name.c_str());
+				return;
+			}
+			auto json = res->ToJsonObject();
+			auto data = json["Data"];
+			int size = 0;
+			auto orders = res->GetMapOrder();
+			for (auto& key : orders) {
+				printf("%-30s ", key.c_str());
+				size = data[key].size();
+			}
+			printf("\n");
+			for (int i = 0; i < size; i++) {
+				for (auto& key : orders) {
+					auto member = data[key][i];
+					wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
+				}
+				printf("\n");
+			}
+			delete res;
+			wprintf(L"%s Module Ending...\n", mod->Name.c_str());
+		}
+
 	}
 
 	static void InfoModule(wchar_t* moduleName) {
@@ -185,6 +224,9 @@ public:
 		}
 		else if (subcmd == L"list_path") {
 
+		}
+		else if (subcmd == L"run_all") {
+			RunAllModules();
 		}
 	}
 };

@@ -159,6 +159,7 @@ public:
 	DWORD GetState();
 	GTWString GetStateAsString();
 };
+
 class Thread;
 class ProcessManager;
 
@@ -243,7 +244,7 @@ public:
 	GTWString GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
-	DWORD InjectDll(const LPWSTR filename);
+	DWORD InjectDll(const LPWSTR dllname);
 	std::vector<Segment>& GetSegments();
 	~Process();
 
@@ -333,6 +334,7 @@ public:
 	BOOL SetAllThreads();
 	BOOL SetAllProcesses();
 	DWORD SetAllProcesses2();
+
 };
 
 

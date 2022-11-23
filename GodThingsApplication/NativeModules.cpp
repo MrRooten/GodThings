@@ -224,7 +224,7 @@ ResultSet* NetworkModule::ModuleRun() {
 		result->PushDictOrdered("remote port", std::to_string(connection->remotePort));
 		result->PushDictOrdered("state", StringUtils::ws2s(connection->GetStateAsString().c_str()));
 		result->PushDictOrdered("pid", std::to_string(connection->owningPid));
-		result->PushDictOrdered("process name", StringUtils::ws2s(Process(connection->owningPid).GetProcessName()));
+		result->PushDictOrdered("process name", StringUtils::ws2s(proMgr.processesMap[connection->owningPid]->GetProcessName()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -280,7 +280,7 @@ ResultSet* ShadowAccount::ModuleRun() {
 		if (StringUtils::HasEnding(user->userName, L"$")) {
 			//GTPrintln(L"\t%s", user->userName.c_str());
 			result->PushDictOrdered("username", StringUtils::ws2s(user->userName));
-			result->report = "Might have shadow manager";
+			result->report = "Might have shadow account";
 		}
 	}
 	result->SetType(DICT);
@@ -388,6 +388,7 @@ WatchNetstat::WatchNetstat() {
 	this->Type = L"LastMode";
 	this->Class = L"GetInfo";
 	this->Description = L"Read Network stat in seconds";
+	this->RunType = ModuleNotImplement;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
@@ -430,6 +431,7 @@ MailiousProcessDlls::MailiousProcessDlls() {
 	this->Path = L"Process";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
+	this->RunType = ModuleNeedArgs;
 	this->Description = L"List a Dlls of Process that not signed by trust provider";
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
@@ -449,6 +451,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 		for (auto pid : mgr->processesMap) {
 			pids.push_back(pid.first);
 		}
+		mgr->~ProcessManager();
 	}
 	else {
 		auto pid = stoi(this->args["pid"]);
@@ -460,12 +463,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 			t = new GTTime(this->args["date"].c_str());
 		}
 		Process* p = NULL;
-		if (this->args["pid"] == "*") {
-			p = ProcessManager::GetMgr()->processesMap[pid];
-		}
-		else {
-			p = new Process(pid);
-		}
+		p = new Process(pid);
 		if (p == NULL) {
 			result->SetErrorMessage("Error: " + StringUtils::ws2s(GetLastErrorAsString()));
 			return result;
@@ -484,6 +482,9 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 				result->PushDictOrdered("Reason", "No signature");
 			}
 			delete sign;
+		}
+		if (p != NULL) {
+			delete p;
 		}
 	}
 	result->SetType(DICT);
@@ -606,4 +607,18 @@ ResultSet* RecentRunning::ModuleRun() {
 
 	result->SetType(DICT);
 	return result;
+}
+
+MRUList::MRUList() {
+	this->Name = L"RecentRunning";
+	this->Path = L"Registry";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Most Recent user list";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* MRUList::ModuleRun() {
+	return nullptr;
 }

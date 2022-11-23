@@ -133,4 +133,12 @@ public:
 	RecentRunning();
 	ResultSet* ModuleRun();
 };
+
+class MRUList : public NativeModule {
+public:
+	MRUList();
+	ResultSet* ModuleRun();
+};
+
+
 #endif
