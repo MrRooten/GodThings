@@ -60,6 +60,8 @@ public:
 	std::string ToJsonString();
 
 	Json::Value ToJsonObject();
+
+	std::string ToCsvString();
 };
 
 enum RunType{

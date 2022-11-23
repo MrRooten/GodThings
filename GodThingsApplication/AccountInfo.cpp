@@ -48,6 +48,20 @@ DWORD AccountInfo::Initialize(PUSER_INFO_3 userInfo) {
 	this->passwordExpired = userInfo->usri3_password_expired;
 	return 0;
 }
+
+GTWString& AccountInfo::GetComment() {
+	return this->comment;
+}
+
+GTWString& AccountInfo::GetLogonServer()
+{
+	return this->logonServer;
+}
+
+GTWString& AccountInfo::GetProfile()
+{
+	return profile;
+}
 DWORD AccountInfoManager::Initialize() {
 	PBYTE bytes = NULL;
 	DWORD size = 0x1000;
@@ -112,3 +126,13 @@ AccountInfoManager::~AccountInfoManager() {
 		}
 	}
 }
+
+GTTime AccountInfo::GetLastLogon() {
+	return GTTime::FromTimeStamp(this->lastLogon);
+}
+
+GTTime AccountInfo::GetLastLogoff() {
+	return GTTime::FromTimeStamp(this->lastLogoff);
+}
+
+

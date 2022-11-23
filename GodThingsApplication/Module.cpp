@@ -224,6 +224,7 @@ DWORD ModuleMgr::LoadModules() {
 	WatchNetstat* loop = new WatchNetstat();
 	MailiousProcessDlls* unsignedDlls = new MailiousProcessDlls();
 	new RecentRunning();
+	new Accounts();
 #ifdef  PYTHON_ENABLE
 
 	std::wstring currPath = std::filesystem::current_path().native().c_str();
@@ -364,6 +365,48 @@ Json::Value ResultSet::ToJsonObject() {
 		value["Report"] = this->report;
 	}
 	return value;
+}
+
+std::string _csv_escape(std::string& s) {
+	std::string from = "\"";
+	std::string to = "\"\"";
+	StringUtils::replaceAll(s, from, to);
+	s = "\"" + s + "\"";
+	return s;
+}
+std::string ResultSet::ToCsvString() {
+	auto res = this;
+	std::string result;
+	if (res->type == ERROR_MESSAGE) {
+		return "";
+	}
+	if (res == nullptr) {
+		return "";
+	}
+	auto json = res->ToJsonObject();
+	auto data = json["Data"];
+	int size = 0;
+	auto orders = res->GetMapOrder();
+	std::string first_line = "";
+	std::vector<std::string> _tmp;
+	for (auto& key : orders) {
+		_tmp.push_back(key);
+		size = data[key].size();
+	}
+	result += StringUtils::StringsJoin(_tmp, ",") + "\r\n";
+	_tmp.clear();
+	for (int i = 0; i < size; i++) {
+		std::vector<std::string> values;
+		for (auto& key : orders) {
+			auto member = data[key][i];
+			std::string value = member.asCString();
+			value = _csv_escape(value);
+			values.push_back(value);
+		}
+		auto s = StringUtils::StringsJoin(values, ",") + "\r\n";
+		result += s;
+	}
+	return result;
 }
 
 Json::Value Module::GetModuleMetaJson() {

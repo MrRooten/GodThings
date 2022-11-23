@@ -174,7 +174,7 @@ SchduleTask::SchduleTask(IRegisteredTask* task) {
     this->name = p;
 
 
-    hr = task->GetRunTimes(&this->start_time, &this->end_time, &this->count, &this->run_times);
+    //hr = task->GetRunTimes(&this->start_time, &this->end_time, &this->count, &this->run_times);
     if (FAILED(hr)) {
         return;
     }
@@ -201,6 +201,30 @@ GTTime SchduleTask::GetStartTime() {
 
 GTTime SchduleTask::GetEndTime() {
     return GTTime(this->end_time);
+}
+
+std::wstring SchduleTask::GetState() {
+    if (this->taskState == TASK_STATE_UNKNOWN) {
+        return L"TASK_STATE_UNKNOWN";
+    }
+
+    if (this->taskState == TASK_STATE_DISABLED) {
+        return L"TASK_STATE_DISABLED";
+    }
+
+    if (this->taskState == TASK_STATE_QUEUED) {
+        return L"TASK_STATE_QUEUED";
+    }
+
+    if (this->taskState == TASK_STATE_READY) {
+        return L"TASK_STATE_READY";
+    }
+
+    if (this->taskState == TASK_STATE_RUNNING) {
+        return L"TASK_STATE_RUNNING";
+    }
+
+    return L"TASK_STATE_UNKNOWN";
 }
 
 

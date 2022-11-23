@@ -57,6 +57,28 @@ std::wstring StringUtils::StringsJoin(std::vector<std::wstring>& vs, const wchar
     return res;
 }
 
+std::string StringUtils::StringsJoin(std::vector<std::string>& vs, const char* delim) {
+    std::string res;
+
+    for (auto p = vs.begin();
+        p != vs.end(); ++p) {
+        res += *p;
+        if (p != vs.end() - 1)
+            res += delim;
+    }
+    return res;
+}
+
+void StringUtils::replaceAll(std::string& str, const std::string& from, const std::string& to) {
+    if (from.empty())
+        return;
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+    }
+}
+
 std::vector<std::wstring> StringUtils::StringSplit(std::wstring s, std::wstring delim) {
     size_t pos_start = 0, pos_end, delim_len = delim.length();
     std::wstring token;

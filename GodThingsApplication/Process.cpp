@@ -1169,7 +1169,7 @@ ProcessManager::~ProcessManager() {
 
 BOOL ProcessManager::SetAllProcesses() {
 	HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
-	PROCESSENTRY32 pe32;
+	PROCESSENTRY32W pe32;
 
 	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -1177,9 +1177,9 @@ BOOL ProcessManager::SetAllProcesses() {
 		return FALSE;
 	}
 
-	pe32.dwSize = sizeof(PROCESSENTRY32);
+	pe32.dwSize = sizeof(PROCESSENTRY32W);
 
-	if (!Process32First(hProcessSnap, &pe32)) {
+	if (!Process32FirstW(hProcessSnap, &pe32)) {
 		CloseHandle(hProcessSnap);
 		return FALSE;
 	}
@@ -1195,15 +1195,12 @@ BOOL ProcessManager::SetAllProcesses() {
 			processesMap[pid] = new Process(pid, this);
 			processesMap[pid]->processId = pid;
 			processesMap[pid]->parentPID = parentPid;
-#ifndef UNICODE
-			processesMap[pid]->processName = s2ws(pe32.szExeFile);
-#else
 			processesMap[pid]->processName = pe32.szExeFile;
-#endif // UNICODE
+
 			processesMap[pid]->InitProcessStaticState();
 			processesMap[pid]->GetCPUState();
 		}
-	} while (Process32Next(hProcessSnap, &pe32));
+	} while (Process32NextW(hProcessSnap, &pe32));
 
 	for (auto oldPid : this->lastUpdatePids) {
 		if (newUpdatePids.count(oldPid) == 0) {

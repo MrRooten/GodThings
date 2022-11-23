@@ -23,6 +23,9 @@ public:
 		wprintf(L"    gui_serve: Run the GUI Serve\n");
 		wprintf(L"    info_module: Module Information\n");
 		wprintf(L"    run_module <module>: Run a module\n");
+		wprintf(L"    run_all: Run all autorun-able modules\n");
+		wprintf(L"        -e: export file to csv named by ${Path}.${ModuleName}.csv\n");
+		wprintf(L"    list_modules: List all modules\n");
 	}
 
 	static void RunPythonFile(const wchar_t* wpath) {
@@ -43,11 +46,28 @@ public:
 	static void GuiServer() {
 		Serve();
 	}
+	static std::wstring GetRunTypeAsString(RunType type) {
+		if (type == ModuleAuto) {
+			return L"ModuleAuto";
+		}
+
+		if (type == ModuleNeedArgs) {
+			return L"ModuleNeedArgs";
+		}
+
+		if (type == ModuleNotImplement) {
+			return L"ModuleNotImplement";
+		}
+
+		return L"ModuleUnknown";
+	}
 
 	static void ListModules() {
 		auto mgr = ModuleMgr::GetMgr();
+		wprintf(L"%-40s%s\n", L"ModuleName", L"RunType");
 		for (auto& mod : mgr->modules) {
-			wprintf(L"%s.%s\n", mod->Path.c_str(),mod->Name.c_str());
+			auto name = mod->Path + L"." + mod->Name;
+			wprintf(L"%-40s%s\n", name.c_str(), GetRunTypeAsString(mod->RunType).c_str());
 		}
 	}
 
@@ -69,6 +89,11 @@ public:
 				}
 				mod->SetArgs(parameters);
 				ResultSet* res = mod->ModuleRun();
+				if (res->type == ERROR_MESSAGE) {
+					printf("[Error]: %s\n", res->GetErrorMessage().c_str());
+					delete res;
+					return;
+				}
 				if (res == nullptr) {
 					return;
 				}
@@ -94,7 +119,7 @@ public:
 		}
 	}
 
-	static void RunAllModules() {
+	static void RunAllModules(int len_args, wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
 		for (auto& mod : mgr->modules) {
 			if (mod->RunType != ModuleAuto) {
@@ -122,6 +147,16 @@ public:
 				}
 				printf("\n");
 			}
+
+			for (int i = 0; i < len_args; i++) {
+				//if (lstrcmpW(args[i], L"-e")) {
+					std::wstring filename = mod->Path + L"." + mod->Name + L".csv";
+					auto file = GTFileUtils::Open(filename.c_str(), L"w");
+					auto s = "\xef\xbb\xbf"+res->ToCsvString();
+					file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
+					delete file;
+				//}
+			}
 			delete res;
 			wprintf(L"%s Module Ending...\n", mod->Name.c_str());
 		}
@@ -132,7 +167,8 @@ public:
 		auto mgr = ModuleMgr::GetMgr();
 		Module* targetModule = NULL;
 		for (auto& mod : mgr->modules) {
-			if (mod->Name == moduleName) {
+			auto name = mod->Path + L"." + mod->Name;
+			if (name == moduleName) {
 				targetModule = mod;
 				break;
 			}
@@ -181,6 +217,7 @@ public:
 		std::wstring subcmd = argv[1];
 		subcmd = StringUtils::Trim(subcmd);
 		if (subcmd == L"pyfile") {
+#ifdef PYTHON_ENABLE
 			if (argc < 3) {
 				wprintf(L"%s pyfile <pyfile_path>\n", argv[0]);
 				return;
@@ -188,7 +225,9 @@ public:
 
 			std::wstring path = argv[2];
 			RunPythonFile(path.c_str());
+#endif // PYTHON_ENABLE
 			return;
+
 		}
 		else if (subcmd == L"gui_serve") {
 			GuiServer();
@@ -218,15 +257,31 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			SetGloablLogLevel(DEBUG_LEVEL);
-			auto s = VerifyCatalogSignature(L"C:\\Windows\\System32\\dwm.exe", true);
-			printf("%d\n", s);
+			auto mgr = ModuleMgr::GetMgr();
+			Module* targetModule = NULL;
+			for (auto& mod : mgr->modules) {
+				auto name = mod->Path + L"." + mod->Name;
+				if (name == L"Process.Process") {
+					targetModule = mod;
+					break;
+				}
+			}
+
+			auto res = targetModule->ModuleRun();
+			std::string s = "\xef\xbb\xbf"+ res->ToCsvString();
+
+			auto f = GTFileUtils::Open(L"./test.csv", L"w");
+			auto bs = f->WriteBytes(0, (PBYTE)s.c_str(), s.length());
+			return;
 		}
 		else if (subcmd == L"list_path") {
 
 		}
 		else if (subcmd == L"run_all") {
-			RunAllModules();
+			RunAllModules(argc - 2, &argv[2]);
+		}
+		else if (subcmd == L"help") {
+			help(argv[0]);
 		}
 	}
 };

@@ -140,5 +140,17 @@ public:
 	ResultSet* ModuleRun();
 };
 
+class Accounts : public NativeModule {
+public:
+	Accounts();
+	ResultSet* ModuleRun();
+};
+
+class GetAntiVirus : public NativeModule {
+public:
+	GetAntiVirus();
+	ResultSet* ModuleRun();
+};
+
 
 #endif

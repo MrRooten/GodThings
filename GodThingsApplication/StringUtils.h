@@ -21,6 +21,10 @@ public:
 
 	static std::wstring StringsJoin(std::vector<std::wstring>& vs, const wchar_t* delim);
 
+	static std::string StringsJoin(std::vector<std::string>& vs, const char* delim);
+
+	static void replaceAll(std::string& str, const std::string& from, const std::string& to);
+
 	static std::vector<std::wstring> StringSplit(std::wstring s, std::wstring delim);
 
 	static bool IsNumeric(std::wstring s);

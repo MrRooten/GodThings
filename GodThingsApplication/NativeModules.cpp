@@ -375,6 +375,7 @@ ResultSet* ListSchduleTask::ModuleRun() {
 	for (auto& task : tasks) {
 		result->PushDictOrdered("Name", StringUtils::ws2s(task.getName()));
 		result->PushDictOrdered("Path", StringUtils::ws2s(task.getPath()));
+		result->PushDictOrdered("State", StringUtils::ws2s(task.GetState()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -441,7 +442,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 	ResultSet* result = new ResultSet();
 	std::vector<PID> pids;
 	if (!this->args.contains("pid")) {
-		result->SetErrorMessage("Must set a pid to get dll information");
+		result->SetErrorMessage("Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}'");
 		return result;
 	}
 
@@ -571,7 +572,6 @@ ResultSet* RecentRunning::ModuleRun() {
 				auto buffer = RegistryUtils::GetValueStatic(key.c_str(), _name.c_str());
 				UserAssistParser parser(buffer);
 				assistMap[name] = parser;
-				//wprintf(L"\t%s %d %s\n", name.c_str(), parser.GetRunCount(), parser.GetLastRun().c_str());
 				result->PushDictOrdered("name", StringUtils::ws2s(name));
 				result->PushDictOrdered("exec", StringUtils::ws2s(parser.GetLastRun()));
 			}
@@ -610,11 +610,12 @@ ResultSet* RecentRunning::ModuleRun() {
 }
 
 MRUList::MRUList() {
-	this->Name = L"RecentRunning";
+	this->Name = L"MRUList";
 	this->Path = L"Registry";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Most Recent user list";
+	this->RunType = ModuleNotImplement;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
@@ -622,3 +623,31 @@ MRUList::MRUList() {
 ResultSet* MRUList::ModuleRun() {
 	return nullptr;
 }
+
+Accounts::Accounts() {
+	this->Name = L"Accounts";
+	this->Path = L"Registry";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Accounts";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* Accounts::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	AccountInfoManager mgr;
+	mgr.Initialize();
+	auto users = mgr.GetAccountList();
+	for (auto user : users) {
+		result->PushDictOrdered("Uid", std::to_string(user->userId));
+		result->PushDictOrdered("Username", StringUtils::ws2s(user->userName));
+		result->PushDictOrdered("LastLogon", StringUtils::ws2s(user->GetLastLogon().ToString()));
+		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().ToString()));
+		result->PushDictOrdered("Comment", StringUtils::ws2s(user->GetComment()));
+		
+	}
+	result->SetType(DICT);
+	return result;
+}
+

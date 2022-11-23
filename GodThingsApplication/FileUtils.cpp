@@ -106,6 +106,8 @@ GTFile::~GTFile() {
 	if (this->curBytes != NULL) {
 		LocalFree(this->curBytes);
 	}
+
+	CloseHandle(this->hFile);
 }
 GTFile* GTFileUtils::Open(LPCWSTR filePath,LPCWSTR mode) {
 	GTFile* file = new GTFile();
