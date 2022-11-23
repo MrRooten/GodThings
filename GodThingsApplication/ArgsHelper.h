@@ -24,7 +24,7 @@ public:
 		wprintf(L"    info_module: Module Information\n");
 		wprintf(L"    run_module <module>: Run a module\n");
 		wprintf(L"    run_all: Run all autorun-able modules\n");
-		wprintf(L"        -e: export file to csv named by ${Path}.${ModuleName}.csv\n");
+		wprintf(L"        --export-csv: export file to csv named by ${Path}.${ModuleName}.csv\n");
 		wprintf(L"    list_modules: List all modules\n");
 	}
 
@@ -149,13 +149,13 @@ public:
 			}
 
 			for (int i = 0; i < len_args; i++) {
-				//if (lstrcmpW(args[i], L"-e")) {
+				if (lstrcmpW(args[i], L"--export-csv")==0) {
 					std::wstring filename = mod->Path + L"." + mod->Name + L".csv";
 					auto file = GTFileUtils::Open(filename.c_str(), L"w");
 					auto s = "\xef\xbb\xbf"+res->ToCsvString();
 					file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
 					delete file;
-				//}
+				}
 			}
 			delete res;
 			wprintf(L"%s Module Ending...\n", mod->Name.c_str());
