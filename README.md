@@ -11,7 +11,7 @@ This project is a framework of Windows system analysis and provide some system a
       info_module: Module Information
       run_module <module>: Run a module
       run_all: Run all autorun-able modules
-        -e: export file to csv named by ${Path}.${ModuleName}.csv
+        --export-csv: export file to csv named by ${Path}.${ModuleName}.csv
       list_modules: List all modules
     
   ### Ability
