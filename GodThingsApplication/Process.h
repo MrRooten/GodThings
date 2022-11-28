@@ -321,6 +321,7 @@ class ProcessManager {
 public:
 	static ProcessManager* _mgr;
 	static ProcessManager* GetMgr();
+	static std::vector<UINT32> GetPids();
 	ProcessManager();
 	~ProcessManager();
 	std::vector<Thread*>* GetThreadsByPID(PID pid);

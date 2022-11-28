@@ -1,7 +1,9 @@
 #include "VerifyUtils.h"
 #include "mscat.h"
-SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
-{
+#include "utils.h"
+DWORD VerifyCatalogSignatureAddition(_In_ LPCWSTR pwszSourceFile,
+    _In_ bool UseStrongSigPolicy, GTWString& catalogFile);
+SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile) {
     LONG lStatus;
     DWORD dwLastError;
     SignatureInfomation* info = new SignatureInfomation();
@@ -191,7 +193,9 @@ SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         &WVTPolicyGUID,
         &WinTrustData);
     if (info->isSignature == false) {
-        auto result = VerifyCatalogSignature(pwszSourceFile, false);
+        GTWString path = pwszSourceFile;
+        GTWString s = path + L"\\..\\AppxMetadata\\CodeIntegrity.cat";
+        auto result = VerifyCatalogSignatureAddition(pwszSourceFile, false, s);
         if (result == 0) {
             info->isSignature = true;
             info->info = L"Catalog verify";
@@ -243,8 +247,162 @@ DWORD VerifyCatalogSignature(_In_ LPCWSTR pwszSourceFile,
             NULL,
             0))
         {
+            if (!CryptCATAdminAcquireContext2(
+                &CatAdminHandle,
+                NULL,
+                BCRYPT_SHA256_ALGORITHM,
+                NULL,
+                0)) {
+                Error = GetLastError();
+                goto Cleanup;
+            }
+            
+        }
+    }
+
+    // Get size of hash to be used
+    if (!CryptCATAdminCalcHashFromFileHandle2(
+        CatAdminHandle,
+        FileHandle,
+        &HashLength,
+        NULL,
+        NULL))
+    {
+        Error = GetLastError();
+        goto Cleanup;
+    }
+
+    HashData = (PBYTE)HeapAlloc(GetProcessHeap(), 0, HashLength);
+    if (HashData == NULL)
+    {
+        Error = ERROR_OUTOFMEMORY;
+        goto Cleanup;
+    }
+
+    // Generate hash for a give file
+    if (!CryptCATAdminCalcHashFromFileHandle2(
+        CatAdminHandle,
+        FileHandle,
+        &HashLength,
+        HashData,
+        NULL))
+    {
+        Error = GetLastError();
+        goto Cleanup;
+    }
+
+    // Find the first catalog containing this hash
+    CatInfoHandle = NULL;
+    CatInfoHandle = CryptCATAdminEnumCatalogFromHash(
+        CatAdminHandle,
+        HashData,
+        HashLength,
+        0,
+        &CatInfoHandle);
+
+    while (CatInfoHandle != NULL)
+    {
+        CATALOG_INFO catalogInfo = {};
+        catalogInfo.cbStruct = sizeof(catalogInfo);
+        Found = true;
+
+        if (!CryptCATCatalogInfoFromContext(
+            CatInfoHandle,
+            &catalogInfo,
+            0))
+        {
+            Error = GetLastError();
+            break;
+        }
+
+        wprintf(L"Hash was found in catalog %s\n\n", catalogInfo.wszCatalogFile);
+
+        // Look for the next catalog containing the file's hash
+        CatInfoHandle = CryptCATAdminEnumCatalogFromHash(
+            CatAdminHandle,
+            HashData,
+            HashLength,
+            0,
+            &CatInfoHandle);
+    }
+
+    if (Found != true)
+    {
+        wprintf(L"Hash was not found in any catalogs.\n");
+        Error = 1;
+    }
+
+Cleanup:
+    if (CatAdminHandle != NULL)
+    {
+        if (CatInfoHandle != NULL)
+        {
+            CryptCATAdminReleaseCatalogContext(CatAdminHandle, CatInfoHandle, 0);
+        }
+
+        CryptCATAdminReleaseContext(CatAdminHandle, 0);
+    }
+
+    if (HashData != NULL)
+    {
+        HeapFree(GetProcessHeap(), 0, HashData);
+    }
+    CloseHandle(FileHandle);
+    return Error;
+}
+
+DWORD VerifyCatalogSignatureAddition(_In_ LPCWSTR pwszSourceFile,
+    _In_ bool UseStrongSigPolicy,GTWString &catalogFile) {
+    DWORD Error = ERROR_SUCCESS;
+    bool Found = false;
+    HCATADMIN CatAdminHandle = NULL;
+    HCATINFO CatInfoHandle = NULL;
+    DWORD HashLength = 0;
+    PBYTE HashData = NULL;
+    CERT_STRONG_SIGN_PARA SigningPolicy = {};
+    HCATINFO CatAddtionHandle = NULL;
+    HANDLE FileHandle = CreateFileW(pwszSourceFile,
+        GENERIC_READ,
+        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+    if (UseStrongSigPolicy != false)
+    {
+        SigningPolicy.cbSize = sizeof(CERT_STRONG_SIGN_PARA);
+        SigningPolicy.dwInfoChoice = CERT_STRONG_SIGN_OID_INFO_CHOICE;
+        SigningPolicy.pszOID = (LPSTR)szOID_CERT_STRONG_SIGN_OS_CURRENT;
+        if (!CryptCATAdminAcquireContext2(
+            &CatAdminHandle,
+            NULL,
+            BCRYPT_SHA256_ALGORITHM,
+            &SigningPolicy,
+            0))
+        {
             Error = GetLastError();
             goto Cleanup;
+        }
+    }
+    else
+    {
+        if (!CryptCATAdminAcquireContext2(
+            &CatAdminHandle,
+            NULL,
+            BCRYPT_SHA256_ALGORITHM,
+            NULL,
+            0))
+        {
+            if (!CryptCATAdminAcquireContext2(
+                &CatAdminHandle,
+                NULL,
+                BCRYPT_SHA256_ALGORITHM,
+                NULL,
+                0)) {
+                Error = GetLastError();
+                goto Cleanup;
+            }
+
         }
     }
 
@@ -320,6 +478,58 @@ DWORD VerifyCatalogSignature(_In_ LPCWSTR pwszSourceFile,
         Error = 1;
     }
 
+    if (Found == true) {
+        goto Cleanup;
+    }
+    CatAddtionHandle = CryptCATAdminAddCatalog(CatAdminHandle, (PWSTR)catalogFile.c_str(), NULL, 0);
+    if (CatAddtionHandle == NULL) {
+        Error = GetLastError();
+        goto Cleanup;
+    }
+
+    CatAddtionHandle = CryptCATAdminEnumCatalogFromHash(
+        CatAdminHandle,
+        HashData,
+        HashLength,
+        0,
+        &CatAddtionHandle);
+
+    while (CatAddtionHandle != NULL)
+    {
+        CATALOG_INFO catalogInfo = {};
+        catalogInfo.cbStruct = sizeof(catalogInfo);
+        Found = true;
+
+        if (!CryptCATCatalogInfoFromContext(
+            CatAddtionHandle,
+            &catalogInfo,
+            0))
+        {
+            Error = GetLastError();
+            break;
+        }
+
+        wprintf(L"Hash was found in catalog %s\n\n", catalogInfo.wszCatalogFile);
+
+        // Look for the next catalog containing the file's hash
+        CatAddtionHandle = CryptCATAdminEnumCatalogFromHash(
+            CatAdminHandle,
+            HashData,
+            HashLength,
+            0,
+            &CatAddtionHandle);
+
+        if (Found == true) {
+            Error = 0;
+            goto Cleanup;
+        }
+
+        if (Found == false) {
+            Error = GetLastError();
+            goto Cleanup;
+        }
+    }
+
 Cleanup:
     if (CatAdminHandle != NULL)
     {
@@ -328,6 +538,10 @@ Cleanup:
             CryptCATAdminReleaseCatalogContext(CatAdminHandle, CatInfoHandle, 0);
         }
 
+        if (CatAddtionHandle != NULL) {
+            CryptCATAdminReleaseCatalogContext(CatAdminHandle, CatAddtionHandle, 0);
+            CryptCATAdminRemoveCatalog(CatAdminHandle, (PWSTR)catalogFile.c_str(), 0);
+        }
         CryptCATAdminReleaseContext(CatAdminHandle, 0);
     }
 
@@ -335,6 +549,8 @@ Cleanup:
     {
         HeapFree(GetProcessHeap(), 0, HashData);
     }
+    CloseHandle(FileHandle);
+
 
     return Error;
 }

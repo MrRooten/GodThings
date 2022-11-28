@@ -683,9 +683,16 @@ DWORD Process::SetProcessImageState() {
 	do {
 		if (NtQueryInformation != NULL) {
 			NTSTATUS status = NtQueryInformation(hProcess, ProcessCommandLineInformation, cmdline, 1000, &size);
-			if (NtStatusHandler(status) == ERROR_INSUFFICIENT_BUFFER) {
-				cmdline = (PUNICODE_STRING123)LocalReAlloc(cmdline, size, GPTR | GMEM_MOVEABLE);
-				NTSTATUS status = NtQueryInformation(hProcess, ProcessCommandLineInformation, cmdline, 1000, &size);
+			if (NtStatusHandler(status) == ERROR_BAD_LENGTH) {
+				cmdline = (PUNICODE_STRING123)LocalReAlloc(cmdline, size+30, GPTR | GMEM_MOVEABLE);
+				NTSTATUS status = NtQueryInformation(hProcess, ProcessCommandLineInformation, cmdline, size+30, &size);
+				if (NtStatusHandler(status) == ERROR_SUCCESS) {
+					if (cmdline->Buffer == NULL) {
+						break;
+					}
+					imageState->cmdline = cmdline->Buffer;
+					break;
+				}
 			}
 			else if (NtStatusHandler(status) == ERROR_SUCCESS) {
 				if (cmdline->Buffer == NULL) {
@@ -864,7 +871,7 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 		return dlls;
 	}
 	EnumProcessModules(hProcess, &_tmp, 0, &size);
-	if (GetLastError() != ERROR_FILE_NOT_FOUND) {
+	if (GetLastError() != ERROR_FILE_NOT_FOUND && GetLastError() != ERROR_SUCCESS) {
 		LOG_DEBUG_REASON( L"Error EnumProcessModules");
 		return dlls;
 	}
@@ -907,7 +914,7 @@ GTWString Process::GetProcessName() {
 	}
 	else {
 		HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
-		PROCESSENTRY32 pe32;
+		PROCESSENTRY32W pe32;
 
 		hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -915,9 +922,9 @@ GTWString Process::GetProcessName() {
 			return L"";
 		}
 
-		pe32.dwSize = sizeof(PROCESSENTRY32);
+		pe32.dwSize = sizeof(PROCESSENTRY32W);
 
-		if (!Process32First(hProcessSnap, &pe32)) {
+		if (!Process32FirstW(hProcessSnap, &pe32)) {
 			CloseHandle(hProcessSnap);
 			return L"";
 		}
@@ -925,9 +932,9 @@ GTWString Process::GetProcessName() {
 			PID pid = pe32.th32ProcessID;
 			PID parentPid = pe32.th32ParentProcessID;
 			if (_pidProcessNameMap.count(pid) == 0) {
-				_pidProcessNameMap[pid] = StringUtils::s2ws(pe32.szExeFile);
+				_pidProcessNameMap[pid] = pe32.szExeFile;
 			}
-		} while (Process32Next(hProcessSnap, &pe32));
+		} while (Process32NextW(hProcessSnap, &pe32));
 		CloseHandle(hProcessSnap);
 	}
 
@@ -1151,6 +1158,35 @@ ProcessManager* ProcessManager::GetMgr() {
 	ProcessManager::_mgr = new ProcessManager();
 }
 
+std::vector<UINT32> ProcessManager::GetPids() {
+	std::vector<UINT32> result;
+	HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
+	PROCESSENTRY32W pe32;
+
+	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (hProcessSnap == INVALID_HANDLE_VALUE) {
+		return result;
+	}
+
+	pe32.dwSize = sizeof(PROCESSENTRY32W);
+
+	if (!Process32FirstW(hProcessSnap, &pe32)) {
+		CloseHandle(hProcessSnap);
+		return result;
+	}
+
+	//For keep the orignal Process object that existed before this function is called so delete the processes
+	//that not exist anymore,new the processes that not exist before this function is called.
+	std::set<PID> newUpdatePids;
+	do {
+		PID pid = pe32.th32ProcessID;
+		result.push_back(pid);
+	} while (Process32NextW(hProcessSnap, &pe32));
+	CloseHandle(hProcessSnap);
+	return result;
+}
+
 ProcessManager::ProcessManager() {
 
 }
@@ -1210,6 +1246,7 @@ BOOL ProcessManager::SetAllProcesses() {
 	}
 
 	this->lastUpdatePids = newUpdatePids;
+	CloseHandle(hProcessSnap);
 	return TRUE;
 }
 
@@ -1254,7 +1291,6 @@ DWORD ProcessManager::SetAllProcesses2() {
 
 	PSYSTEM_PROCESS_INFORMATION pCurProcess = pProcessesInfo;
 	while (pCurProcess->NextEntryOffset != 0) {
-		GTPrintln(L"%s", pCurProcess->ImageName.Buffer);
 		PID pid = (PID)pCurProcess->UniqueProcessId;
 		for (int i = 0; i < pCurProcess->NumberOfThreads; i++) {
 			threadsMap[pid].push_back(new Thread(&pCurProcess->Threads[i]));

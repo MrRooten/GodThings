@@ -440,10 +440,11 @@ MailiousProcessDlls::MailiousProcessDlls() {
 
 ResultSet* MailiousProcessDlls::ModuleRun() {
 	ResultSet* result = new ResultSet();
-	std::vector<PID> pids;
+	std::vector<UINT32> pids;
 	if (!this->args.contains("pid")) {
-		result->SetErrorMessage("Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}'");
-		return result;
+		result->SetErrorMessage("Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}',running all processes");
+		LOG_INFO(L"Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}',running all processes");
+		this->args["pid"] = "*";
 	}
 
 	if (this->args["pid"] == "*") {
@@ -452,19 +453,20 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 		for (auto pid : mgr->processesMap) {
 			pids.push_back(pid.first);
 		}
-		mgr->~ProcessManager();
 	}
 	else {
 		auto pid = stoi(this->args["pid"]);
 		pids.push_back(pid);
 	}
 	for (auto pid : pids) {
+		SetLastError(0);
 		GTTime* t = NULL;
 		if (this->args.contains("date")) {
 			t = new GTTime(this->args["date"].c_str());
 		}
 		Process* p = NULL;
 		p = new Process(pid);
+		wprintf(L"Running Process %d %s\n", p->GetPID(), p->GetProcessName().c_str());
 		if (p == NULL) {
 			result->SetErrorMessage("Error: " + StringUtils::ws2s(GetLastErrorAsString()));
 			return result;
@@ -481,6 +483,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 				result->PushDictOrdered("Pid", to_string(pid));
 				result->PushDictOrdered("Path", StringUtils::ws2s(path));
 				result->PushDictOrdered("Reason", "No signature");
+				wprintf(L"\tUnsigned dlls %d %s\n", pid, path.c_str());
 			}
 			delete sign;
 		}
@@ -488,6 +491,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 			delete p;
 		}
 	}
+	ProcessManager::GetMgr()->~ProcessManager();
 	result->SetType(DICT);
 	return result;
 }
