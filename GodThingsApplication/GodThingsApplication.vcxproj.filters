@@ -251,5 +251,8 @@
     <ClInclude Include="LDAPUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CmdUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

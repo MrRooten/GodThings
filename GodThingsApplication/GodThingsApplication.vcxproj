@@ -50,7 +50,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -219,6 +219,7 @@
   <ItemGroup>
     <ClInclude Include="AccountInfo.h" />
     <ClInclude Include="ArgsHelper.h" />
+    <ClInclude Include="CmdUtils.h" />
     <ClInclude Include="DriverInfo.h" />
     <ClInclude Include="EventLogUtils.h" />
     <ClInclude Include="EvtInfo.h" />

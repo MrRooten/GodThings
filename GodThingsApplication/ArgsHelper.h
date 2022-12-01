@@ -185,6 +185,10 @@ public:
 		printf("%s\n", output.c_str());
 		return;
 	}
+	
+	static void Cmd() {
+
+	}
 
 	static void test() {
 		FileInfo cmdFile(L"C:\\Windows\\System32\\cmd.exe");
@@ -267,6 +271,9 @@ public:
 		}
 		else if (subcmd == L"help") {
 			help(argv[0]);
+		}
+		else if (subcmd == L"cmd") {
+
 		}
 	}
 };

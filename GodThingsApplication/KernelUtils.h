@@ -6,7 +6,7 @@
 #include "public.h"
 #define DEVICE_LINK_NAME L"\\\\.\\Godthings"
 
-static HANDLE hDriverFile = NULL;
+static HANDLE hDriverFile = INVALID_HANDLE_VALUE;
 DWORD GTDeviceIoControl(
 	PVOID InputBuffer,
 	SIZE_T InputBufferSize,
