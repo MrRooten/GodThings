@@ -111,4 +111,9 @@ using GTRawString = BYTE*;
 typedef WCHAR* GTRawWString;
 typedef std::wstring GTWString;
 typedef std::string GTString;
+
+GTWString red_s(const wchar_t* s);
+GTWString blue_s(const wchar_t* s);
+GTWString green_s(const wchar_t* s);
+GTWString yellow_s(const wchar_t* s);
 #endif

@@ -215,9 +215,6 @@
     <ClInclude Include="PEInfo.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ArgsHelper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="NetworkUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>

@@ -160,7 +160,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <UndefinePreprocessorDefinitions>%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -218,7 +218,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccountInfo.h" />
-    <ClInclude Include="ArgsHelper.h" />
     <ClInclude Include="CmdUtils.h" />
     <ClInclude Include="DriverInfo.h" />
     <ClInclude Include="EventLogUtils.h" />

@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include <string>
 #include <set>
 #include "PythonUtils.h"
@@ -12,10 +13,10 @@
 #include "Module.h"
 class ArgsHelper {
 public:
-	static void help(wchar_t *file) {
+	static void help(wchar_t* file) {
 		std::wstring f(file);
 
-		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\")+1).c_str());
+		wprintf(L"%s <subcommand> <option>\n", f.substr(f.find_last_of(L"\\") + 1).c_str());
 #ifdef PYTHON_ENABLE
 		wprintf(L"    pyfile <file>: Run python file\n");
 		wprintf(L"    python: Run python interpreter\n");
@@ -35,7 +36,7 @@ public:
 		const char* path = StringUtils::ws2s(s).c_str();
 		FILE* fp = fopen(path, "r");
 		if (fp == NULL) {
-			printf("Error open file %d\n",GetLastError());
+			printf("Error open file %d\n", GetLastError());
 			return;
 		}
 		int re = PyRun_SimpleFile(fp, path);
@@ -64,14 +65,17 @@ public:
 
 	static void ListModules() {
 		auto mgr = ModuleMgr::GetMgr();
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 10);
 		wprintf(L"%-40s%s\n", L"ModuleName", L"RunType");
+		SetConsoleTextAttribute(hConsole, 15);
 		for (auto& mod : mgr->modules) {
 			auto name = mod->Path + L"." + mod->Name;
 			wprintf(L"%-40s%s\n", name.c_str(), GetRunTypeAsString(mod->RunType).c_str());
 		}
 	}
 
-	static void RunModule(wchar_t* moduleName,int len_args,wchar_t** args) {
+	static void RunModule(wchar_t* moduleName, int len_args, wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
 		for (auto& mod : mgr->modules) {
 			auto fullPath = mod->Path + L"." + mod->Name;
@@ -101,13 +105,13 @@ public:
 				auto data = json["Data"];
 				int size = 0;
 				auto orders = res->GetMapOrder();
-				for (auto &key : orders) {
+				for (auto& key : orders) {
 					printf("%-30s ", key.c_str());
 					size = data[key].size();
 				}
 				printf("\n");
 				for (int i = 0; i < size; i++) {
-					for (auto &key : orders) {
+					for (auto& key : orders) {
 						auto member = data[key][i];
 						wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
 					}
@@ -149,10 +153,10 @@ public:
 			}
 
 			for (int i = 0; i < len_args; i++) {
-				if (lstrcmpW(args[i], L"--export-csv")==0) {
+				if (lstrcmpW(args[i], L"--export-csv") == 0) {
 					std::wstring filename = mod->Path + L"." + mod->Name + L".csv";
 					auto file = GTFileUtils::Open(filename.c_str(), L"w");
-					auto s = "\xef\xbb\xbf"+res->ToCsvString();
+					auto s = "\xef\xbb\xbf" + res->ToCsvString();
 					file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
 					delete file;
 				}
@@ -175,7 +179,7 @@ public:
 		}
 
 		if (targetModule == NULL) {
-			wprintf(L"Please select right module,the %s doesn't exist.\n",moduleName);
+			wprintf(L"Please select right module,the %s doesn't exist.\n", moduleName);
 			return;
 		}
 
@@ -185,7 +189,7 @@ public:
 		printf("%s\n", output.c_str());
 		return;
 	}
-	
+
 	static void Cmd() {
 
 	}
@@ -208,7 +212,7 @@ public:
 			wprintf(L"%s\n", path.c_str());
 		}
 	}
-	static void MainArgs(int argc,wchar_t** argv) {
+	static void MainArgs(int argc, wchar_t** argv) {
 		setlocale(LC_ALL, "chs");
 #ifdef PYTHON_ENABLE
 		initialize init;
@@ -243,14 +247,14 @@ public:
 		}
 		else if (subcmd == L"run_module") {
 			if (argc < 3) {
-				wprintf(L"Usage:%s run_module <exist_module>\n",argv[0]);
+				wprintf(L"Usage:%s run_module <exist_module>\n", argv[0]);
 				return;
 			}
 			RunModule(argv[2], argc - 3, &argv[3]);
 		}
 		else if (subcmd == L"info_module") {
 			if (argc < 3) {
-				wprintf(L"Usage:%s info_module <exist_module>\n",argv[0]);
+				wprintf(L"Usage:%s info_module <exist_module>\n", argv[0]);
 				return;
 			}
 			InfoModule(argv[2]);
@@ -261,7 +265,7 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			return ;
+			return;
 		}
 		else if (subcmd == L"list_path") {
 
@@ -277,3 +281,4 @@ public:
 		}
 	}
 };
+
