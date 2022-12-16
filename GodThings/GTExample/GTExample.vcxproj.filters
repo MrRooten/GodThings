@@ -24,6 +24,9 @@
     <ClCompile Include="ExtendModules.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\GodThingsApplication\NativeModules.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -36,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ArgsHelper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\GodThingsApplication\NativeModules.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

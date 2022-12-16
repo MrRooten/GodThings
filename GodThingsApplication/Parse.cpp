@@ -275,7 +275,7 @@ DWORD GetProcesses() {
 		Process* process = item.second;
 		GTPrintln(L"%.4d %s %s %s %d", process->GetPID(), 
 			process->processName.c_str(), 
-			process->GetUserName().c_str(),
+			process->UserName().c_str(),
 			process->GetImageState()->cmdline.c_str(),process->GetImageState()->cmdline.size());
 	}
 	return 0;

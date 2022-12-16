@@ -11,7 +11,7 @@ class AccountInfo {
 public:
 	DWORD Initialize(PUSER_INFO_3 userInfo);
 	std::wstring userName;
-	GTWString GetUserName();
+	GTWString UserName();
 	std::wstring comment;
 	GTWString& GetComment();
 	DWORD passwordAge;

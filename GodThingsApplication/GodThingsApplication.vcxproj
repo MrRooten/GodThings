@@ -193,7 +193,6 @@
     <ClCompile Include="KernelUtils.cpp" />
     <ClCompile Include="LDAPUtils.cpp" />
     <ClCompile Include="Module.cpp" />
-    <ClCompile Include="NativeModules.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="NtAPI.cpp" />
     <ClCompile Include="ObjectInfo.cpp" />
@@ -231,7 +230,6 @@
     <ClInclude Include="KernelUtils.h" />
     <ClInclude Include="LDAPUtils.h" />
     <ClInclude Include="Module.h" />
-    <ClInclude Include="NativeModules.h" />
     <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="NtFileInfo.h" />
     <ClInclude Include="Network.h" />

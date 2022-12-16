@@ -84,9 +84,6 @@
     <ClCompile Include="ProcServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="NativeModules.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="KernelUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -201,9 +198,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ProcServer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="NativeModules.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="KernelUtils.h">

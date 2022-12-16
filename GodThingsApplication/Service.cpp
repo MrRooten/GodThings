@@ -393,7 +393,7 @@ std::wstring& Srv::GetFilePath() {
 	return this->filePath;
 }
 
-std::wstring& Srv::GetUserName() {
+std::wstring& Srv::UserName() {
 	return this->userName;
 }
 

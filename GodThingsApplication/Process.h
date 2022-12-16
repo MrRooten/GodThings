@@ -233,7 +233,7 @@ public:
 	BOOL CreateDump(LPWSTR filename, MINIDUMP_TYPE dumpType);
 
 	PID GetPID();
-	GTWString GetUserName();
+	GTWString UserName();
 	SecurityState* GetSecurityState();
 	ImageState* GetImageState();
 	HandleState* GetHandlesState();

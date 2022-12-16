@@ -91,7 +91,7 @@ public:
 
 	std::wstring& GetFilePath();
 
-	std::wstring& GetUserName();
+	std::wstring& UserName();
 
 	std::wstring& GetSID();
 

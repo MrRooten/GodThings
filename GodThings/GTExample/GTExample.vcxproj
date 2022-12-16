@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\GodThingsApplication\NativeModules.cpp" />
     <ClCompile Include="ExtendModules.cpp" />
     <ClCompile Include="GtCmd.cpp" />
     <ClCompile Include="main.cpp" />
@@ -157,6 +158,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\GodThingsApplication\NativeModules.h" />
     <ClInclude Include="ArgsHelper.h" />
     <ClInclude Include="ExtendModules.h" />
     <ClInclude Include="GtCmd.h" />

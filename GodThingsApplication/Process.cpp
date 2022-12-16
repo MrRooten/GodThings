@@ -820,7 +820,7 @@ PID Process::GetPID() {
 	return processId;
 }
 
-GTWString Process::GetUserName() {
+GTWString Process::UserName() {
 	if (this->userName.size() != 0) {
 		return this->userName;
 	}

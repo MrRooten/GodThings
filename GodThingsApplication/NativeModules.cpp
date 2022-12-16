@@ -26,7 +26,7 @@ ResultSet* ProcessModule::ModuleRun() {
 		//result->dataDict["name"].push_back(StringUtils::ws2s(item.second->processName));
 		result->PushDictOrdered("name", StringUtils::ws2s(item.second->GetProcessName()));
 
-		result->PushDictOrdered("userName", StringUtils::ws2s(item.second->GetUserName()));
+		result->PushDictOrdered("userName", StringUtils::ws2s(item.second->UserName()));
 		result->PushDictOrdered("cmdline", StringUtils::ws2s(item.second->GetImageState()->cmdline));
 		result->PushDictOrdered("filepath", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
 	}
