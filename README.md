@@ -40,7 +40,7 @@ This project is a framework of Windows system analysis and provide some system a
         Information gathering
         
     Some Files parse: 
-        Prefetch    [almost done]
+        Prefetch    [done]
         Amcache     [todo]
         dmp         [todo]
         JumpListFile[todo]
@@ -53,7 +53,7 @@ This project is a framework of Windows system analysis and provide some system a
         MUICache                     [todo]
         RunMRU                       [todo]
         AppCompatFlags Registry Keys [todo]
-        Background Activity Moderator[todo]
+        Background Activity Moderator[done]
         RecentApps                   [todo]
     
     Other:
