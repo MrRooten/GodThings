@@ -59,7 +59,7 @@ RegistryUtils::RegistryUtils(const wchar_t* path) {
 DWORD RegistryUtils::GetValueType(std::wstring &valueName,PDWORD pType) {
 	DWORD status;
 	DWORD res;
-	status = RegGetValueW(this->hKey, this->registryPath.c_str(), NULL, RRF_RT_ANY, &res, NULL, NULL);
+	status = RegGetValueW(this->hKey, this->registryPath.c_str(), valueName.c_str(), RRF_RT_ANY, &res, NULL, NULL);
 	*pType = res;
 	if (GetLastError() != ERROR_SUCCESS) {
 		LOG_DEBUG_REASON("Error RegGetValueW");
@@ -68,7 +68,7 @@ DWORD RegistryUtils::GetValueType(std::wstring &valueName,PDWORD pType) {
 }
 
 DWORD RegistryUtils::GetValueType(const wchar_t* valueName, PDWORD pType) {
-	std::wstring _valueName;
+	std::wstring _valueName = valueName;
 	return this->GetValueType(_valueName, pType);
 }
 

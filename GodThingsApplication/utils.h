@@ -68,6 +68,7 @@ public:
 	std::wstring ToString();
 	static GTTime GetTime();
 	static GTTime FromTimeStamp(UINT32 timestamp);
+	static GTTime FromTimeStamp64(UINT64 timestamp);
 	ULONG64 ToNowULONG64();
 	bool operator<(GTTime& other);
 	bool operator>(GTTime& other);

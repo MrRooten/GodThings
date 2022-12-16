@@ -240,6 +240,12 @@ GTTime GTTime::FromTimeStamp(UINT32 timestamp) {
 	return GTTime(ft);
 }
 
+GTTime GTTime::FromTimeStamp64(UINT64 time) {
+	FILETIME ft;
+	ft.dwLowDateTime = time && 0xffffffff;
+	ft.dwHighDateTime = time >> 32;
+	return GTTime(ft);
+}
 ULONG64 GTTime::ToNowULONG64() {
 	ULONG64 res = 0;
 	res += this->millisecond;

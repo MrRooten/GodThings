@@ -1,12 +1,17 @@
-#include "Process.h"
+#include "KernelUtils.h"
+#include "ArgsHelper.h"
+#include "ExtendModules.h"
+void extendInit() {
+    new BAMParse();
+    new LastShutdown();
+}
 
-int main() {
-	char* s[100];
-	printf("hello: ");
-	while (true) {
-		char c = getchar();
-		printf("%c\n", c);
-	}
-	printf("%s\n", s);
-	return 0;
+int wmain(int argc, wchar_t* argv[]) {
+    InitKernelUtils();
+    extendInit();
+#ifdef PYTHON_ENABLE
+    initialize init;
+#endif // PYTHON_ENABLE
+    ArgsHelper::MainArgs(argc, argv);
+    return 0;
 }

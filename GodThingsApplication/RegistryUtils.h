@@ -29,6 +29,7 @@ public:
 	std::vector<std::wstring> ListValueNames();
 	static BytesBuffer GetValueStatic(std::wstring &path,std::wstring &key);
 	static BytesBuffer GetValueStatic(const wchar_t* path, const wchar_t* key);
+	static DWORD GetValueTypeStatic(const wchar_t* path, const wchar_t* key);
 	FILETIME GetLastWriteTime();
 	std::vector<std::wstring> ListSubKeys();
 	std::vector<RegistryUtils> ListSubKeysChain();

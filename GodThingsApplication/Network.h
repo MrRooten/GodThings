@@ -72,3 +72,18 @@ public:
 	VOID UpdateTCPConnections();
 	~NetworkManager();
 };
+
+class Interface {
+	GTWString DefaultGateway;
+	GTWString Domain;
+	bool EnableDhcp;
+	GTWString Hostname;
+	GTWString IPAddress;
+	GTWString IPEnableRouter;
+	GTWString SubnetMask;
+	GTWString DhcpDefaultGateway;
+	GTWString DhcpIPAddress;
+	GTWString DhcpNameServer;
+public:
+	Interface(wchar_t* guid);
+};
