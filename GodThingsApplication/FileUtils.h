@@ -1,4 +1,8 @@
 #pragma once
+#ifndef _FILE_UTILS_H
+#define _FILE_UTILS_H
+
+
 #include <string>
 #include <vector>
 #include <map>
@@ -47,3 +51,4 @@ public:
 	DWORD Initialize();
 };
 
+#endif // !_FILE_UTILS_H

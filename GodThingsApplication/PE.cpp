@@ -1303,7 +1303,7 @@ DWORD PE::GetSafeSectionSize(const __IMAGE_SECTION_HEADER& sect) const
     if (sect.s.SizeOfRawData > 0)
     {
         size = sect.s.SizeOfRawData;
-        if (size > sizeOfFile) size = sizeOfFile;
+        if (size > sizeOfFile) size = (DWORD)sizeOfFile;
     }
     else
     {
@@ -3487,7 +3487,7 @@ bool PE::accomodateMemoryPagesForAccess(bool accomodateOrRestore, HMODULE hModul
         return true;
     }
 
-    DWORD sizeOfImage = sizeOfFile;
+    DWORD sizeOfImage = (DWORD)sizeOfFile;
     std::vector<MEMORY_BASIC_INFORMATION> out;
 
     uint8_t* address = (uint8_t*)hModule;

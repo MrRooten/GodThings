@@ -1,6 +1,7 @@
 #include "FileInfo.h"
-#include <ntstatus.h>
-
+#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
+#define STATUS_BUFFER_OVERFLOW           ((NTSTATUS)0x80000005L)
+#define STATUS_BUFFER_TOO_SMALL          ((NTSTATUS)0xC0000023L)
 DWORD GetFileBasicInfo(LPCWSTR fileName, PFILE_BASIC_INFO* Pinfo) {
 	PFILE_BASIC_INFO info = (PFILE_BASIC_INFO)GlobalAlloc(GPTR, sizeof(FILE_BASIC_INFO));
 	if (info == NULL) {
@@ -292,14 +293,18 @@ GTTime FileInfo::GetCreateTime() {
 GTTime FileInfo::GetChangeTime() {
 	this->SetStatInfo();
 	this->pStatInfo->ChangeTime;
-	FILETIME fTime = (FILETIME)this->pStatInfo->ChangeTime.QuadPart;
+	auto _ = this->pStatInfo->ChangeTime.QuadPart;
+	FILETIME fTime;
+	memcpy(&fTime, &_, sizeof(fTime));
 	return GTTime(fTime);
 }
 
 GTTime FileInfo::GetLastAccessTime() {
 	this->SetStatInfo();
 	this->pStatInfo->LastAccessTime;
-	FILETIME fTime = (FILETIME)this->pStatInfo->CreationTime.QuadPart;
+	auto _ = this->pStatInfo->CreationTime.QuadPart;
+	FILETIME fTime;
+	memcpy(&fTime, &_, sizeof(fTime));
 	return GTTime(fTime);
 }
 
@@ -307,7 +312,9 @@ GTTime FileInfo::GetLastAccessTime() {
 GTTime FileInfo::GetLastWriteTime() {
 	this->SetStatInfo();
 	this->pStatInfo->LastWriteTime;
-	FILETIME fTime = (FILETIME)this->pStatInfo->CreationTime.QuadPart;
+	auto _ = this->pStatInfo->CreationTime.QuadPart;
+	FILETIME fTime;
+	memcpy(&fTime, &_, sizeof(fTime));
 	return GTTime(fTime);
 }
 
@@ -638,7 +645,7 @@ DWORD PrefetchFile::Parse() {
 			uncompressed_buffer,
 			uncompressed_size,
 			(PBYTE)content.data(),
-			content.size(),
+			(ULONG)content.size(),
 			&final_uncom_size,
 			workspace
 		);

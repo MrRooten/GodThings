@@ -10,11 +10,11 @@ LDAPIdentity::LDAPIdentity(GTRawWString username, GTRawWString domain, GTRawWStr
 SEC_WINNT_AUTH_IDENTITY_W LDAPIdentity::GetIdentity() {
 	SEC_WINNT_AUTH_IDENTITY_W ret = { 0 };
 	ret.User = (USHORT*)this->username.c_str();
-	ret.UserLength = this->username.length();
+	ret.UserLength = (ULONG)this->username.length();
 	ret.Password = (USHORT*)this->password.c_str();
-	ret.PasswordLength = this->password.length();
+	ret.PasswordLength = (ULONG)this->password.length();
 	ret.Domain = (USHORT*)this->domain.c_str();
-	ret.DomainLength = this->domain.length();
+	ret.DomainLength = (ULONG)this->domain.length();
 
 	return ret;
 }

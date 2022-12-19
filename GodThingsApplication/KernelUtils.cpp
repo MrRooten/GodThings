@@ -16,7 +16,7 @@ DWORD GTDeviceIoControl(
 		&iosb,
 		IoControlCode,
 		InputBuffer,
-		InputBufferSize,
+		(ULONG)InputBufferSize,
 		NULL,
 		0
 	);

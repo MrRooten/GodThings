@@ -3,27 +3,9 @@
 #define _NTAPI_H
 #include "public.h"
 
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
-#define NT_INFORMATION(Status) ((((ULONG)(Status)) >> 30) == 1)
-#define NT_WARNING(Status) ((((ULONG)(Status)) >> 30) == 2)
-#define NT_ERROR(Status) ((((ULONG)(Status)) >> 30) == 3)
-
-#define NT_FACILITY_MASK 0xfff
-#define NT_FACILITY_SHIFT 16
-#define NT_FACILITY(Status) ((((ULONG)(Status)) >> NT_FACILITY_SHIFT) & NT_FACILITY_MASK)
-
-#define NT_NTWIN32(Status) (NT_FACILITY(Status) == FACILITY_NTWIN32)
-#define WIN32_FROM_NTSTATUS(Status) (((ULONG)(Status)) & 0xffff)
-
-#define STATUS_UNSUCCESSFUL              ((NTSTATUS)0xC0000001L)
-
-#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
 
 #define FIELD_OFFSET(type, field)    ((LONG)(LONG_PTR)&(((type *)0)->field))
 #define UFIELD_OFFSET(type, field)    ((DWORD)(LONG_PTR)&(((type *)0)->field))
-
-
-
 
 typedef struct _UNICODE_STRING123 {
     USHORT Length;

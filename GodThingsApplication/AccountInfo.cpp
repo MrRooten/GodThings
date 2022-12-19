@@ -102,7 +102,7 @@ DWORD AccountInfoManager::Initialize() {
 			NULL)));
 	}
 	
-	for (int i = 0; i < entries; i++) {
+	for (DWORD i = 0; i < entries; i++) {
 		info = &((PUSER_INFO_3)bytes)[i];
 		AccountInfo* user = new AccountInfo();
 		user->Initialize(info);

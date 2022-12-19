@@ -100,9 +100,9 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam) {
         fSuccess = WriteFile(
             hPipe,        // handle to pipe 
             result.c_str(),     // buffer to write from 
-            result.size(), // number of bytes to write 
+            static_cast<DWORD>(result.size()), // number of bytes to write 
             &cbWritten,   // number of bytes written 
-            NULL);        // not overlapped I/O 
+            0);        // not overlapped I/O 
         printf("Write Size:%d\n", cbWritten);
         if (!fSuccess || cbReplyBytes != cbWritten)
         {

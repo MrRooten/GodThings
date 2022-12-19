@@ -3,6 +3,7 @@
 #define _FILEINFO_H
 #include "ntapi.h"
 
+
 typedef enum _FILE_INFORMATION_CLASS
 {
     FileDirectoryInformation = 1, // FILE_DIRECTORY_INFORMATION

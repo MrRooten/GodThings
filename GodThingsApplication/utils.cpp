@@ -63,14 +63,14 @@ MPEBytes MPEBytes::INT32ToBytesB(INT32 integer) {
 
 MPEBytes MPEBytes::INT64ToBytesB(INT64 integer) {
 	BYTE bytes[8];
-	bytes[0] = (integer & 0xff00000000000000) >> 56;
-	bytes[1] = (integer & 0x00ff000000000000) >> 48;
-	bytes[2] = (integer & 0x0000ff0000000000) >> 40;
-	bytes[3] = (integer & 0x000000ff00000000) >> 32;
-	bytes[4] = (integer & 0x00000000ff000000)>> 24;
-	bytes[5] = (integer & 0x0000000000ff0000)>> 16;
-	bytes[6] = (integer & 0x000000000000ff00)>> 8;
-	bytes[7] = integer & 0xff;
+	bytes[0] = (BYTE)((integer & 0xff00000000000000) >> 56);
+	bytes[1] = (BYTE)((integer & 0x00ff000000000000) >> 48);
+	bytes[2] = (BYTE)((integer & 0x0000ff0000000000) >> 40);
+	bytes[3] = (BYTE)((integer & 0x000000ff00000000) >> 32);
+	bytes[4] = (BYTE)((integer & 0x00000000ff000000)>> 24);
+	bytes[5] = (BYTE)((integer & 0x0000000000ff0000)>> 16);
+	bytes[6] = (BYTE)((integer & 0x000000000000ff00)>> 8);
+	bytes[7] = (BYTE)(integer & 0xff);
 	return MPEBytes(bytes, 8);
 }
 
@@ -177,7 +177,7 @@ static wchar_t message[100];
 LPWSTR GetLastErrorAsString() {
 	//Get the error message ID, if any.
 	DWORD errorMessageID = ::GetLastError();
-	ZeroMemory(message, 0, sizeof(WCHAR) * 100);
+	ZeroMemory(message, sizeof(WCHAR) * 100);
 	WCHAR *messageBuffer = message;
 	//Ask Win32 to give us the string version of that message ID.
 	//The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
@@ -194,7 +194,7 @@ LPWSTR GetLastErrorAsString() {
 std::wstring GetLastErrorAsStringThreadSafe() {
 	//Get the error message ID, if any.
 	DWORD errorMessageID = ::GetLastError();
-	ZeroMemory(message, 0, sizeof(WCHAR) * 100);
+	ZeroMemory(message, sizeof(WCHAR) * 100);
 	WCHAR* messageBuffer = message;
 	//Ask Win32 to give us the string version of that message ID.
 	//The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).

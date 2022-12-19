@@ -41,7 +41,7 @@ DWORD GTFile::ReadBytes(PBYTE* pBytes) {
 	if (!ReadFile(
 		this->hFile,
 		(LPVOID)res,
-		bufferSize,
+		(DWORD)bufferSize,
 		&readSize,
 		NULL
 	)) {
@@ -61,7 +61,7 @@ BytesPair GTFile::ReadAll() {
 
 DWORD GTFile::ReadBytes(PBYTE bytes,size_t size) {
 	DWORD _size = 0;
-	ReadFile(this->hFile, bytes, size, &_size, NULL);
+	ReadFile(this->hFile, bytes, (DWORD)size, &_size, NULL);
 	return _size;
 }
 
@@ -98,7 +98,7 @@ DWORD GTFile::ReadBytesBlock(DWORD size, PBYTE* pBytes) {
 size_t GTFile::WriteBytes(size_t pos, PBYTE bytes, size_t length) {
 	DWORD a;
 
-	WriteFile(this->hFile, bytes, length, &a, NULL);
+	WriteFile(this->hFile, bytes, (DWORD)length, &a, NULL);
 	return a;
 }
 

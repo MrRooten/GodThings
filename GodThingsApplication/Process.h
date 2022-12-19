@@ -10,7 +10,7 @@
 #include <Psapi.h>
 
 #include <WinUser.h>
-#include <winnt.h>
+//#include <winnt.h>
 #include <fileapi.h>
 
 #include <tchar.h>

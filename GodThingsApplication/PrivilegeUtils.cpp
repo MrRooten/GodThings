@@ -9,7 +9,7 @@ BOOL HasPrivilege(std::wstring privilege) {
 			return FALSE;
 		}
 		GetTokenInformation(hToken, TokenPrivileges, pPrivileges, 1024, &size);
-		for (int i = 0; i < pPrivileges->PrivilegeCount; i++) {
+		for (DWORD i = 0; i < pPrivileges->PrivilegeCount; i++) {
 			WCHAR _tmp[100];
 			DWORD dwSize = 100;
 			LookupPrivilegeNameW(NULL, &pPrivileges->Privileges[i].Luid, _tmp, &dwSize);

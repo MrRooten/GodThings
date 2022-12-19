@@ -5,7 +5,7 @@
 void RegistryUtils::init(const wchar_t* path) {
 	this->_withHKeyPath = path;
 	std::wstring string = path;
-	DWORD backSlash = string.find_first_of(L'\\');
+	size_t backSlash = string.find_first_of(L'\\');
 	std::wstring rootKey;
 	if (backSlash == -1) {
 		rootKey = string;
@@ -90,7 +90,7 @@ std::vector<std::pair<std::wstring, std::wstring>> RegistryUtils::ListKeyValue()
 
 		WCHAR* valueData = new WCHAR[maxValueDataLen + 1];
 
-		for (size_t i = 0; i < numOfValues; i++)
+		for (DWORD i = 0; i < numOfValues; i++)
 		{
 			DWORD valueNameBuferSize = maxValueNameLen + 1;
 			DWORD valueDataBufferSize = maxValueDataLen + 1;
@@ -124,7 +124,7 @@ std::vector<std::wstring> RegistryUtils::ListValueNames() {
 	{
 		WCHAR* valueName = new WCHAR[maxValueNameLen + 1];
 
-		for (size_t i = 0; i < numOfValues; i++)
+		for (DWORD i = 0; i < numOfValues; i++)
 		{
 			DWORD valueNameBuferSize = maxValueNameLen + 1;
 

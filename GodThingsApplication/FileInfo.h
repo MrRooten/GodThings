@@ -1,7 +1,8 @@
 #pragma once
+#ifndef _FILE_INFO_H
+#define _FILE_INFO_H
 #include "NtFileInfo.h"
 #include "public.h"
-#include <string>
 #include <string>
 #include "StringUtils.h"
 #include "FileUtils.h"
@@ -238,3 +239,4 @@ public:
 	EvtxChunk& NextChunk();
 	~EvtxFile();
 };
+#endif

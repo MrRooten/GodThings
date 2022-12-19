@@ -1,4 +1,8 @@
 #pragma once
+#ifndef _OBJECT_INFO_H
+#define _OBJECT_INFO_H
+
+
 #include "NtObjectInfo.h"
 #include "public.h"
 #include <string>
@@ -9,3 +13,4 @@ public:
 	static std::wstring GetObjectName(HANDLE hObject);
 
 };
+#endif // !_OBJECT_INFO_H

@@ -7,6 +7,8 @@
 #include "NtSystemInfo.h"
 #include "ProcessUtils.h"
 #include "SystemUtils.h"
+#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
+#define STATUS_UNSUCCESSFUL           ((NTSTATUS)0xC0000001L)
 typedef NTSTATUS(NTAPI* pfnNtQueryInformationProcess)(
 	IN  HANDLE ProcessHandle,
 	IN  int ProcessInformationClass,
@@ -35,7 +37,7 @@ _SecurityState::~_SecurityState() {
 }
 std::vector<GTWString> _SecurityState::GetSIDsString() {
 	std::vector<GTWString> res;
-	for (int i = 0; i < this->groups->GroupCount; i++) {
+	for (DWORD i = 0; i < this->groups->GroupCount; i++) {
 		LPWSTR buffer = NULL;
 		if (!ConvertSidToStringSidW(this->groups->Groups[i].Sid, &buffer)) {
 			continue;
@@ -53,7 +55,7 @@ std::vector<GTWString> _SecurityState::GetSIDsString() {
 
 std::vector<GTWString> _SecurityState::GetPrivilegesAsString() {
 	std::vector<GTWString> res;
-	for (int i = 0; i < this->privileges->PrivilegeCount; i++) {
+	for (DWORD i = 0; i < this->privileges->PrivilegeCount; i++) {
 		WCHAR privilegeName[100] = { 0 };
 		DWORD size = 100;
 		if (!LookupPrivilegeNameW(NULL, &privileges->Privileges[i].Luid, privilegeName, &size)) {
@@ -84,7 +86,7 @@ void Process::InitProcessStaticState() {
 }
 
 Process::Process(PSYSTEM_PROCESS_INFORMATION pInfo, ProcessManager* procMgr) {
-	this->processId = (PID)pInfo->UniqueProcessId;
+	this->processId = (PID)reinterpret_cast<size_t>(pInfo->UniqueProcessId);
 	this->processName = pInfo->ImageName.Buffer;
 	this->processesManager = procMgr;
 	this->_cachedHandle = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
@@ -198,7 +200,7 @@ BOOL Process::Is32Bit() {
 	HANDLE hProcess = this->GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
 	BOOL ret = FALSE;
 	if (IsWow64Process(hProcess, &ret)) {
-		if (ret == true) {
+		if (ret == TRUE) {
 			this->_is32 = 1;
 			return ret;
 		}
@@ -296,8 +298,8 @@ HANDLE Process::GetCachedHandle(DWORD accessRight) {
 LSA_HANDLE GetPolicyHandle() {
 	LSA_OBJECT_ATTRIBUTES ObjectAttributes;
 	TCHAR* SystemName = NULL;
-	USHORT SystemNameLength;
-	LSA_UNICODE_STRING lusSystemName;
+	//USHORT SystemNameLength;
+	//LSA_UNICODE_STRING lusSystemName;
 	NTSTATUS ntsResult;
 	LSA_HANDLE lsahPolicyHandle;
 
@@ -359,7 +361,7 @@ DWORD Process::SetProcessUserName() {
 		return GetLastError();
 	}
 	HANDLE processToken;
-	DWORD status;
+	//DWORD status;
 	
 	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &processToken)) {
 		LOG_DEBUG_REASON( L"Can not Call OpenProcessToken");
@@ -397,7 +399,7 @@ DWORD Process::SetProcessUserName() {
 	sids[0] = pTokenUser->User.Sid;
 	PLSA_TRANSLATED_NAME names = NULL;
 	PLSA_REFERENCED_DOMAIN_LIST referencedNames = NULL;
-	LPTSTR Name;
+	//LPTSTR Name;
 	PWSTR userName = NULL;
 	
 	if (LsaLookupSids(policyHandle, 1, &pTokenUser->User.Sid, &referencedNames, &names) >= 0) {
@@ -948,7 +950,7 @@ DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
 	HANDLE hProcess = GetCachedHandle(PROCESS_VM_READ);
 	if (hProcess == NULL) {
-		LOG_DEBUG_REASON(L"Access denied to process memory",__FILEW__, __FUNCTIONW__, __LINE__ );
+		LOG_DEBUG_REASON(L"Access denied to process memory");
 		return GetLastError();
 	}
 	if (!ReadProcessMemory(hProcess, address, data, size, NULL)) {
@@ -968,7 +970,7 @@ DWORD Process::WriteMemoryToAddress(PVOID address, PBYTE inData, size_t size) {
 	SIZE_T writeBytes = 0;
 	HANDLE hProcess = GetCachedHandle(PROCESS_ALL_ACCESS);
 	if (hProcess == NULL) {
-		LOG_DEBUG_REASON(L"Access denied to process memory", __FILEW__, __FUNCTIONW__, __LINE__);
+		LOG_DEBUG_REASON(L"Access denied to process memory");
 		return GetLastError();
 	}
 	if (!WriteProcessMemory(hProcess, address, inData, size, &writeBytes)) {
@@ -987,8 +989,8 @@ Thread::Thread(TID tid) {
 }
 
 Thread::Thread(PSYSTEM_THREAD_INFORMATION pInfo) {
-	this->threadId = (TID)pInfo->ClientId.UniqueThread;
-	this->processId = (PID)pInfo->ClientId.UniqueProcess;
+	this->threadId = (TID)reinterpret_cast<size_t>(pInfo->ClientId.UniqueThread);
+	this->processId = (PID)reinterpret_cast<size_t>(pInfo->ClientId.UniqueProcess);
 }
 Thread::Thread(DWORD pid, DWORD tid) {
 	this->processId = pid;
@@ -1291,8 +1293,8 @@ DWORD ProcessManager::SetAllProcesses2() {
 
 	PSYSTEM_PROCESS_INFORMATION pCurProcess = pProcessesInfo;
 	while (pCurProcess->NextEntryOffset != 0) {
-		PID pid = (PID)pCurProcess->UniqueProcessId;
-		for (int i = 0; i < pCurProcess->NumberOfThreads; i++) {
+		PID pid = (DWORD)reinterpret_cast<size_t>(pCurProcess->UniqueProcessId);
+		for (DWORD i = 0; i < pCurProcess->NumberOfThreads; i++) {
 			threadsMap[pid].push_back(new Thread(&pCurProcess->Threads[i]));
 		}
 		pCurProcess = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)pCurProcess + pCurProcess->NextEntryOffset);

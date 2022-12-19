@@ -144,7 +144,7 @@ std::vector<SchduleTask> SchduleTaskMgr::GetTasks() {
     HRESULT hr = pRootFolder->GetTasks(NULL, &pTaskCollection);
     LONG count = 0;
     pTaskCollection->get_Count(&count);
-    TASK_STATE taskState;
+    //TASK_STATE taskState;
     _get_tasks_helper(result, this->pRootFolder);
     return result;
 }

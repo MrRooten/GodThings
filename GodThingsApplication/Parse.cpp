@@ -54,7 +54,7 @@ DWORD GetStartupPrograms() {
 			{
 				filesize.LowPart = ffd.nFileSizeLow;
 				filesize.HighPart = ffd.nFileSizeHigh;
-				wprintf(L"\t%s   %ld bytes\n", ffd.cFileName, filesize.QuadPart);
+				wprintf(L"\t%s   %lld bytes\n", ffd.cFileName, filesize.QuadPart);
 			}
 		} while (FindNextFileW(hFind, &ffd) != 0);
 	} while (0);
