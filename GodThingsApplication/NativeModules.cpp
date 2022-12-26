@@ -573,7 +573,6 @@ ResultSet* WatchNetstat::ModuleRun() {
 			}
 		}
 		last = conns;
-		//Sleep(10);
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
