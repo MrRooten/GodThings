@@ -1,9 +1,11 @@
 #include "KernelUtils.h"
 #include "ArgsHelper.h"
 #include "ExtendModules.h"
+
 void extendInit() {
     new BAMParse();
     new LastShutdown();
+    new JumpListData();
 }
 
 int wmain(int argc, wchar_t* argv[]) {

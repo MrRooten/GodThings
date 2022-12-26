@@ -15,27 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GtCmd.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ExtendModules.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\GodThingsApplication\NativeModules.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="GtCmd.h">
+    <ClInclude Include="..\GTExample\ArgsHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ExtendModules.h">
+    <ClInclude Include="..\GTExample\ExtendModules.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ArgsHelper.h">
+    <ClInclude Include="..\GTExample\GtCmd.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\GodThingsApplication\NativeModules.h">
@@ -43,6 +29,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ClCompile Include="..\..\GodThingsApplication\NativeModules.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GTExample\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GTExample\GtCmd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GTExample\ExtendModules.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

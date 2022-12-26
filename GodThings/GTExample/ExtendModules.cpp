@@ -65,3 +65,29 @@ ResultSet* BAMParse::ModuleRun() {
 	result->SetType(DICT);
 	return result;
 }
+
+JumpListData::JumpListData() {
+	this->Name = L"JumpListData";
+	this->Path = L"Registry";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Registry JumpListData";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* JumpListData::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	auto s = L"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Search\\JumplistData";
+	RegistryUtils utils(s);
+	auto names = utils.ListValueNames();
+	for (auto& name : names) {
+		auto v = RegistryUtils::GetValueStatic(s, name.c_str());
+		auto s = get_u64l(v.data());
+		auto exec = GTTime::FromTimeStamp64(s);
+		result->PushDictOrdered("name", StringUtils::ws2s(name));
+		result->PushDictOrdered("exec", StringUtils::ws2s(exec.ToString()));
+	}
+	result->SetType(DICT);
+	return result;
+}

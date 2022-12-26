@@ -13,3 +13,8 @@ public:
 	ResultSet* ModuleRun();
 };
 
+class JumpListData : public NativeModule {
+public:
+	JumpListData();
+	ResultSet* ModuleRun();
+};

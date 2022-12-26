@@ -173,7 +173,7 @@ DWORD SystemInfo::SetFlagsInfo() {
 }
 
 POSVERSIONINFOEXW SystemInfo::GetSystemVersion() {
-	POSVERSIONINFOEXW version;
+	POSVERSIONINFOEXW version = nullptr;
 	//GetVersionExW((LPOSVERSIONINFOW)&version);
 	return version;
 }

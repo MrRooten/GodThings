@@ -152,5 +152,11 @@ public:
 	ResultSet* ModuleRun();
 };
 
+class RecentApps : public NativeModule {
+public:
+	RecentApps();
+	ResultSet* ModuleRun();
+};
+
 
 #endif

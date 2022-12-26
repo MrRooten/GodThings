@@ -101,10 +101,57 @@ ResultSet* StartupModule::ModuleRun() {
 			break;
 		}
 		std::wstring path;
+		path = std::wstring(L"C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup");
+
+		if (PathFileExistsW(path.c_str()) == FALSE) {
+			//wprintf(L"The Startup in menu is not exist");
+			break;
+		}
+		path = path + L"*";
+		WIN32_FIND_DATAW ffd;
+		hFind = FindFirstFileW(path.c_str(), &ffd);
+
+		if (INVALID_HANDLE_VALUE == hFind) {
+			LOG_DEBUG_REASON(L"Can not find first file");
+			break;
+		}
+
+		// List all the files in the directory with some info about them.
+
+		do
+		{
+			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				//wprintf(L"\t%s   <DIR>\n", ffd.cFileName);
+			}
+			else
+			{
+				filesize.LowPart = ffd.nFileSizeLow;
+				filesize.HighPart = ffd.nFileSizeHigh;
+				//wprintf(L"\t%s   %ld bytes\n", ffd.cFileName, filesize.QuadPart);
+				//result->dataDict["fileName"].push_back(StringUtils::ws2s(ffd.cFileName));
+				result->PushDictOrdered("fileName", StringUtils::ws2s(ffd.cFileName));
+				//result->dataDict["source"].push_back(StringUtils::ws2s(path));
+				result->PushDictOrdered("source", StringUtils::ws2s(path));
+				//result->dataDict["cmdline"].push_back(StringUtils::ws2s(ffd.cFileName));
+				result->PushDictOrdered("cmdline", StringUtils::ws2s(ffd.cFileName));
+			}
+		} while (FindNextFileW(hFind, &ffd) != 0);
+	} while (0);
+
+	do {
+		HANDLE hFind = INVALID_HANDLE_VALUE;
+		WCHAR appdataPath[101];
+		LARGE_INTEGER filesize;
+		GetEnvironmentVariableW(L"appdata", appdataPath, 99);
+		if (lstrlenW(appdataPath) == 0) {
+			break;
+		}
+		std::wstring path;
 		path = appdataPath + std::wstring(L"\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\");
 
 		if (PathFileExistsW(path.c_str()) == FALSE) {
-			wprintf(L"The Startup in menu is not exist");
+			//wprintf(L"The Startup in menu is not exist");
 			break;
 		}
 		path = path + L"*";
@@ -654,4 +701,31 @@ ResultSet* Accounts::ModuleRun() {
 	result->SetType(DICT);
 	return result;
 }
+
+RecentApps::RecentApps() {
+	this->Name = L"RecentApps";
+	this->Path = L"Registry";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"Recent Apps";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* RecentApps::ModuleRun() {
+	
+	auto s = L"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Search\\RecentApps";
+	RegistryUtils utils(s);
+	auto keys = utils.ListSubKeys();
+	for (auto& key : keys) {
+		std::wstring target = s + std::wstring(L"\\") + key;
+		RegistryUtils key(target.c_str());
+		auto ks = key.ListValueNames();
+		for (auto& k : ks) {
+			auto value = RegistryUtils::GetValueStatic(target.c_str(), k.c_str());
+		}
+	}
+	return nullptr;
+}
+
 
