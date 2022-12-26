@@ -38,6 +38,7 @@ enum class IPType {
 	IPV4,
 	IPV6
 };
+
 class Connection {
 public:
 	IPType ipType;

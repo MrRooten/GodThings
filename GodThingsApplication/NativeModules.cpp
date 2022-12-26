@@ -436,7 +436,7 @@ WatchNetstat::WatchNetstat() {
 	this->Type = L"LastMode";
 	this->Class = L"GetInfo";
 	this->Description = L"Read Network stat in seconds";
-	this->RunType = ModuleNotImplement;
+	//this->RunType = ModuleNotImplement;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
@@ -448,9 +448,49 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 	return TRUE;
 }
 
-std::vector<Connection> _what_is_second_doesnot_have(std::vector<Connection*> first, std::vector<Connection*> second) {
+std::vector<std::pair<bool, Connection>> _what_is_second_doesnot_have(std::vector<Connection>& first, std::vector<Connection>& second) {
+	std::vector<std::pair<bool,Connection>> res;
+	bool flag = false;
+	for (auto s : second) {
+		flag = false;
+		for (auto f : first) {
+			if (f == s) {
+				flag = true;
+				break;
+			}
+			
+		}
+
+		if (flag == false) {
+			res.push_back(std::pair(true, s));
+		}
+	}
+
+	for (auto f : first) {
+		flag = false;
+		for (auto s : second) {
+			if (f == s) {
+				flag = true;
+				break;
+			}
+
+		}
+
+		if (flag == false) {
+			res.push_back(std::pair(false, f));
+		}
+	}
+
+	return res;
+}
+
+std::vector<Connection> _copy(std::vector<Connection*> vs) {
 	std::vector<Connection> res;
-	
+	for (auto s : vs) {
+		Connection c = *s;
+		res.push_back(c);
+	}
+
 	return res;
 }
 
@@ -459,14 +499,81 @@ ResultSet* WatchNetstat::ModuleRun() {
 	if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
 		return nullptr;
 	}
+	ProcessManager proMgr;
+	proMgr.UpdateInfo();
 	NetworkManager mgr;
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-	std::vector<Connection*> last;
-	for (int i = 0; i < 1000000;i++) {
-		auto conns = mgr.GetAllConnections();
+	std::vector<Connection> last = _copy(mgr.GetAllConnections());
+	for (auto& change : last) {
+		
+		wprintf(L"[Base] %s %d %s %d %d %s\n", change.GetLocalIPAsString().c_str(),
+				change.localPort,
+				change.GetRemoteIPAsString().c_str(), change.remotePort,
+			change.owningPid, proMgr.processesMap[change.owningPid]->GetProcessName().c_str());
+	}
+	std::vector<Connection> conns;
+	int i = 0;
+	for (; ;i++) {
+		proMgr.UpdateInfo();
+		conns = _copy(mgr.GetAllConnections());
 		auto changes = _what_is_second_doesnot_have(conns, last);
 		//print changes
+		for (auto& change : changes) {
+			GTWString protocol = L"";
+			if (change.second.protocol == Protocol::UDP) {
+				protocol = L"UDP";
+			}
+			else {
+				protocol = L"TCP";
+			}
 
+			if (change.first == false) {
+				if (proMgr.processesMap[change.second.owningPid] != NULL) {
+					wprintf(L"[Remove]%s %s %d %s %d %s %d %s\n", 
+						protocol.c_str(),
+						change.second.GetLocalIPAsString().c_str(),
+						change.second.localPort,
+						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						change.second.GetStateAsString().c_str(),
+						change.second.owningPid, 
+						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
+				}
+				else {
+					wprintf(L"[Remove]%s %s %d %s %d %s %d %s\n",
+						protocol.c_str(),
+						change.second.GetLocalIPAsString().c_str(),
+						change.second.localPort,
+						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						change.second.GetStateAsString().c_str(),
+						change.second.owningPid,
+						L"");
+				}
+			}
+			else {
+				if (proMgr.processesMap[change.second.owningPid] != NULL) {
+					wprintf(L"[Update]%s %s %d %s %d %s %d %s\n",
+						protocol.c_str(),
+						change.second.GetLocalIPAsString().c_str(),
+						change.second.localPort,
+						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						change.second.GetStateAsString().c_str(),
+						change.second.owningPid,
+						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
+				}
+				else {
+					wprintf(L"[Update]%s %s %d %s %d %s %d %s\n",
+						protocol.c_str(),
+						change.second.GetLocalIPAsString().c_str(),
+						change.second.localPort,
+						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						change.second.GetStateAsString().c_str(),
+						change.second.owningPid,
+						L"");
+				}
+			}
+		}
+		last = conns;
+		//Sleep(10);
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
