@@ -65,7 +65,7 @@ public:
 	GTTime(const wchar_t* time);
 	GTTime();
 	std::wstring ToISO8601();
-	std::wstring ToString();
+	std::wstring String();
 	static GTTime GetTime();
 	static GTTime FromTimeStamp(UINT32 timestamp);
 	static GTTime FromTimeStamp64(UINT64 timestamp);

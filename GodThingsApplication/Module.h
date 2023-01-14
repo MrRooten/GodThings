@@ -67,7 +67,8 @@ public:
 enum RunType{
 	ModuleAuto,
 	ModuleNeedArgs,
-	ModuleNotImplement
+	ModuleNotImplement,
+	ModuleNotAuto
 };
 
 class Module {

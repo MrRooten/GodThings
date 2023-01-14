@@ -233,9 +233,6 @@
     <ClInclude Include="DCHackModules.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ProcessHackModules.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Kerberos.h">
       <Filter>头文件</Filter>
     </ClInclude>

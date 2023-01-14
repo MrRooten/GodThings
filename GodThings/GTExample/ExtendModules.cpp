@@ -19,7 +19,7 @@ ResultSet* LastShutdown::ModuleRun() {
 	ft.dwLowDateTime = t && 0xffffffff;
 	ft.dwHighDateTime = t >> 32;
 	GTTime gTime(ft);
-	result->PushDictOrdered("LastShutdown", StringUtils::ws2s(gTime.ToString()));
+	result->PushDictOrdered("LastShutdown", StringUtils::ws2s(gTime.String()));
 	result->SetType(DICT);
 	return result;
 }
@@ -59,7 +59,7 @@ ResultSet* BAMParse::ModuleRun() {
 			auto time = GTTime::FromTimeStamp64(utc);
 			result->PushDictOrdered("sid", StringUtils::ws2s(key));
 			result->PushDictOrdered("exe", StringUtils::ws2s(name));
-			result->PushDictOrdered("time", StringUtils::ws2s(time.ToString()));
+			result->PushDictOrdered("time", StringUtils::ws2s(time.String()));
 		}
 	}
 	result->SetType(DICT);
@@ -86,8 +86,26 @@ ResultSet* JumpListData::ModuleRun() {
 		auto s = get_u64l(v.data());
 		auto exec = GTTime::FromTimeStamp64(s);
 		result->PushDictOrdered("name", StringUtils::ws2s(name));
-		result->PushDictOrdered("exec", StringUtils::ws2s(exec.ToString()));
+		result->PushDictOrdered("exec", StringUtils::ws2s(exec.String()));
 	}
 	result->SetType(DICT);
 	return result;
+}
+#include "OtherInfo.h"
+ListSSP::ListSSP() {
+	this->Name = L"ListSSP";
+	this->Path = L"Other";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"List Security Provider";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* ListSSP::ModuleRun() {
+	auto providers = SecurityProvider::ListProviders();
+	for (auto& provider : providers) {
+		wprintf(L"%s %s\n", provider.GetName().c_str(), provider.GetComment().c_str());
+	}
+	return nullptr;
 }

@@ -214,7 +214,7 @@ std::wstring s2ws(const std::string& str) {
 	return wstrTo;
 }
 
-std::wstring GTTime::ToString() {
+std::wstring GTTime::String() {
 	FILETIME pUTC;
 	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);

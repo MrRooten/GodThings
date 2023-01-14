@@ -247,7 +247,6 @@
     <ClInclude Include="PrivilegeUtils.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="NtProcessInfo.h" />
-    <ClInclude Include="ProcessHackModules.h" />
     <ClInclude Include="ProcessUtils.h" />
     <ClInclude Include="ProcServer.h" />
     <ClInclude Include="public.h" />

@@ -18,3 +18,9 @@ public:
 	JumpListData();
 	ResultSet* ModuleRun();
 };
+
+class ListSSP : public NativeModule {
+public:
+	ListSSP();
+	ResultSet* ModuleRun();
+};

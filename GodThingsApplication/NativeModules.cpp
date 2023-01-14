@@ -385,7 +385,7 @@ ResultSet* USBHistory::ModuleRun() {
 		auto time = subkey.GetLastWriteTime();
 		//wprintf(L"%s %s\n", subkey.GetKeyName().c_str(), GTTime(time).ToString().c_str());
 		result->PushDictOrdered("Device Name", StringUtils::ws2s(subkey.GetKeyName()));
-		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).ToString()));
+		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).String()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -436,7 +436,7 @@ WatchNetstat::WatchNetstat() {
 	this->Type = L"LastMode";
 	this->Class = L"GetInfo";
 	this->Description = L"Read Network stat in seconds";
-	//this->RunType = ModuleNotImplement;
+	this->RunType = ModuleNotAuto;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
@@ -757,7 +757,7 @@ ResultSet* RecentRunning::ModuleRun() {
 			}
 			//wprintf(L"\t%s\n", time.ToString().c_str());
 			result->PushDictOrdered("name", StringUtils::ws2s(pf));
-			result->PushDictOrdered("exec", StringUtils::ws2s(time.ToString()));
+			result->PushDictOrdered("exec", StringUtils::ws2s(time.String()));
 		}
 		delete f;
 	}
@@ -799,8 +799,8 @@ ResultSet* Accounts::ModuleRun() {
 	for (auto user : users) {
 		result->PushDictOrdered("Uid", std::to_string(user->userId));
 		result->PushDictOrdered("Username", StringUtils::ws2s(user->userName));
-		result->PushDictOrdered("LastLogon", StringUtils::ws2s(user->GetLastLogon().ToString()));
-		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().ToString()));
+		result->PushDictOrdered("LastLogon", StringUtils::ws2s(user->GetLastLogon().String()));
+		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().String()));
 		result->PushDictOrdered("Comment", StringUtils::ws2s(user->GetComment()));
 		
 	}

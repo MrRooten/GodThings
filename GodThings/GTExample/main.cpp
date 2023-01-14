@@ -6,6 +6,7 @@ void extendInit() {
     new BAMParse();
     new LastShutdown();
     new JumpListData();
+    new ListSSP();
 }
 
 int wmain(int argc, wchar_t* argv[]) {

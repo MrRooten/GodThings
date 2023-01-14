@@ -227,8 +227,35 @@ std::wstring SchduleTask::GetState() {
     return L"TASK_STATE_UNKNOWN";
 }
 
+SecurityProvider::SecurityProvider(SecPkgInfoW& package) {
+    this->name = package.Name;
+    this->comment = package.Comment;
+    this->maxToken = package.cbMaxToken;
+    this->RPCID = package.wRPCID;
+    this->fCapabilities = package.fCapabilities;
+    this->wVersion = package.wVersion;
+}
 
+std::vector<SecurityProvider> SecurityProvider::ListProviders() {
+    ULONG packageCount = 0;
+    PSecPkgInfoW packages;
+    std::vector<SecurityProvider> result;
+    auto status = EnumerateSecurityPackagesW(&packageCount, &packages);
+    if (status == SEC_E_OK) {
+        for (int i = 0; i < packageCount; i++) {
+            SecurityProvider p(packages[i]);
+            result.push_back(p);
+        }
+    }
+    return result;
+}
 
+GTWString& SecurityProvider::GetName() {
+    return this->name;
+}
 
+GTWString& SecurityProvider::GetComment() {
+    return this->comment;
+}
 
 
