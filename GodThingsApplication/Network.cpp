@@ -3,6 +3,7 @@
 #include "ntapi.h"
 #include "NetworkUtils.h"
 #include <Shlwapi.h>
+
 typedef struct _MIB_TCP6ROW2 {
 	IN6_ADDR                     LocalAddr;
 	DWORD                        dwLocalScopeId;
@@ -90,9 +91,9 @@ DWORD NetworkManager::SetTCPConnection() {
 			break;
 		}
 		conn->localIPv4.S_un.S_addr = pTcpTable->table[i].dwLocalAddr;
-		conn->localPort = pTcpTable->table[i].dwLocalPort;
+		conn->localPort = ntohs(pTcpTable->table[i].dwLocalPort);
 		conn->remoteIPv4.S_un.S_addr = pTcpTable->table[i].dwRemoteAddr;
-		conn->remotePort = pTcpTable->table[i].dwRemotePort;
+		conn->remotePort = ntohs(pTcpTable->table[i].dwRemotePort);
 		conn->owningPid = pTcpTable->table[i].dwOwningPid;
 		conn->State = pTcpTable->table[i].dwState;
 		conn->ipType = IPType::IPV4;
@@ -107,9 +108,9 @@ DWORD NetworkManager::SetTCPConnection() {
 				break;
 			}
 			conn->localIPv6 = pTcp6Table->table[i].LocalAddr;
-			conn->localPort = pTcp6Table->table[i].dwLocalPort;
+			conn->localPort = ntohs(pTcp6Table->table[i].dwLocalPort);
 			conn->remoteIPv6 = pTcp6Table->table[i].RemoteAddr;
-			conn->remotePort = pTcp6Table->table[i].dwRemotePort;
+			conn->remotePort = ntohs(pTcp6Table->table[i].dwRemotePort);
 			conn->owningPid = pTcp6Table->table[i].dwOwningPid;
 			conn->State = pTcpTable->table[i].dwState;
 			conn->ipType = IPType::IPV6;
@@ -154,7 +155,7 @@ DWORD NetworkManager::SetUDPConnection() {
 				break;
 			}
 			conn->localIPv4 = NetworkUtils::ConvertDWORDToIN_ADDR(udp4Table->table[i].dwLocalAddr);
-			conn->localPort = udp4Table->table[i].dwLocalPort;
+			conn->localPort = ntohs(udp4Table->table[i].dwLocalPort);
 			conn->owningPid = udp4Table->table[i].dwOwningPid;
 			conn->protocol = Protocol::UDP;
 			conn->ipType = IPType::IPV4;
@@ -188,7 +189,7 @@ DWORD NetworkManager::SetUDPConnection() {
 				break;
 			}
 			conn->localIPv6 = NetworkUtils::ConvertBytesToIN_ADDR6(udp6Table->table[i].ucLocalAddr);
-			conn->localPort = udp6Table->table[i].dwLocalPort;
+			conn->localPort = ntohs(udp6Table->table[i].dwLocalPort);
 			conn->owningPid = udp6Table->table[i].dwOwningPid;
 			conn->protocol = Protocol::UDP;
 			conn->ipType = IPType::IPV6;
