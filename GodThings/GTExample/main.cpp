@@ -7,6 +7,7 @@ void extendInit() {
     new LastShutdown();
     new JumpListData();
     new ListSSP();
+    new RDPSessions();
 }
 
 int wmain(int argc, wchar_t* argv[]) {

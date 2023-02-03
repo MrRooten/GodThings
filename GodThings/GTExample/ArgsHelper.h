@@ -93,14 +93,16 @@ public:
 				}
 				mod->SetArgs(parameters);
 				ResultSet* res = mod->ModuleRun();
+				if (res == nullptr) {
+					return;
+				}
+
 				if (res->type == ERROR_MESSAGE) {
 					printf("[Error]: %s\n", res->GetErrorMessage().c_str());
 					delete res;
 					return;
 				}
-				if (res == nullptr) {
-					return;
-				}
+				
 				auto json = res->ToJsonObject();
 				auto data = json["Data"];
 				int size = 0;
@@ -265,6 +267,8 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
+			EvtInfo info;
+			auto evts = info.GetEvtSetByEventId(L"0-99", L"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational");
 			return;
 		}
 		else if (subcmd == L"list_path") {

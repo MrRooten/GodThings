@@ -29,7 +29,7 @@ DWORD Evt::SetXml() {
             }
             else
             {
-                wprintf(L"malloc failed\n");
+                LOG_ERROR_REASON(L"malloc failed\n");
                 status = ERROR_OUTOFMEMORY;
                 goto cleanup;
             }
@@ -37,7 +37,7 @@ DWORD Evt::SetXml() {
 
         if (ERROR_SUCCESS != (status = GetLastError()))
         {
-            wprintf(L"EvtRender failed with %d\n", GetLastError());
+            LOG_ERROR_REASON(L"EvtRender failedn");
             goto cleanup;
         }
     }
@@ -81,7 +81,7 @@ DWORD GetQueryStatusProperty(EVT_QUERY_PROPERTY_ID Id, EVT_HANDLE hResults, PEVT
             }
             else
             {
-                wprintf(L"realloc failed\n");
+                LOG_ERROR_REASON(L"realloc failed\n");
                 status = ERROR_OUTOFMEMORY;
                 goto cleanup;
             }
@@ -89,7 +89,7 @@ DWORD GetQueryStatusProperty(EVT_QUERY_PROPERTY_ID Id, EVT_HANDLE hResults, PEVT
 
         if (ERROR_SUCCESS != (status = GetLastError()))
         {
-            wprintf(L"EvtGetQueryInfo failed with %d\n", GetLastError());
+            Logln(ERROR_LEVEL, L"EvtGetQueryInfo failed with %d");
             goto cleanup;
         }
     }
@@ -257,7 +257,7 @@ EvtFilter::EvtFilter() {
 }
 
 #define ARRAY_SIZE 10
-DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data) {
+DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data, bool reverse) {
     DWORD status = ERROR_SUCCESS;
     EVT_HANDLE hResults = NULL;
     PEVT_VARIANT pPaths = NULL;
@@ -277,7 +277,6 @@ DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data) 
         goto cleanup;
 
     for (DWORD i = 0; i < pPaths->Count; i++) {
-        wprintf(L"%s (%lu)\n", pPaths->StringArr[i], pStatuses->UInt32Arr[i]);
         status += pStatuses->UInt32Arr[i];
     }
 
@@ -291,7 +290,7 @@ DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data) 
         // Get a block of events from the result set.
         if (!EvtNext(hResults, ARRAY_SIZE, hEvents, INFINITE, 0, &dwReturned)) {
             if (ERROR_NO_MORE_ITEMS != (status = GetLastError())) {
-                wprintf(L"EvtNext failed with %lu\n", status);
+                Logln(ERROR_LEVEL,L"EvtNext failed with %lu\n", status);
             }
 
             goto cleanup;
@@ -299,14 +298,28 @@ DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data) 
 
         // For each event, call the PrintEvent function which renders the
         // event for display. PrintEvent is shown in RenderingEvents.
-        for (DWORD i = 0; i < dwReturned; i++) {
-            Evt evt(hEvents[i]);
-            if (ERROR_SUCCESS == (status = callback(&evt,data))) {
-                EvtClose(hEvents[i]);
-                hEvents[i] = NULL;
+        if (reverse == false) {
+            for (DWORD i = 0; i < dwReturned; i++) {
+                Evt evt(hEvents[i]);
+                if (ERROR_SUCCESS == (status = callback(&evt, data))) {
+                    EvtClose(hEvents[i]);
+                    hEvents[i] = NULL;
+                }
+                else {
+                    goto cleanup;
+                }
             }
-            else {
-                goto cleanup;
+        }
+        else {
+            for (INT i = dwReturned -1; i >= 0; i--) {
+                Evt evt(hEvents[i]);
+                if (ERROR_SUCCESS == (status = callback(&evt, data))) {
+                    EvtClose(hEvents[i]);
+                    hEvents[i] = NULL;
+                }
+                else {
+                    goto cleanup;
+                }
             }
         }
     }

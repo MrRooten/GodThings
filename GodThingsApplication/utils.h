@@ -10,6 +10,9 @@
 #include <sstream>
 using namespace std;
 
+typedef std::wstring GTWString;
+typedef std::string GTString;
+
 class MPEBytes {
 private:
 	
@@ -53,7 +56,7 @@ class GTTime {
 	SYSTEMTIME sysTime;
 public:
 	DWORD year = 0;
-	DWORD mouth = 0;
+	DWORD month = 0;
 	DWORD day = 0;
 	DWORD hour = 0;
 	DWORD minute = 0;
@@ -69,12 +72,14 @@ public:
 	static GTTime GetTime();
 	static GTTime FromTimeStamp(UINT32 timestamp);
 	static GTTime FromTimeStamp64(UINT64 timestamp);
+	static GTTime FromISO8601(GTWString time);
 	ULONG64 ToNowULONG64();
 	bool operator<(GTTime& other);
 	bool operator>(GTTime& other);
 	bool operator==(GTTime& other);
 	bool operator>=(GTTime& other);
 	bool operator<=(GTTime& other);
+	INT64 operator-(GTTime& other);
 };
 
 enum LOG_LEVEL {
@@ -109,8 +114,7 @@ std::wstring s2ws(const std::string& str);
 using BytesPair = std::pair<PBYTE, size_t>;
 using GTRawString = BYTE*;
 typedef WCHAR* GTRawWString;
-typedef std::wstring GTWString;
-typedef std::string GTString;
+
 
 GTWString red_s(const wchar_t* s);
 GTWString blue_s(const wchar_t* s);

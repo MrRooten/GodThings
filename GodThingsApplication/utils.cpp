@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "utils.h"
 #include "StringUtils.h"
 
 LOG_LEVEL GlobalLogLevel = INFO_LEVEL;
@@ -219,7 +220,12 @@ std::wstring GTTime::String() {
 	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);
 	WCHAR buf[100];
-	swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d",t.year,t.mouth,t.day,t.hour,t.minute,t.second);
+	if (this->fTime.dwHighDateTime == 0 && this->fTime.dwLowDateTime == 0) {
+		swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", this->year, this->month, this->day, this->hour, this->minute, this->second);
+	}
+	else {
+		swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", t.year, t.month, t.day, t.hour, t.minute, t.second);
+	}
 	return buf;
 }
 
@@ -246,6 +252,11 @@ GTTime GTTime::FromTimeStamp64(UINT64 time) {
 	ft.dwHighDateTime = time >> 32;
 	return GTTime(ft);
 }
+GTTime GTTime::FromISO8601(GTWString time) {
+	GTTime t;
+	swscanf(time.c_str(), L"%d-%d-%dT%d:%d:%d.%dZ", &t.year, &t.month, &t.day, &t.hour, &t.minute, &t.second,&t.millisecond);
+	return t;
+}
 ULONG64 GTTime::ToNowULONG64() {
 	ULONG64 res = 0;
 	res += this->millisecond;
@@ -260,7 +271,7 @@ bool GTTime::operator<(GTTime& other) {
 		return true;
 	}
 
-	if (this->mouth < other.mouth) {
+	if (this->month < other.month) {
 		return true;
 	}
 
@@ -300,7 +311,7 @@ bool GTTime::operator==(GTTime& other) {
 		return false;
 	}
 
-	if (this->mouth != other.mouth) {
+	if (this->month != other.month) {
 		return false;
 	}
 
@@ -347,6 +358,54 @@ bool GTTime::operator<=(GTTime& other) {
 
 	return false;
 }
+
+#include <cstdlib>
+#include <ctime>
+#include <string>
+
+#ifdef _WIN32
+#define timegm _mkgmtime
+#endif
+
+inline int ParseInt(const wchar_t* value)
+{
+	return std::wcstol(value, nullptr, 10);
+}
+
+// ParseISO8601 returns milliseconds since 1970
+#include <chrono>
+std::time_t ParseISO8601(const std::wstring& input)
+{
+	constexpr const size_t expectedLength = sizeof("1234-12-12T12:12:12Z") - 1;
+	static_assert(expectedLength == 20, "Unexpected ISO 8601 date/time length");
+
+	if (input.length() < expectedLength)
+	{
+		return 0;
+	}
+
+	std::tm time = { 0 };
+	time.tm_year = ParseInt(&input[0]) - 1900;
+	time.tm_mon = ParseInt(&input[5]) - 1;
+	time.tm_mday = ParseInt(&input[8]);
+	time.tm_hour = ParseInt(&input[11]);
+	time.tm_min = ParseInt(&input[14]);
+	time.tm_sec = ParseInt(&input[17]);
+	time.tm_isdst = 0;
+	const int millis = input.length() > 20 ? ParseInt(&input[20]) : 0;
+	return timegm(&time) * 1000 + millis;
+}
+
+INT64 GTTime::operator-(GTTime& other) {
+	auto t = this->ToISO8601();
+	auto t2 = other.ToISO8601();
+	auto iso8601_t1 = ParseISO8601(t);
+	auto iso8601_t2 = ParseISO8601(t2);
+	auto s1 = std::chrono::seconds(iso8601_t1);
+	auto s2 = std::chrono::seconds(iso8601_t2);
+	auto delta = s1 - s2;
+	return delta.count();
+}
 GTTime::GTTime(FILETIME &filetime) {
 	this->fTime = filetime;
 	SYSTEMTIME utc;
@@ -355,7 +414,7 @@ GTTime::GTTime(FILETIME &filetime) {
 	std::ostringstream stm;
 	const auto w2 = std::setw(2);
 	this->year = utc.wYear;
-	this->mouth = utc.wMonth;
+	this->month = utc.wMonth;
 	this->day = utc.wDay;
 	this->hour = utc.wHour;
 	this->minute = utc.wMinute;
@@ -368,7 +427,7 @@ GTTime::GTTime(SYSTEMTIME &utc) {
 	SystemTimeToFileTime(&utc, &this->fTime);
 	this->sysTime = utc;
 	this->year = utc.wYear;
-	this->mouth = utc.wMonth;
+	this->month = utc.wMonth;
 	this->day = utc.wDay;
 	this->hour = utc.wHour;
 	this->minute = utc.wMinute;
@@ -388,7 +447,7 @@ GTTime::GTTime(const wchar_t* time) {
 	}
 
 	if (len > 1) {
-		this->mouth = std::stoi(ss[1]);
+		this->month = std::stoi(ss[1]);
 	}
 
 	if (len > 2) {
@@ -417,7 +476,7 @@ GTTime::GTTime() {
 
 std::wstring _helperISO8601(GTTime &t) {
 	WCHAR buf[100];
-	swprintf_s(buf, L"%d-%02d-%02dT%02d:%02d:%02d:%3dZ", t.year, t.mouth, t.day, t.hour, t.minute, t.second,t.millisecond);
+	swprintf_s(buf, L"%d-%02d-%02dT%02d:%02d:%02d:%3dZ", t.year, t.month, t.day, t.hour, t.minute, t.second,t.millisecond);
 	return buf;
 }
 
@@ -425,5 +484,5 @@ std::wstring GTTime::ToISO8601() {
 	FILETIME pUTC;
 	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);
-	return _helperISO8601(t);
+	return _helperISO8601(*this);
 }

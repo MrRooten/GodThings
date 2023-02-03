@@ -77,7 +77,7 @@ public:
 };
 class EvtInfo {
 public:
-	DWORD EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data);
+	DWORD EnumEventLogs(EvtFilter filter, EvtCallback callback, PVOID data, bool reverse = false);
 	static EvtSet* GetEvtSetByEventId(const wchar_t* ids,const wchar_t* logName);
 };
 

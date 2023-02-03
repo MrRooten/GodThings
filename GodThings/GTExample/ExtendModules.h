@@ -24,3 +24,9 @@ public:
 	ListSSP();
 	ResultSet* ModuleRun();
 };
+
+class RDPSessions : public NativeModule {
+public:
+	RDPSessions();
+	ResultSet* ModuleRun();
+};

@@ -114,6 +114,9 @@
     <ClCompile Include="DCHackModules.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="XmlUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -240,6 +243,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CmdUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

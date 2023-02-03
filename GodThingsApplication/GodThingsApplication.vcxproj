@@ -217,6 +217,7 @@
     <ClCompile Include="TestNativeModule.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="VerifyUtils.cpp" />
+    <ClCompile Include="XmlUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccountInfo.h" />
@@ -261,6 +262,7 @@
     <ClInclude Include="TestNativeModule.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="VerifyUtils.h" />
+    <ClInclude Include="XmlUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
