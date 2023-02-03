@@ -220,12 +220,7 @@ std::wstring GTTime::String() {
 	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);
 	WCHAR buf[100];
-	if (this->fTime.dwHighDateTime == 0 && this->fTime.dwLowDateTime == 0) {
-		swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", this->year, this->month, this->day, this->hour, this->minute, this->second);
-	}
-	else {
-		swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", t.year, t.month, t.day, t.hour, t.minute, t.second);
-	}
+	swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", t.year, t.month, t.day, t.hour, t.minute, t.second);
 	return buf;
 }
 
@@ -255,6 +250,15 @@ GTTime GTTime::FromTimeStamp64(UINT64 time) {
 GTTime GTTime::FromISO8601(GTWString time) {
 	GTTime t;
 	swscanf(time.c_str(), L"%d-%d-%dT%d:%d:%d.%dZ", &t.year, &t.month, &t.day, &t.hour, &t.minute, &t.second,&t.millisecond);
+	SYSTEMTIME s_time;
+	s_time.wYear = t.year;
+	s_time.wMonth = t.month;
+	s_time.wDay = t.day;
+	s_time.wHour = t.hour;
+	s_time.wMinute = t.minute;
+	s_time.wSecond = t.second;
+	//s_time.wMilliseconds = t.millisecond;
+	auto s = SystemTimeToFileTime(&s_time, &t.fTime);
 	return t;
 }
 ULONG64 GTTime::ToNowULONG64() {
@@ -404,6 +408,7 @@ INT64 GTTime::operator-(GTTime& other) {
 	auto s1 = std::chrono::seconds(iso8601_t1);
 	auto s2 = std::chrono::seconds(iso8601_t2);
 	auto delta = s1 - s2;
+	auto c = delta.count();
 	return delta.count();
 }
 GTTime::GTTime(FILETIME &filetime) {
@@ -484,5 +489,5 @@ std::wstring GTTime::ToISO8601() {
 	FILETIME pUTC;
 	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);
-	return _helperISO8601(*this);
+	return _helperISO8601(t);
 }
