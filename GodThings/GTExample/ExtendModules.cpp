@@ -475,7 +475,8 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 
 			if (event_id == 23) {
 				evt_end = new Event23(xml.c_str());
-				for (auto session : set) {
+				for (int i = set.size()-1; i >= 0;i--) {
+					auto session = set[i];
 					if (session->session_id == evt_end->session_id && session->is_closed == false && session->type == Local) {
 						session->end_session = evt_end;
 						session->is_closed = true;
@@ -495,7 +496,8 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 
 			if (event_id == 24) {
 				evt_remote_end = new Event24(xml.c_str());
-				for (auto session : set) {
+				for (int i = set.size() - 1; i >= 0; i--) {
+					auto session = set[i];
 					if (session->session_id == evt_remote_end->session_id && session->is_closed == false && session->type == Remote) {
 						session->end_session_remote = evt_remote_end;
 						session->is_closed = true;
