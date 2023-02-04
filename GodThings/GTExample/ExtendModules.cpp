@@ -440,6 +440,14 @@ RDPSession::~RDPSession() {
 	if (end_session != NULL) {
 		delete end_session;
 	}
+
+	if (start_session_remote != NULL) {
+		delete start_session_remote;
+	}
+
+	if (end_session_remote != NULL) {
+		delete end_session_remote;
+	}
 }
 
 
@@ -513,8 +521,7 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 	return 0;
 }
 
-GTString ConvertSectoDay(INT64 n)
-{
+GTString ConvertSectoDay(INT64 n) {
 	int day = n / (24 * 3600);
 
 	n = n % (24 * 3600);
@@ -601,6 +608,10 @@ ResultSet* RDPSessions::ModuleRun() {
 			res->PushDictOrdered("RecordId", std::to_string(result[index]->start_session_remote->record_id));
 		}
 		//res->PushDictOrdered("Index", std::to_string(index));
+	}
+
+	for (auto session : result) {
+		delete session;
 	}
 	res->SetType(DICT);
 	return res;
