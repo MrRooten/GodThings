@@ -4,6 +4,7 @@
 #include "Service.h"
 #include "RegistryUtils.h"
 #include "shlwapi.h"
+#include <tinyxml2.h>
 #include "Network.h"
 ProcessModule::ProcessModule() {
 	this->Name = L"Process";
@@ -705,6 +706,76 @@ std::wstring ROT13(std::wstring source) {
 	return transformed;
 }
 #include "PrivilegeUtils.h"
+#include "EvtInfo.h"
+class ShellCore9707 {
+public:
+	GTString createTime;
+	GTString commandLine;
+	ShellCore9707(const wchar_t* xml);
+};
+
+ShellCore9707::ShellCore9707(const wchar_t* xml) {
+	tinyxml2::XMLDocument doc;
+	doc.Parse(StringUtils::ws2s(xml).c_str());
+	auto root_element = doc.RootElement();
+	auto system_element = root_element->FirstChildElement();
+	auto next = system_element->FirstChildElement();
+	auto user_element = system_element->NextSiblingElement();
+	char* value = NULL;
+	char* name = NULL;
+	while (next) {
+		value = (char*)next->GetText();
+		name = (char*)next->Value();
+
+		if (_strcmpi(name, "TimeCreated") == 0) {
+			auto attr = next->FindAttribute("SystemTime");
+			if (attr != NULL) {
+				this->createTime = attr->Value();
+			}
+		}
+		next = next->NextSiblingElement();
+	}
+	next = user_element->FirstChildElement();
+	while (next != NULL) {
+		value = (char*)next->GetText();
+		name = (char*)next->Value();
+		auto attr = next->FindAttribute("Name");
+		if (attr != NULL && _strcmpi(attr->Value(), "Command") == 0) {
+			this->commandLine = value;
+		}
+
+		next = next->NextSiblingElement();
+	}
+}
+
+DWORD RecentRunningEventLog(Evt* evt, PVOID data) {
+	auto evtXml = evt->GetXml();
+	auto result = (std::vector<ShellCore9707*>*)data;
+	auto xml = StringUtils::ws2s(evt->GetXml().c_str());
+	tinyxml2::XMLDocument doc;
+	auto error = doc.Parse(xml.c_str());
+	auto root = doc.RootElement();
+	auto system = root->FirstChildElement();
+	tinyxml2::XMLElement* child_system_next = system->FirstChildElement();
+	tinyxml2::XMLElement* userdata_next = system->NextSiblingElement();
+	char* value = NULL;
+	char* name = NULL;
+
+	while (child_system_next) {
+		value = (char*)child_system_next->GetText();
+		name = (char*)child_system_next->Value();
+		if (_strcmpi(name, "EventId") == 0) {
+			auto event_id = stoi(value);
+			if (event_id == 9707) {
+				result->push_back(new ShellCore9707(evtXml.c_str()));
+				break;
+			}
+		}
+		child_system_next = child_system_next->NextSiblingElement();
+	}
+	return 0;
+}
+
 ResultSet* RecentRunning::ModuleRun() {
 	ResultSet* result = new ResultSet();
 	std::wstring alluserAssist = L"HKEY_USERS";
@@ -761,7 +832,23 @@ ResultSet* RecentRunning::ModuleRun() {
 		}
 		delete f;
 	}
-
+	EvtInfo info;
+	EvtFilter filter;
+	filter.ids = L"9707";
+	filter.logName = L"Microsoft-Windows-Shell-Core/Operational";
+	std::vector<ShellCore9707*> events;
+	if (this->args.contains("path")) {
+		info.EnumEventLogs(filter, RecentRunningEventLog, &events, false, (wchar_t*)StringUtils::s2ws(this->args["path"]).c_str());
+	}
+	else {
+		info.EnumEventLogs(filter, RecentRunningEventLog, &events, false, NULL);
+	}
+	for (auto& e : events) {
+		result->PushDictOrdered("name", e->commandLine);
+		auto t = GTTime::FromISO8601(StringUtils::s2ws(e->createTime));
+		result->PushDictOrdered("exec", StringUtils::ws2s(t.String()));
+	}
+	
 	result->SetType(DICT);
 	return result;
 }
