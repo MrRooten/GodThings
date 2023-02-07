@@ -267,8 +267,17 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			EvtInfo info;
-			auto evts = info.GetEvtSetByEventId(L"0-99", L"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational");
+			//EvtInfo info;
+			//auto evts = info.GetEvtSetByEventId(L"0-99", L"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational");
+
+			auto evtx = EvtxFile::Open(L"C:\\Windows\\System32\\winevt\\Logs\\System.evtx");
+			evtx->Parse();
+			auto b = evtx->NextChunk();
+			while (b.HasMoreRecords()) {
+				auto& record = b.NextRecord();
+				auto s = record.GetXML();
+				break;
+			}
 			return;
 		}
 		else if (subcmd == L"list_path") {

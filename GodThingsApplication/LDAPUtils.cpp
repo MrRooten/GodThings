@@ -41,7 +41,7 @@ LDAPResult LDAPSession::SetOption(int key,void* value) {
 	return LDAPResult(ret);
 }
 
-LDAPResult LDAPSession::Connect() {
+LDAPResult LDAPSession::Login() {
 	auto ret = ldap_connect(this->ldap, NULL);
 	return ret;
 }

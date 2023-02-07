@@ -42,7 +42,7 @@ public:
 
 	LDAPResult SetOption(int key, void* value);
 
-	LDAPResult Connect();
+	LDAPResult Login();
 
 	LDAPResult Authenticate(LDAPIdentity& identity,ULONG method);
 

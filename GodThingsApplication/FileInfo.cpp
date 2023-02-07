@@ -782,11 +782,14 @@ EvtxFile::~EvtxFile() {
 
 }
 
+
 EvtxChunk::EvtxChunk(PBYTE bytes, uint32_t offset) {
 	this->cur_record_offset = 0x200;
 	this->evtx_bytes = bytes;
 	this->this_offset = offset;
 	PBYTE chunk = bytes + offset;
+	auto s = GTFileUtils::Open(L"./test.chunk",L"w");
+	s->WriteBytes(0, chunk, 0x2000);
 	this->signature = NewBytesBuffer(chunk, 8);
 	this->first_event_record_number = MPEBytes::BytesToINT64L(chunk + 8);
 	this->last_event_record_number = MPEBytes::BytesToINT64L(chunk + 16);
@@ -833,13 +836,24 @@ EvtxEventRecord::EvtxEventRecord() {
 
 }
 
+
+
 uint32_t EvtxEventRecord::GetSize() {
 	return this->size;
 }
 
+GTString EvtxEventRecord::GetXML() {
+	return GTString();
+}
+
 BytesBuffer EvtxEventRecord::GetBody() {
-	return NewBytesBuffer(this->body.first+4, this->body.second);
+	return NewBytesBuffer(this->body.first, this->body.second);
 }
 
 FileMetrics::FileMetrics() {
+}
+
+
+GTString BinaryXML::String() {
+	return GTString();
 }

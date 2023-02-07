@@ -35,7 +35,7 @@ ResultSet* UnconstrainedDelegation::ModuleRun() {
 		return res;
 	}
 	LOG_INFO(L"Connecting LDAP server...");
-	result = session.Connect();
+	result = session.Login();
 	if (!result.Ok()) {
 		LOG_ERROR(result.GetReason().c_str());
 		return res;

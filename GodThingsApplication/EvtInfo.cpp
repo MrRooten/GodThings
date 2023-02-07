@@ -257,15 +257,19 @@ EvtFilter::EvtFilter() {
 }
 
 #define ARRAY_SIZE 10
-DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data, bool reverse) {
+DWORD EvtInfo::EnumEventLogs(EvtFilter filter, EvtCallback callback,PVOID data, bool reverse, wchar_t* path) {
     DWORD status = ERROR_SUCCESS;
     EVT_HANDLE hResults = NULL;
     PEVT_VARIANT pPaths = NULL;
     PEVT_VARIANT pStatuses = NULL;
     EVT_HANDLE hEvents[ARRAY_SIZE];
     DWORD dwReturned = 0;
-
-    hResults = EvtQuery(NULL, NULL, filter.GetXMLQuery().c_str(), EvtQueryChannelPath | EvtQueryTolerateQueryErrors);
+    if (path == NULL) {
+        hResults = EvtQuery(NULL, NULL, filter.GetXMLQuery().c_str(), EvtQueryChannelPath | EvtQueryTolerateQueryErrors);
+    }
+    else {
+        hResults = EvtQuery(NULL, path, L"*", EvtQueryFilePath);
+    }
     if (NULL == hResults) {
         // Handle error.
         goto cleanup;

@@ -189,6 +189,7 @@ public:
 	EvtxEventRecord(PBYTE bytes, uint32_t offset);
 	EvtxEventRecord();
 	uint32_t GetSize();
+	GTString GetXML();
 	BytesBuffer GetBody();
 };
 
@@ -239,4 +240,12 @@ public:
 	EvtxChunk& NextChunk();
 	~EvtxFile();
 };
+
+class BinaryXML {
+	BytesBuffer buffer;
+public:
+	static BinaryXML* Parse(PBYTE bytes, size_t size);
+	GTString String();
+};
+
 #endif

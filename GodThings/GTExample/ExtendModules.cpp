@@ -395,58 +395,63 @@ public:
 	Event25(const char* xml);
 };
 
-enum SessionType {
-	Remote,
-	Local
+enum CloseType {
+	CloseConn,
+	Logoff
 };
 
+enum SessionType {
+	Relogin,
+	Login
+};
 class RDPSession {
 public:
-	SessionType type;
+	CloseType type;
+	SessionType s_type;
 	int session_id;
-	Event21 *start_session;
-	Event23 *end_session;
-	Event25* start_session_remote;
-	Event24* end_session_remote;
+	Event21 *login_event;
+	Event23 *logoff_event;
+	Event25* relogin_event;
+	Event24* close_conn_event;
 	bool is_closed;
 	RDPSession(int session_id, Event21 *start);
 	RDPSession(int session_id, Event25* start);
-	void SetEnd(Event23 *end_session);
+	void SetEnd(Event23 *logoff_event);
 	~RDPSession();
 };
 
 RDPSession::RDPSession(int session_id, Event21 *start) {
-	this->start_session = start;
+	this->login_event = start;
 	this->session_id = session_id;
 	this->is_closed = false;
 }
 
 RDPSession::RDPSession(int session_id, Event25* start)
 {
-	this->start_session_remote = start;
+	this->relogin_event = start;
 	this->session_id = session_id;
 	this->is_closed = false;
 }
 
-void RDPSession::SetEnd(Event23 *end_session) {
-	this->end_session = end_session;
+void RDPSession::SetEnd(Event23 *logoff_event) {
+	this->logoff_event = logoff_event;
 }
 
 RDPSession::~RDPSession() {
-	if (start_session != NULL) {
-		delete start_session;
+	if (login_event != NULL) {
+		delete login_event;
 	}
 
-	if (end_session != NULL) {
-		delete end_session;
+	if (logoff_event != NULL) {
+		delete logoff_event;
 	}
 
-	if (start_session_remote != NULL) {
-		delete start_session_remote;
+	if (relogin_event != NULL) {
+		delete relogin_event;
 	}
 
-	if (end_session_remote != NULL) {
-		delete end_session_remote;
+	if (close_conn_event != NULL) {
+		delete close_conn_event;
 	}
 }
 
@@ -476,7 +481,7 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 				evt_start = new Event21(xml.c_str());
 				RDPSession *session = new RDPSession(evt_start->session_id, evt_start);
 				session->is_closed = false;
-				session->type = Local;
+				session->s_type = Login;
 				set.push_back(session);
 				break;
 			}
@@ -485,8 +490,9 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 				evt_end = new Event23(xml.c_str());
 				for (int i = set.size()-1; i >= 0;i--) {
 					auto session = set[i];
-					if (session->session_id == evt_end->session_id && session->is_closed == false && session->type == Local) {
-						session->end_session = evt_end;
+					if (session->session_id == evt_end->session_id && session->is_closed == false) {
+						session->type = Logoff;
+						session->logoff_event = evt_end;
 						session->is_closed = true;
 						break;
 					}
@@ -498,7 +504,7 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 				evt_remote_start = new Event25(xml.c_str());
 				RDPSession* session = new RDPSession(evt_remote_start->session_id, evt_remote_start);
 				session->is_closed = false;
-				session->type = Remote;
+				session->s_type = Relogin;
 				set.push_back(session);
 			}
 
@@ -506,8 +512,9 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 				evt_remote_end = new Event24(xml.c_str());
 				for (int i = set.size() - 1; i >= 0; i--) {
 					auto session = set[i];
-					if (session->session_id == evt_remote_end->session_id && session->is_closed == false && session->type == Remote) {
-						session->end_session_remote = evt_remote_end;
+					if (session->session_id == evt_remote_end->session_id && session->is_closed == false) {
+						session->type = CloseConn;
+						session->close_conn_event = evt_remote_end;
 						session->is_closed = true;
 						break;
 					}
@@ -556,56 +563,115 @@ ResultSet* RDPSessions::ModuleRun() {
 	filter.ids = L"21,23,24,25";
 	filter.logName = L"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational";
 	std::vector<RDPSession*> result;
-	info.EnumEventLogs(filter, RDPProcess, &result, false);
+	if (this->args.contains("path")) {
+		info.EnumEventLogs(filter, RDPProcess, &result, false, (wchar_t*)StringUtils::s2ws(this->args["path"]).c_str());
+	}
+	else {
+		info.EnumEventLogs(filter, RDPProcess, &result, false, NULL);
+	}
 	ResultSet* res = new ResultSet();
 	for (int index = result.size()-1; index >= 0; index--) {
-		if (result[index]->type == Local) {
-			res->PushDictOrdered("User", result[index]->start_session->user);
-			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->start_session->time_creation.c_str()));
+		if (result[index]->s_type == Login) {
+			res->PushDictOrdered("User", result[index]->login_event->user);
+			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->login_event->time_creation.c_str()));
 			res->PushDictOrdered("Start", StringUtils::ws2s(t1.String()));
 			INT64 count = -1;
-			if (result[index]->end_session != NULL) {
-				auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->end_session->time_creation.c_str()));
-				res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
-				count = t2 - t1;
+			if (result[index]->type == CloseConn) {
+				if (result[index]->close_conn_event != NULL) {
+					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->close_conn_event->time_creation.c_str()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					count = t2 - t1;
+				}
+				else {
+					res->PushDictOrdered("End", "online or missing log");
+				}
 			}
 			else {
-				res->PushDictOrdered("End", "online or missing log");
+				if (result[index]->logoff_event != NULL) {
+					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->logoff_event->time_creation.c_str()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					count = t2 - t1;
+				}
+				else {
+					res->PushDictOrdered("End", "online or log is missing");
+				}
 			}
+
 			if (count != -1) {
 				res->PushDictOrdered("Duration", ConvertSectoDay(count / 1000));
 			}
 			else {
 				res->PushDictOrdered("Duration", "...");
 			}
-			res->PushDictOrdered("Computer", result[index]->start_session->computer);
-			res->PushDictOrdered("Address", result[index]->start_session->address);
+			res->PushDictOrdered("Computer", result[index]->login_event->computer);
+			res->PushDictOrdered("Address", result[index]->login_event->address);
 			res->PushDictOrdered("SessionId", std::to_string(result[index]->session_id));
-			res->PushDictOrdered("RecordId", std::to_string(result[index]->start_session->record_id));
+			res->PushDictOrdered("RecordId", std::to_string(result[index]->login_event->record_id));
+			if (result[index]->type == Logoff) {
+				res->PushDictOrdered("ExitType", "Logoff");
+			}
+			else if (result[index]->logoff_event == NULL && result[index]->close_conn_event == NULL) {
+				if (index == result.size() - 1) {
+					res->PushDictOrdered("ExitType", "NotExit?");
+				}
+				else {
+					res->PushDictOrdered("ExitType", "ForceShutdown?");
+				}
+			}
+			else {
+				res->PushDictOrdered("ExitType", "CloseConnection");
+			}
 		}
-		else if (result[index]->type == Remote) {
-			res->PushDictOrdered("User", result[index]->start_session_remote->user);
-			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->start_session_remote->time_creation.c_str()));
+		else if (result[index]->s_type == Relogin) {
+			res->PushDictOrdered("User", result[index]->relogin_event->user);
+			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->relogin_event->time_creation.c_str()));
 			res->PushDictOrdered("Start", StringUtils::ws2s(t1.String()));
 			INT64 count = -1;
-			if (result[index]->end_session_remote != NULL) {
-				auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->end_session_remote->time_creation.c_str()));
-				res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
-				count = t2 - t1;
+			if (result[index]->type == CloseConn) {
+				if (result[index]->close_conn_event != NULL) {
+					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->close_conn_event->time_creation.c_str()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					count = t2 - t1;
+				}
+				else {
+					res->PushDictOrdered("End", "online or missing log");
+				}
 			}
 			else {
-				res->PushDictOrdered("End", "online or missing log");
+				if (result[index]->logoff_event != NULL) {
+					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->logoff_event->time_creation.c_str()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					count = t2 - t1;
+				}
+				else {
+					res->PushDictOrdered("End", "online or log is missing");
+				}
 			}
+			
 			if (count != -1) {
 				res->PushDictOrdered("Duration", ConvertSectoDay(count / 1000));
 			}
 			else {
 				res->PushDictOrdered("Duration", "...");
 			}
-			res->PushDictOrdered("Computer", result[index]->start_session_remote->computer);
-			res->PushDictOrdered("Address", result[index]->start_session_remote->address);
+			res->PushDictOrdered("Computer", result[index]->relogin_event->computer);
+			res->PushDictOrdered("Address", result[index]->relogin_event->address);
 			res->PushDictOrdered("SessionId", std::to_string(result[index]->session_id));
-			res->PushDictOrdered("RecordId", std::to_string(result[index]->start_session_remote->record_id));
+			res->PushDictOrdered("RecordId", std::to_string(result[index]->relogin_event->record_id));
+			if (result[index]->type == Logoff) {
+				res->PushDictOrdered("ExitType", "Logoff");
+			}
+			else if (result[index]->logoff_event == NULL && result[index]->close_conn_event == NULL) {
+				if (index == result.size() - 1) {
+					res->PushDictOrdered("ExitType", "NotExit?");
+				}
+				else {
+					res->PushDictOrdered("ExitType", "ForceShutdown?");
+				}
+			}
+			else {
+				res->PushDictOrdered("ExitType", "CloseConnection");
+			}
 		}
 		//res->PushDictOrdered("Index", std::to_string(index));
 	}
