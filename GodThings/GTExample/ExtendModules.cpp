@@ -605,7 +605,6 @@ ResultSet* RDPSessions::ModuleRun() {
 			}
 			res->PushDictOrdered("Computer", result[index]->login_event->computer);
 			res->PushDictOrdered("Address", result[index]->login_event->address);
-			res->PushDictOrdered("SessionId", std::to_string(result[index]->session_id));
 			res->PushDictOrdered("RecordId", std::to_string(result[index]->login_event->record_id));
 			if (result[index]->type == Logoff) {
 				res->PushDictOrdered("ExitType", "Logoff");
@@ -656,7 +655,6 @@ ResultSet* RDPSessions::ModuleRun() {
 			}
 			res->PushDictOrdered("Computer", result[index]->relogin_event->computer);
 			res->PushDictOrdered("Address", result[index]->relogin_event->address);
-			res->PushDictOrdered("SessionId", std::to_string(result[index]->session_id));
 			res->PushDictOrdered("RecordId", std::to_string(result[index]->relogin_event->record_id));
 			if (result[index]->type == Logoff) {
 				res->PushDictOrdered("ExitType", "Logoff");
@@ -751,3 +749,6 @@ Event25::Event25(const char* xml) {
 		next = next->NextSiblingElement();
 	}
 }
+
+
+
