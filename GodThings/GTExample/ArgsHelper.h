@@ -67,11 +67,11 @@ public:
 		auto mgr = ModuleMgr::GetMgr();
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, 10);
-		wprintf(L"%-40s%s\n", L"ModuleName", L"RunType");
+		wprintf(L"%-40s%-30s%s\n", L"ModuleName", L"RunType",L"Description");
 		SetConsoleTextAttribute(hConsole, 15);
 		for (auto& mod : mgr->modules) {
 			auto name = mod->Path + L"." + mod->Name;
-			wprintf(L"%-40s%s\n", name.c_str(), GetRunTypeAsString(mod->RunType).c_str());
+			wprintf(L"%-40s%-30s%s\n", name.c_str(), GetRunTypeAsString(mod->RunType).c_str(), mod->Description.c_str());
 		}
 	}
 

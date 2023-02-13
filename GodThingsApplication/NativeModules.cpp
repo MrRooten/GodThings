@@ -507,7 +507,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 	std::vector<Connection> last = _copy(mgr.GetAllConnections());
 	for (auto& change : last) {
 		
-		wprintf(L"[Base] %s %d %s %d %d %s\n", change.GetLocalIPAsString().c_str(),
+		wprintf(L"[Base] %s %d %s %d [%d] %s\n", change.GetLocalIPAsString().c_str(),
 				change.localPort,
 				change.GetRemoteIPAsString().c_str(), change.remotePort,
 			change.owningPid, proMgr.processesMap[change.owningPid]->GetProcessName().c_str());
@@ -530,7 +530,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 
 			if (change.first == false) {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
-					wprintf(L"[Remove]%s %s %d %s %d %s %d %s\n", 
+					wprintf(L"[-]%s %s %d %s %d %s [%d] %s\n", 
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -540,7 +540,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
 				}
 				else {
-					wprintf(L"[Remove]%s %s %d %s %d %s %d %s\n",
+					wprintf(L"[-]%s %s %d %s %d %s [%d] %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -552,7 +552,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 			}
 			else {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
-					wprintf(L"[Update]%s %s %d %s %d %s %d %s\n",
+					wprintf(L"[+]%s %s %d %s %d %s [%d] %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -562,7 +562,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
 				}
 				else {
-					wprintf(L"[Update]%s %s %d %s %d %s %d %s\n",
+					wprintf(L"[+]%s %s %d %s %d %s [%d] %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,

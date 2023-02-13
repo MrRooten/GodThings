@@ -183,7 +183,12 @@ SchduleTask::SchduleTask(IRegisteredTask* task) {
     if (FAILED(hr)) {
         return;
     }
-
+    ITaskDefinition* def;
+    task->get_Definition(&def);
+    BSTR xml;
+    def->get_XmlText(&xml);
+    this->def_xml = xml;
+    def->Release();
     this->_task = task;
 }
 

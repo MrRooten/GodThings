@@ -23,6 +23,7 @@ class SchduleTask {
 	PSYSTEMTIME run_times;
 	TASK_STATE taskState;
 	IRegisteredTask* _task;
+	GTWString def_xml;
 public:
 	SchduleTask(IRegisteredTask* task);
 	std::wstring& getPath();
