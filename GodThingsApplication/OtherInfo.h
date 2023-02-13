@@ -31,6 +31,7 @@ public:
 	GTTime GetStartTime();
 	GTTime GetEndTime();
 	std::wstring GetState();
+	GTWString GetCommand();
 
 };
 
