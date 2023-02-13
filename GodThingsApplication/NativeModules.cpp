@@ -802,6 +802,7 @@ ResultSet* RecentRunning::ModuleRun() {
 				assistMap[name] = parser;
 				result->PushDictOrdered("name", StringUtils::ws2s(name));
 				result->PushDictOrdered("exec", StringUtils::ws2s(parser.GetLastRun()));
+				result->PushDictOrdered("type", "UserAssist");
 			}
 		}
 	}
@@ -829,6 +830,7 @@ ResultSet* RecentRunning::ModuleRun() {
 			//wprintf(L"\t%s\n", time.ToString().c_str());
 			result->PushDictOrdered("name", StringUtils::ws2s(pf));
 			result->PushDictOrdered("exec", StringUtils::ws2s(time.String()));
+			result->PushDictOrdered("type", "Prefetch");
 		}
 		delete f;
 	}
@@ -847,6 +849,7 @@ ResultSet* RecentRunning::ModuleRun() {
 		result->PushDictOrdered("name", e->commandLine);
 		auto t = GTTime::FromISO8601(StringUtils::s2ws(e->createTime));
 		result->PushDictOrdered("exec", StringUtils::ws2s(t.String()));
+		result->PushDictOrdered("type", "ShellCore-Run");
 	}
 	
 	result->SetType(DICT);
