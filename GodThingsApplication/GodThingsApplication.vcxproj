@@ -231,6 +231,7 @@
     <ClInclude Include="DCHackModules.h" />
     <ClInclude Include="HookUtils.h" />
     <ClInclude Include="Kerberos.h" />
+    <ClInclude Include="KerberosUtils.h" />
     <ClInclude Include="KernelUtils.h" />
     <ClInclude Include="LDAPUtils.h" />
     <ClInclude Include="Module.h" />

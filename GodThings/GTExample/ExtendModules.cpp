@@ -59,9 +59,9 @@ ResultSet* BAMParse::ModuleRun() {
 			auto v = RegistryUtils::GetValueStatic(target.c_str(), name.c_str());
 			auto utc = get_u64l(v.c_str());
 			auto time = GTTime::FromTimeStamp64(utc);
-			result->PushDictOrdered("sid", StringUtils::ws2s(key));
-			result->PushDictOrdered("exe", StringUtils::ws2s(name));
 			result->PushDictOrdered("time", StringUtils::ws2s(time.String()));
+			result->PushDictOrdered("exe", StringUtils::ws2s(name));
+			result->PushDictOrdered("sid", "["+StringUtils::ws2s(key)+"]");
 		}
 	}
 	result->SetType(DICT);

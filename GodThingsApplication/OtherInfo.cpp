@@ -1,5 +1,5 @@
 #include "OtherInfo.h"
-
+#include "tinyxml2.h"
 SchduleTaskMgr* SchduleTaskMgr::_single = NULL;
 SchduleTaskMgr* SchduleTaskMgr::GetMgr() {
     if (SchduleTaskMgr::_single == NULL) {
@@ -81,7 +81,7 @@ static void _get_tasks_helper(std::vector<SchduleTask>& save,ITaskFolder* folder
         hr = pTaskCollection->get_Item(_variant_t(i + 1), &pRegisteredTask);
 
         if (SUCCEEDED(hr)) {
-            save.push_back(pRegisteredTask);
+            save.push_back(SchduleTask(pRegisteredTask));
             pRegisteredTask->Release();
         }
         else {
@@ -152,9 +152,108 @@ std::vector<SchduleTask> SchduleTaskMgr::GetTasks() {
 void SchduleTaskMgr::EnumTasks(std::function<void(SchduleTask*)> callback) {
 
 }
+#include "StringUtils.h"
+
+
+
 
 SchduleTaskMgr::~SchduleTaskMgr() {
     CoUninitialize();
+}
+
+tinyxml2::XMLElement* findChild(tinyxml2::XMLElement* element, const char* name) {
+    auto first = element->FirstChildElement();
+    while (first != NULL) {
+        auto e_name = first->Name();
+        if (_strcmpi(name, e_name) == 0) {
+            break;
+        }
+        first = first->NextSiblingElement();
+    }
+
+    return first;
+}
+
+TaskInfo::TaskInfo(const wchar_t* xml) {
+    tinyxml2::XMLDocument doc;
+    doc.Parse(StringUtils::ws2s(xml).c_str());
+    auto root = doc.RootElement();
+    auto first = root->FirstChildElement();
+    auto next = first;
+    while (next != NULL) {
+        auto name = next->Name();
+        if (_strcmpi("RegistrationInfo", name) == 0) {
+            auto date = findChild(next, "Date");
+            if (date != NULL) {
+                this->Date = StringUtils::s2ws(date->GetText());
+            }
+            auto author = findChild(next, "Author");
+            if (author != NULL) {
+                this->Author = StringUtils::s2ws(author->GetText());
+            }
+            auto uri = findChild(next, "Uri");
+            if (uri != NULL) {
+                this->Uri = StringUtils::s2ws(uri->GetText());
+            }
+        }
+        else if (_strcmpi("Actions", name) == 0) {
+            auto exec = next->FirstChildElement();
+            if (_strcmpi(exec->Name(), "Exec") == 0) {
+                auto command = exec->FirstChildElement();
+                auto arguments = command->NextSiblingElement();
+                if (arguments == NULL) {
+                    this->Exec = StringUtils::s2ws(command->GetText());
+                }
+                else {
+                    this->Exec = StringUtils::s2ws(command->GetText()) + L" " + StringUtils::s2ws(arguments->GetText());
+                }
+            }
+            else if (_strcmpi(exec->Name(), "ComHandler") == 0) {
+                auto command = exec->FirstChildElement();
+                auto arguments = command->NextSiblingElement();
+                if (arguments == NULL) {
+                    this->Exec = L"Com:" + StringUtils::s2ws(command->GetText());
+                }
+                else {
+                    this->Exec = L"Com:" + StringUtils::s2ws(command->GetText()) + L" " + StringUtils::s2ws(arguments->GetText());
+                }
+            }
+        }
+        else if (_strcmpi("Principals", name) == 0) {
+            auto first = next->FirstChildElement();
+            while (first != NULL) {
+                auto userId = findChild(first, "UserId");
+                Principal p;
+                if (userId != NULL) {
+                    p.SetUserId(StringUtils::s2ws(userId->GetText()));
+                }
+                auto logonType = findChild(first, "LogonType");
+                if (logonType != NULL) {
+                    p.SetLogonType(StringUtils::s2ws(logonType->GetText()));
+                }
+
+                auto runLevel = findChild(first, "RunLevel");
+                if (runLevel != NULL) {
+                    p.SetRunLevel(StringUtils::s2ws(runLevel->GetText()));
+                }
+                first = first->NextSiblingElement();
+            }
+        }
+        next = next->NextSiblingElement();
+    }
+    return;
+}
+
+GTWString& TaskInfo::GetExec() {
+    return this->Exec;
+}
+
+GTWString& TaskInfo::GetDate() {
+    return this->Date;
+}
+
+TaskInfo::TaskInfo()
+{
 }
 
 SchduleTask::SchduleTask(IRegisteredTask* task) {
@@ -187,9 +286,9 @@ SchduleTask::SchduleTask(IRegisteredTask* task) {
     task->get_Definition(&def);
     BSTR xml;
     def->get_XmlText(&xml);
-    this->def_xml = xml;
-    def->Release();
-    this->_task = task;
+    GTWString _t = xml;
+    this->info = TaskInfo(xml);
+    //def->Release();
 }
 
 std::wstring& SchduleTask::getPath() {
@@ -232,6 +331,20 @@ std::wstring SchduleTask::GetState() {
     return L"TASK_STATE_UNKNOWN";
 }
 
+GTWString& SchduleTask::GetExec() {
+    return this->info.GetExec();
+}
+
+GTWString& SchduleTask::GetRegDate() {
+    return this->info.GetDate();
+}
+
+SchduleTask::~SchduleTask() {
+    //if (this->info != NULL) {
+    //    delete this->info;
+    //}
+}
+
 SecurityProvider::SecurityProvider(SecPkgInfoW& package) {
     this->name = package.Name;
     this->comment = package.Comment;
@@ -263,4 +376,30 @@ GTWString& SecurityProvider::GetComment() {
     return this->comment;
 }
 
+void Principal::SetUserId(GTWString userId) {
+    this->userId = userId;
+}
 
+GTWString& Principal::GetUserId() {
+    return this->userId;
+}
+
+void Principal::SetLogonType(GTWString logonType) {
+    this->logonType = logonType;
+}
+
+GTWString& Principal::GetLogonType() {
+    return this->logonType;
+}
+
+void Principal::SetRunLevel(GTWString runLevel) {
+    this->runLevel = runLevel;
+}
+
+GTWString& Principal::GetRunLevel() {
+    return this->runLevel;
+}
+
+Principal::Principal()
+{
+}

@@ -266,10 +266,8 @@ ResultSet* NetworkModule::ModuleRun() {
 	ProcessManager proMgr;
 	proMgr.UpdateInfo();
 	for (auto connection : mgr.connections) {
-		result->PushDictOrdered("local ip", StringUtils::ws2s(connection->GetLocalIPAsString().c_str()));
-		result->PushDictOrdered("local port", std::to_string(connection->localPort));
-		result->PushDictOrdered("remote ip", StringUtils::ws2s(connection->GetRemoteIPAsString().c_str()));
-		result->PushDictOrdered("remote port", std::to_string(connection->remotePort));
+		result->PushDictOrdered("local", StringUtils::ws2s(connection->GetLocalIPAsString().c_str()) + ":" + std::to_string(connection->localPort));
+		result->PushDictOrdered("remote", StringUtils::ws2s(connection->GetRemoteIPAsString().c_str()) + ":" + std::to_string(connection->remotePort));
 		result->PushDictOrdered("state", StringUtils::ws2s(connection->GetStateAsString().c_str()));
 		result->PushDictOrdered("pid", std::to_string(connection->owningPid));
 		result->PushDictOrdered("process name", StringUtils::ws2s(proMgr.processesMap[connection->owningPid]->GetProcessName()));
@@ -422,8 +420,9 @@ ResultSet* ListSchduleTask::ModuleRun() {
 	auto tasks = mgr->GetTasks();
 	for (auto& task : tasks) {
 		result->PushDictOrdered("Name", StringUtils::ws2s(task.getName()));
-		result->PushDictOrdered("Path", StringUtils::ws2s(task.getPath()));
 		result->PushDictOrdered("State", StringUtils::ws2s(task.GetState()));
+		result->PushDictOrdered("Date", StringUtils::ws2s(task.GetRegDate()));
+		result->PushDictOrdered("Exec", StringUtils::ws2s(task.GetExec()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -436,13 +435,15 @@ WatchNetstat::WatchNetstat() {
 	this->Path = L"Network";
 	this->Type = L"LastMode";
 	this->Class = L"GetInfo";
-	this->Description = L"Read Network stat in seconds";
+	this->Description = L"Read Network stat as quick as possiable";
 	this->RunType = ModuleNotAuto;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
 BOOL WINAPI consoleHandler(DWORD signal) {
 	if (signal == CTRL_C_EVENT) {
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 0xc);
 		exit(0);
 	}
 
@@ -514,6 +515,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 	}
 	std::vector<Connection> conns;
 	int i = 0;
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	for (; ;i++) {
 		proMgr.UpdateInfo();
 		conns = _copy(mgr.GetAllConnections());
@@ -530,7 +532,8 @@ ResultSet* WatchNetstat::ModuleRun() {
 
 			if (change.first == false) {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
-					wprintf(L"[-]%s %s %d %s %d %s [%d] %s\n", 
+					SetConsoleTextAttribute(hConsole, 0xc);
+					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s\n", 
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -540,7 +543,8 @@ ResultSet* WatchNetstat::ModuleRun() {
 						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
 				}
 				else {
-					wprintf(L"[-]%s %s %d %s %d %s [%d] %s\n",
+					SetConsoleTextAttribute(hConsole, 0xc);
+					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -552,7 +556,8 @@ ResultSet* WatchNetstat::ModuleRun() {
 			}
 			else {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
-					wprintf(L"[+]%s %s %d %s %d %s [%d] %s\n",
+					SetConsoleTextAttribute(hConsole, 0xa);
+					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -562,7 +567,8 @@ ResultSet* WatchNetstat::ModuleRun() {
 						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
 				}
 				else {
-					wprintf(L"[+]%s %s %d %s %d %s [%d] %s\n",
+					SetConsoleTextAttribute(hConsole, 0xa);
+					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
@@ -800,9 +806,11 @@ ResultSet* RecentRunning::ModuleRun() {
 				auto buffer = RegistryUtils::GetValueStatic(key.c_str(), _name.c_str());
 				UserAssistParser parser(buffer);
 				assistMap[name] = parser;
-				result->PushDictOrdered("name", StringUtils::ws2s(name));
 				result->PushDictOrdered("exec", StringUtils::ws2s(parser.GetLastRun()));
 				result->PushDictOrdered("type", "UserAssist");
+				result->PushDictOrdered("name", StringUtils::ws2s(name));
+				
+				
 			}
 		}
 	}
@@ -828,9 +836,11 @@ ResultSet* RecentRunning::ModuleRun() {
 				continue;
 			}
 			//wprintf(L"\t%s\n", time.ToString().c_str());
-			result->PushDictOrdered("name", StringUtils::ws2s(pf));
 			result->PushDictOrdered("exec", StringUtils::ws2s(time.String()));
 			result->PushDictOrdered("type", "Prefetch");
+			result->PushDictOrdered("name", StringUtils::ws2s(pf));
+			
+			
 		}
 		delete f;
 	}
@@ -846,10 +856,13 @@ ResultSet* RecentRunning::ModuleRun() {
 		info.EnumEventLogs(filter, RecentRunningEventLog, &events, false, NULL);
 	}
 	for (auto& e : events) {
-		result->PushDictOrdered("name", e->commandLine);
 		auto t = GTTime::FromISO8601(StringUtils::s2ws(e->createTime));
 		result->PushDictOrdered("exec", StringUtils::ws2s(t.String()));
 		result->PushDictOrdered("type", "ShellCore-Run");
+		result->PushDictOrdered("name", e->commandLine);
+		
+		
+		
 	}
 	
 	result->SetType(DICT);

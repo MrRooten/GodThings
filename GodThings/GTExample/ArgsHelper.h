@@ -77,6 +77,7 @@ public:
 
 	static void RunModule(wchar_t* moduleName, int len_args, wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		for (auto& mod : mgr->modules) {
 			auto fullPath = mod->Path + L"." + mod->Name;
 			if (fullPath == moduleName) {
@@ -113,12 +114,30 @@ public:
 				}
 				printf("\n");
 				for (int i = 0; i < size; i++) {
+					std::vector colors = { 9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						2,
+						3,
+						4,
+						5,
+						6,
+						8
+					};
+					auto count = 0;
 					for (auto& key : orders) {
 						auto member = data[key][i];
+						SetConsoleTextAttribute(hConsole, colors[count % colors.size()]);
 						wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
+						count += 1;
 					}
 					printf("\n");
 				}
+				SetConsoleTextAttribute(hConsole, 7);
 				delete res;
 				return;
 			}

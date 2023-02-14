@@ -14,6 +14,41 @@
 #pragma comment(lib, "taskschd.lib")
 #pragma comment(lib, "comsupp.lib")
 #pragma comment(lib, "Secur32.lib")
+
+class Principal {
+	GTWString userId;
+	GTWString logonType;
+	GTWString runLevel;
+public:
+	void SetUserId(GTWString name);
+	GTWString& GetUserId();
+	void SetLogonType(GTWString logonType);
+	GTWString& GetLogonType();
+	void SetRunLevel(GTWString runLevel);
+	GTWString& GetRunLevel();
+	Principal();
+};
+
+class TaskInfo {
+	GTWString Date;
+	GTWString Author;
+	GTWString Uri;
+	std::vector<Principal> Principals;
+	//GTWString RunLevel;
+	//GTWString MultiInstancesPolicy;
+	//GTWString DisallowStartIfOnBatteries;
+	//GTWString AllowStartOnDemand;
+	//GTWString Priority;
+	GTWString Exec;
+public:
+	TaskInfo(const wchar_t* xml);
+	GTWString& GetExec();
+	GTWString& GetDate();
+	TaskInfo();
+};
+
+
+
 class SchduleTask {
 	std::wstring path;
 	std::wstring name;
@@ -23,7 +58,7 @@ class SchduleTask {
 	PSYSTEMTIME run_times;
 	TASK_STATE taskState;
 	IRegisteredTask* _task;
-	GTWString def_xml;
+	TaskInfo info;
 public:
 	SchduleTask(IRegisteredTask* task);
 	std::wstring& getPath();
@@ -31,8 +66,9 @@ public:
 	GTTime GetStartTime();
 	GTTime GetEndTime();
 	std::wstring GetState();
-	GTWString GetCommand();
-
+	GTWString& GetExec();
+	GTWString& GetRegDate();
+	~SchduleTask();
 };
 
 

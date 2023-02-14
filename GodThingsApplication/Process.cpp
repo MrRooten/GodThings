@@ -907,6 +907,9 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 
 std::map<DWORD, GTWString> Process::_pidProcessNameMap;
 GTWString Process::GetProcessName() {
+	if (this == NULL) {
+		return L"";
+	}
 	if (this->processName.size() != 0) {
 		return this->processName;
 	}
