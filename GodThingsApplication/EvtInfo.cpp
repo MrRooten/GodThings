@@ -344,7 +344,6 @@ DWORD _toEvtSet(Evt* evt,PVOID data) {
     EvtSet* set = (EvtSet*)data;
     auto cp = *evt;
     set->AddEvt(cp);
-    wprintf(L"%s\n", evt->GetXml().c_str());
     return 0;
 }
 EvtSet* EvtInfo::GetEvtSetByEventId(const wchar_t* ids,const wchar_t* logName) {
@@ -352,7 +351,6 @@ EvtSet* EvtInfo::GetEvtSetByEventId(const wchar_t* ids,const wchar_t* logName) {
     EvtFilter filter;
     filter.ids = ids;
     filter.logName = logName;
-    wprintf(L"%s\n", filter.GetXMLQuery().c_str());
     EvtSet* set = new EvtSet();
     info.EnumEventLogs(filter, _toEvtSet, set);
     return set;
@@ -369,4 +367,70 @@ DWORD EvtSet::AddEvt(Evt evt) {
 
 EvtSet::EvtSet()
 {
+}
+#include "tinyxml2.h"
+
+GTString get_name(std::vector<tinyxml2::XMLElement*>& stack) {
+    std::vector<GTString> names;
+    for (auto& s : stack) {
+        names.push_back(s->Name());
+    }
+
+    return StringUtils::StringsJoin(names, ".");
+}
+
+void helper(std::map<GTWString, GTWString>& save, std::vector<tinyxml2::XMLElement*>& stack) {
+    auto ele = stack[stack.size() - 1];
+    auto child = ele->FirstChildElement();
+    auto attr = ele->FirstAttribute();
+    while (attr != NULL) {
+        auto name = get_name(stack);
+        auto value = attr->Value();
+        name += ".";
+        name += attr->Name();
+        if (value != NULL) {
+            save[StringUtils::s2ws(name)] = StringUtils::s2ws(value);
+        }
+        else {
+            save[StringUtils::s2ws(name)] = StringUtils::s2ws("");
+        }
+        attr = attr->Next();
+    }
+    if (child == NULL) {
+        auto ele_name = ele->Name();
+        auto ele_value = ele->GetText();
+        auto name = get_name(stack);
+        name += ".";
+        name += ele_name;
+        if (ele_value != NULL) {
+            save[StringUtils::s2ws(name)] = StringUtils::s2ws(ele_value);
+        }
+        else {
+            save[StringUtils::s2ws(name)] = StringUtils::s2ws("");
+        }
+    }
+    else {
+        auto next = child;
+        while (next != NULL) {
+            stack.push_back(next);
+            helper(save, stack);
+            stack.pop_back();
+            next = next->NextSiblingElement();
+        }
+    }
+}
+
+EventLogInst::EventLogInst()
+{
+}
+
+DWORD EventLogInst::Parse(const wchar_t* xml) {
+    auto c_xml = StringUtils::ws2s(xml);
+    tinyxml2::XMLDocument doc;
+    doc.Parse(c_xml.c_str());
+    auto root = doc.RootElement();
+    std::vector<tinyxml2::XMLElement*> stack;
+    stack.push_back(root);
+    helper(this->_save, stack);
+    return 0;
 }

@@ -334,7 +334,7 @@ ResultSet* ShadowAccount::ModuleRun() {
 }
 
 UnsignedRunningProcess::UnsignedRunningProcess() {
-	this->Name = L"UnsignedRunningProcess";
+	this->Name = L"Unsigned";
 	this->Path = L"Process";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
@@ -355,8 +355,9 @@ ResultSet* UnsignedRunningProcess::ModuleRun(){
 			auto imageState = process->GetImageState();
 			std::wstring cmdline = imageState->cmdline;
 			result->PushDictOrdered("pid", std::to_string(item.first));
+			result->PushDictOrdered("info", StringUtils::ws2s(item.second->GetImageState()->GetSignInfo()));
+			result->PushDictOrdered("user", StringUtils::ws2s(item.second->UserName()));
 			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
-			result->PushDictOrdered("info", StringUtils::ws2s(item.second->GetImageState()->GetSignInfo()).c_str());
 			result->report = "There is unsigned process running";
 		}
 	}
@@ -421,7 +422,6 @@ ResultSet* ListSchduleTask::ModuleRun() {
 	for (auto& task : tasks) {
 		result->PushDictOrdered("Name", StringUtils::ws2s(task.getName()));
 		result->PushDictOrdered("State", StringUtils::ws2s(task.GetState()));
-		result->PushDictOrdered("Date", StringUtils::ws2s(task.GetRegDate()));
 		result->PushDictOrdered("Exec", StringUtils::ws2s(task.GetExec()));
 	}
 	result->SetType(DICT);

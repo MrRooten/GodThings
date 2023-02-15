@@ -286,7 +286,6 @@ SchduleTask::SchduleTask(IRegisteredTask* task) {
     task->get_Definition(&def);
     BSTR xml;
     def->get_XmlText(&xml);
-    GTWString _t = xml;
     this->info = TaskInfo(xml);
     //def->Release();
 }

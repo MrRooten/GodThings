@@ -81,4 +81,10 @@ public:
 	static EvtSet* GetEvtSetByEventId(const wchar_t* ids,const wchar_t* logName);
 };
 
+class EventLogInst {
+	std::map<GTWString, GTWString> _save;
+public:
+	EventLogInst();
+	DWORD Parse(const wchar_t* xml);
+};
 #endif // !_EVT_INFO_H
