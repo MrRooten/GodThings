@@ -423,6 +423,7 @@ ResultSet* ListSchduleTask::ModuleRun() {
 		result->PushDictOrdered("Name", StringUtils::ws2s(task.getName()));
 		result->PushDictOrdered("State", StringUtils::ws2s(task.GetState()));
 		result->PushDictOrdered("Exec", StringUtils::ws2s(task.GetExec()));
+		result->PushDictOrdered("Path", StringUtils::ws2s(task.getPath()));
 	}
 	result->SetType(DICT);
 	return result;

@@ -434,3 +434,14 @@ DWORD EventLogInst::Parse(const wchar_t* xml) {
     helper(this->_save, stack);
     return 0;
 }
+
+LPCWSTR EventLogInst::Fetch(const wchar_t* key) {
+    if (_save.count(key) == 0) {
+        return NULL;
+    }
+    return _save[key].c_str();
+}
+
+LPCWSTR EventLogInst::Fetch(GTWString& key) {
+    return this->Fetch(key.c_str());
+}

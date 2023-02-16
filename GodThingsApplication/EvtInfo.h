@@ -86,5 +86,7 @@ class EventLogInst {
 public:
 	EventLogInst();
 	DWORD Parse(const wchar_t* xml);
+	LPCWSTR Fetch(GTWString& key);
+	LPCWSTR Fetch(const wchar_t* key);
 };
 #endif // !_EVT_INFO_H

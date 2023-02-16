@@ -30,3 +30,4 @@ public:
 	RDPSessions();
 	ResultSet* ModuleRun();
 };
+
