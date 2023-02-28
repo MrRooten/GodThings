@@ -1,4 +1,6 @@
 #include "EvtInfo.h"
+#include "EvtInfo.h"
+#include "EvtInfo.h"
 #include "StringUtils.h"
 #include <wctype.h>
 Evt::Evt(EVT_HANDLE hEvent) {
@@ -432,14 +434,43 @@ DWORD EventLogInst::Parse(const wchar_t* xml) {
     std::vector<tinyxml2::XMLElement*> stack;
     stack.push_back(root);
     helper(this->_save, stack);
+    auto event_datas = root->FirstChildElement()->NextSiblingElement();
+    std::map<GTWString, GTWString> data;
+    auto cur_data = event_datas->FirstChildElement();
+    while (cur_data != NULL) {
+        auto name = cur_data->FirstAttribute()->Value();
+        auto value = cur_data->GetText();
+        if (name != NULL && value != NULL) {
+            this->_data[StringUtils::s2ws(name)] = StringUtils::s2ws(value);
+        }
+        else if (name != NULL) {
+            this->_data[StringUtils::s2ws(name)] = L"";
+        }
+        cur_data = cur_data->NextSiblingElement();
+    }
     return 0;
 }
 
 LPCWSTR EventLogInst::Fetch(const wchar_t* key) {
-    if (_save.count(key) == 0) {
-        return NULL;
+    for (auto& pair : this->_save) {
+        if (_wcsicmp(key, pair.first.c_str()) == 0) {
+            return pair.second.c_str();
+        }
     }
-    return _save[key].c_str();
+    return NULL;
+}
+
+LPCWSTR EventLogInst::FetchData(const wchar_t* key) {
+    for (auto& pair : this->_data) {
+        if (_wcsicmp(key, pair.first.c_str()) == 0) {
+            return pair.second.c_str();
+        }
+    }
+    return NULL;
+}
+
+LPCWSTR EventLogInst::FetchData(GTWString& key) {
+    return this->FetchData(key.c_str());
 }
 
 LPCWSTR EventLogInst::Fetch(GTWString& key) {

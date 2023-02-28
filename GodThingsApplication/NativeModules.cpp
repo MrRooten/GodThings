@@ -497,6 +497,7 @@ std::vector<Connection> _copy(std::vector<Connection*> vs) {
 	return res;
 }
 
+
 ResultSet* WatchNetstat::ModuleRun() {
 	bool running = TRUE;
 	if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {

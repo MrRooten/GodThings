@@ -750,5 +750,97 @@ Event25::Event25(const char* xml) {
 	}
 }
 
+class ClientSession {
+public:
+	GTWString targetIP;
+	GTWString usernameHash;
+	GTWString startTime;
+	GTWString closeTime;
+	GTWString closeReason;
+	GTWString domain;
 
+	ClientSession(EventLogInst& inst);
+	DWORD PushEvent(EventLogInst& inst);
+};
 
+DWORD RDPClient(Evt* evt, PVOID data) {
+	EventLogInst inst;
+	inst.Parse(evt->GetXml().c_str());
+	auto id = (DWORD)_wtoi(inst.Fetch(L"Event.System.EventID.EventID"));
+	auto result = (std::vector<ClientSession>*)data;
+	if (id == 1024) {
+		result->push_back(ClientSession(inst));
+	}
+	else {
+		if (result->size() == 0) {
+			return 0;
+		}
+		result->at(result->size() - 1).PushEvent(inst);
+	}
+
+	return 0;
+}
+
+RDPClientSess::RDPClientSess() {
+	this->Name = L"RDPClientSess";
+	this->Path = L"EventLog";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Enum Sessions logs";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* RDPClientSess::ModuleRun() {
+	EvtInfo info;
+	EvtFilter filter;
+	ResultSet* set = new ResultSet();
+	filter.logName = L"Microsoft-Windows-TerminalServices-RDPClient/Operational";
+	filter.ids = L"1024,1026,1027,1029";
+	std::vector<ClientSession> result;
+	if (this->args.contains("path")) {
+		info.EnumEventLogs(filter, RDPClient, &result, false, (wchar_t*)StringUtils::s2ws(this->args["path"]).c_str());
+	}
+	else {
+		info.EnumEventLogs(filter, RDPClient, &result, false, NULL);
+	}
+	for (auto& client : result) {
+		auto start = GTTime::FromISO8601(client.startTime);
+		set->PushDictOrdered("start", StringUtils::ws2s(start.String()));
+		auto end = GTTime::FromISO8601(client.closeTime);
+		auto count = end - start;
+		set->PushDictOrdered("end", StringUtils::ws2s(end.String()));
+		if (count >= 0) {
+			set->PushDictOrdered("duration", ConvertSectoDay(count / 1000));
+		}
+		else {
+			set->PushDictOrdered("duration", "...");
+		}
+		
+		set->PushDictOrdered("remote", StringUtils::ws2s(client.targetIP));
+		set->PushDictOrdered("domain", StringUtils::ws2s(client.domain));
+		set->PushDictOrdered("reason", StringUtils::ws2s(client.closeReason));
+	}
+	set->SetType(DICT);
+	return set;
+}
+
+ClientSession::ClientSession(EventLogInst& inst) {
+	this->startTime = inst.Fetch(L"Event.System.TimeCreated.SystemTime");
+	this->targetIP = inst.FetchData(L"Value");
+}
+
+DWORD ClientSession::PushEvent(EventLogInst& inst) {
+	auto id = (DWORD)_wtoi(inst.Fetch(L"Event.System.EventId.EventId"));
+	if (id == 1026) {
+		this->closeTime = inst.Fetch(L"Event.System.TimeCreated.SystemTime");
+		this->closeReason = inst.FetchData(L"Value");
+	}
+	else if (id == 1027) {
+		this->domain = inst.FetchData(L"DomainName");
+	}
+	else if (id == 1029) {
+		this->usernameHash = inst.FetchData(L"TraceMessage");
+	}
+	return 0;
+}

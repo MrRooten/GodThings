@@ -31,3 +31,8 @@ public:
 	ResultSet* ModuleRun();
 };
 
+class RDPClientSess : public NativeModule {
+public:
+	RDPClientSess();
+	ResultSet* ModuleRun();
+};

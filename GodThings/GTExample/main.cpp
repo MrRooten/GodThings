@@ -8,6 +8,7 @@ void extendInit() {
     new JumpListData();
     new ListSSP();
     new RDPSessions();
+    new RDPClientSess();
 }
 
 int wmain(int argc, wchar_t* argv[]) {
