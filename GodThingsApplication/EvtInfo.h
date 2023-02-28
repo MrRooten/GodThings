@@ -82,14 +82,14 @@ public:
 };
 
 class EventLogInst {
-	std::map<GTWString, GTWString> _save;
-	std::map<GTWString, GTWString> _data;
+	std::map<GTString, GTString> _save;
+	std::map<GTString, GTString> _data;
 public:
 	EventLogInst();
-	DWORD Parse(const wchar_t* xml);
-	LPCWSTR Fetch(GTWString& key);
-	LPCWSTR Fetch(const wchar_t* key);
-	LPCWSTR FetchData(const wchar_t* key);
-	LPCWSTR FetchData(GTWString& key);
+	DWORD Parse(const char* xml);
+	LPCSTR Fetch(GTString& key);
+	LPCSTR Fetch(const char* key);
+	LPCSTR FetchData(const char* key);
+	LPCSTR FetchData(GTString& key);
 };
 #endif // !_EVT_INFO_H

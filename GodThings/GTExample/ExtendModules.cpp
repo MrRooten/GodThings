@@ -752,12 +752,12 @@ Event25::Event25(const char* xml) {
 
 class ClientSession {
 public:
-	GTWString targetIP;
-	GTWString usernameHash;
+	GTString targetIP;
+	GTString usernameHash;
 	GTWString startTime;
 	GTWString closeTime;
-	GTWString closeReason;
-	GTWString domain;
+	GTString closeReason;
+	GTString domain;
 
 	ClientSession(EventLogInst& inst);
 	DWORD PushEvent(EventLogInst& inst);
@@ -765,8 +765,8 @@ public:
 
 DWORD RDPClient(Evt* evt, PVOID data) {
 	EventLogInst inst;
-	inst.Parse(evt->GetXml().c_str());
-	auto id = (DWORD)_wtoi(inst.Fetch(L"Event.System.EventID.EventID"));
+	inst.Parse(StringUtils::ws2s(evt->GetXml()).c_str());
+	auto id = (DWORD)atoi(inst.Fetch("Event.System.EventID.EventID"));
 	auto result = (std::vector<ClientSession>*)data;
 	if (id == 1024) {
 		result->push_back(ClientSession(inst));
@@ -817,30 +817,30 @@ ResultSet* RDPClientSess::ModuleRun() {
 			set->PushDictOrdered("duration", "...");
 		}
 		
-		set->PushDictOrdered("remote", StringUtils::ws2s(client.targetIP));
-		set->PushDictOrdered("domain", StringUtils::ws2s(client.domain));
-		set->PushDictOrdered("reason", StringUtils::ws2s(client.closeReason));
+		set->PushDictOrdered("remote", client.targetIP);
+		set->PushDictOrdered("domain", client.domain);
+		set->PushDictOrdered("reason", client.closeReason);
 	}
 	set->SetType(DICT);
 	return set;
 }
 
 ClientSession::ClientSession(EventLogInst& inst) {
-	this->startTime = inst.Fetch(L"Event.System.TimeCreated.SystemTime");
-	this->targetIP = inst.FetchData(L"Value");
+	this->startTime = StringUtils::s2ws(inst.Fetch("Event.System.TimeCreated.SystemTime"));
+	this->targetIP = inst.FetchData("Value");
 }
 
 DWORD ClientSession::PushEvent(EventLogInst& inst) {
-	auto id = (DWORD)_wtoi(inst.Fetch(L"Event.System.EventId.EventId"));
+	auto id = (DWORD)atoi(inst.Fetch("Event.System.EventId.EventId"));
 	if (id == 1026) {
-		this->closeTime = inst.Fetch(L"Event.System.TimeCreated.SystemTime");
-		this->closeReason = inst.FetchData(L"Value");
+		this->closeTime = StringUtils::s2ws(inst.Fetch("Event.System.TimeCreated.SystemTime"));
+		this->closeReason = inst.FetchData("Value");
 	}
 	else if (id == 1027) {
-		this->domain = inst.FetchData(L"DomainName");
+		this->domain = inst.FetchData("DomainName");
 	}
 	else if (id == 1029) {
-		this->usernameHash = inst.FetchData(L"TraceMessage");
+		this->usernameHash = inst.FetchData("TraceMessage");
 	}
 	return 0;
 }

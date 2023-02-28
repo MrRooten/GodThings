@@ -289,11 +289,11 @@ public:
 			EvtInfo info;
 			auto evts = info.GetEvtSetByEventId(L"0-99", L"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational");
 			auto es = evts->GetAllEvts();
-			for (auto e : es) {
+			/*for (auto e : es) {
 				auto xml = e.GetXml();
 				EventLogInst inst;
 				inst.Parse(xml.c_str());
-			}
+			}*/
 			return;
 		}
 		else if (subcmd == L"list_path") {

@@ -381,7 +381,7 @@ GTString get_name(std::vector<tinyxml2::XMLElement*>& stack) {
     return StringUtils::StringsJoin(names, ".");
 }
 
-void helper(std::map<GTWString, GTWString>& save, std::vector<tinyxml2::XMLElement*>& stack) {
+void helper(std::map<GTString, GTString>& save, std::vector<tinyxml2::XMLElement*>& stack) {
     auto ele = stack[stack.size() - 1];
     auto child = ele->FirstChildElement();
     auto attr = ele->FirstAttribute();
@@ -391,10 +391,10 @@ void helper(std::map<GTWString, GTWString>& save, std::vector<tinyxml2::XMLEleme
         name += ".";
         name += attr->Name();
         if (value != NULL) {
-            save[StringUtils::s2ws(name)] = StringUtils::s2ws(value);
+            save[name] = value;
         }
         else {
-            save[StringUtils::s2ws(name)] = StringUtils::s2ws("");
+            save[name] = "";
         }
         attr = attr->Next();
     }
@@ -405,10 +405,10 @@ void helper(std::map<GTWString, GTWString>& save, std::vector<tinyxml2::XMLEleme
         name += ".";
         name += ele_name;
         if (ele_value != NULL) {
-            save[StringUtils::s2ws(name)] = StringUtils::s2ws(ele_value);
+            save[name] = ele_value;
         }
         else {
-            save[StringUtils::s2ws(name)] = StringUtils::s2ws("");
+            save[name] = "";
         }
     }
     else {
@@ -426,10 +426,9 @@ EventLogInst::EventLogInst()
 {
 }
 
-DWORD EventLogInst::Parse(const wchar_t* xml) {
-    auto c_xml = StringUtils::ws2s(xml);
+DWORD EventLogInst::Parse(const char* xml) {
     tinyxml2::XMLDocument doc;
-    doc.Parse(c_xml.c_str());
+    doc.Parse(xml);
     auto root = doc.RootElement();
     std::vector<tinyxml2::XMLElement*> stack;
     stack.push_back(root);
@@ -441,38 +440,38 @@ DWORD EventLogInst::Parse(const wchar_t* xml) {
         auto name = cur_data->FirstAttribute()->Value();
         auto value = cur_data->GetText();
         if (name != NULL && value != NULL) {
-            this->_data[StringUtils::s2ws(name)] = StringUtils::s2ws(value);
+            this->_data[name] = value;
         }
         else if (name != NULL) {
-            this->_data[StringUtils::s2ws(name)] = L"";
+            this->_data[name] = "";
         }
         cur_data = cur_data->NextSiblingElement();
     }
     return 0;
 }
 
-LPCWSTR EventLogInst::Fetch(const wchar_t* key) {
+LPCSTR EventLogInst::Fetch(const char* key) {
     for (auto& pair : this->_save) {
-        if (_wcsicmp(key, pair.first.c_str()) == 0) {
+        if (_strcmpi(key, pair.first.c_str()) == 0) {
             return pair.second.c_str();
         }
     }
     return NULL;
 }
 
-LPCWSTR EventLogInst::FetchData(const wchar_t* key) {
+LPCSTR EventLogInst::FetchData(const char* key) {
     for (auto& pair : this->_data) {
-        if (_wcsicmp(key, pair.first.c_str()) == 0) {
+        if (_strcmpi(key, pair.first.c_str()) == 0) {
             return pair.second.c_str();
         }
     }
     return NULL;
 }
 
-LPCWSTR EventLogInst::FetchData(GTWString& key) {
+LPCSTR EventLogInst::FetchData(GTString& key) {
     return this->FetchData(key.c_str());
 }
 
-LPCWSTR EventLogInst::Fetch(GTWString& key) {
+LPCSTR EventLogInst::Fetch(GTString& key) {
     return this->Fetch(key.c_str());
 }
