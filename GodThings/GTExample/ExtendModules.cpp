@@ -791,6 +791,36 @@ RDPClientSess::RDPClientSess() {
 	mgr->RegisterModule(this);
 }
 
+const char* rdp_close_reason(std::string &reason) {
+	if (reason.size() == 0) {
+		return NULL;
+	}
+	auto id = std::stoi(reason);
+	if (id == 0) {
+		return "No error";
+	}
+	else if (id == 1) {
+		return "User-initiated client disconnect";
+	}
+	else if (id == 2) {
+		return "User-initiated client logoff";
+	}
+	else if (id == 3) {
+		return "Your Remote Desktop Services session has ended";
+	}
+	else if (id == 263) {
+		return "The remote session was disconnected because the client prematurely ended the licensing protocol";
+	}
+	else if (id == 516) {
+		return "Remote Desktop can't connect to the remote computer";
+	}
+	else if (id == 2308) {
+		return "Your Remote Desktop Services session has ended";
+	}
+	else {
+		return NULL;
+	}
+}
 ResultSet* RDPClientSess::ModuleRun() {
 	EvtInfo info;
 	EvtFilter filter;
@@ -804,6 +834,8 @@ ResultSet* RDPClientSess::ModuleRun() {
 	else {
 		info.EnumEventLogs(filter, RDPClient, &result, false, NULL);
 	}
+
+	std::reverse(result.begin(), result.end());
 	for (auto& client : result) {
 		auto start = GTTime::FromISO8601(client.startTime);
 		set->PushDictOrdered("start", StringUtils::ws2s(start.String()));
@@ -819,7 +851,14 @@ ResultSet* RDPClientSess::ModuleRun() {
 		
 		set->PushDictOrdered("remote", client.targetIP);
 		set->PushDictOrdered("domain", client.domain);
-		set->PushDictOrdered("reason", client.closeReason);
+		auto reason = rdp_close_reason(client.closeReason);
+		if (reason != NULL) {
+			set->PushDictOrdered("reason", reason);
+		}
+		else {
+			set->PushDictOrdered("reason", client.closeReason);
+		}
+		
 	}
 	set->SetType(DICT);
 	return set;
