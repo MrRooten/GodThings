@@ -1,6 +1,7 @@
 #include "VerifyUtils.h"
 #include "mscat.h"
 #include "utils.h"
+
 DWORD VerifyCatalogSignatureAddition(_In_ LPCWSTR pwszSourceFile,
     _In_ bool UseStrongSigPolicy, GTWString& catalogFile);
 SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile) {
@@ -16,43 +17,9 @@ SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile) {
     FileData.hFile = NULL;
     FileData.pgKnownSubject = NULL;
 
-    /*
-    WVTPolicyGUID specifies the policy to apply on the file
-    WINTRUST_ACTION_GENERIC_VERIFY_V2 policy checks:
-
-    1) The certificate used to sign the file chains up to a root
-    certificate located in the trusted root certificate store. This
-    implies that the identity of the publisher has been verified by
-    a certification authority.
-
-    2) In cases where user interface is displayed (which this example
-    does not do), WinVerifyTrust will check for whether the
-    end entity certificate is stored in the trusted publisher store,
-    implying that the user trusts content from this publisher.
-
-    3) The end entity certificate has sufficient permission to sign
-    code, as indicated by the presence of a code signing EKU or no
-    EKU.
-    */
-
     GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
     WINTRUST_DATA WinTrustData;
-    /*
-    WINTRUST_CATALOG_INFO catalogInfo;
-    memset(&catalogInfo, 0, sizeof(catalogInfo));
-    catalogInfo.cbStruct = sizeof(catalogInfo);
-    catalogInfo.pcwszCatalogFilePath = pwszSourceFile;
-    catalogInfo.pcwszMemberFilePath = NULL; // Information->FileName
-    HFILE FileHandle = OpenFile()
-    catalogInfo.hMemberFile = FileHandle;
-    catalogInfo.pcwszMemberTag = fileHashTag->Buffer;
-    catalogInfo.pbCalculatedFileHash = fileHash;
-    catalogInfo.cbCalculatedFileHash = fileHashLength;
-    catalogInfo.hCatAdmin = catAdminHandle;
-    // Initialize the WinVerifyTrust input data structure.
-    */
 
-    // Default all fields to 0.
     memset(&WinTrustData, 0, sizeof(WinTrustData));
 
     WinTrustData.cbStruct = sizeof(WinTrustData);
@@ -101,19 +68,7 @@ SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile) {
     switch (lStatus)
     {
     case ERROR_SUCCESS:
-        /*
-        Signed file:
-            - Hash that represents the subject is trusted.
 
-            - Trusted publisher without any verification errors.
-
-            - UI was disabled in dwUIChoice. No publisher or
-                time stamp chain errors.
-
-            - UI was enabled in dwUIChoice and the user clicked
-                "Yes" when asked to install and run the signed
-                subject.
-        */
         info->info = L"The file is signed and the signature "
             L"was verified.";
         info->isSignature = true;
@@ -350,6 +305,195 @@ Cleanup:
     CloseHandle(FileHandle);
     return Error;
 }
+#include <cassert>
+BytesBuffer Sha256(PBYTE bytes, size_t n) {
+    HCRYPTPROV hCryptProv;
+    HCRYPTHASH hHash;
+    BYTE* pbHash = NULL;
+    DWORD dwHashLen;
+    DWORD dwCount;
+    auto flag = CryptAcquireContext(
+        &hCryptProv,
+        NULL,
+        MS_ENH_RSA_AES_PROV, PROV_RSA_AES, CRYPT_VERIFYCONTEXT);
+    if (flag == false) {
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+    flag = CryptCreateHash(
+        hCryptProv,
+        CALG_SHA_256,
+        0,
+        0,
+        &hHash);
+    if (flag == false) {
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+    flag = CryptGetHashParam(hHash, HP_HASHSIZE, (BYTE*)&dwHashLen, &dwCount, 0);
+    if (flag == false) {
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+    pbHash = (PBYTE)malloc(dwHashLen);
+    if (flag == false) {
+        LOG_ERROR_REASON("");
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        return std::string();
+    }
+
+    flag = CryptHashData(
+        hHash,
+        bytes,
+        n,
+        CRYPT_USERDATA
+    );
+
+    flag = CryptGetHashParam(hHash, HP_HASHVAL, pbHash, &dwHashLen, 0);
+    
+    BytesBuffer result((char*)pbHash, dwHashLen);
+    free(pbHash);
+    if (hHash)
+        CryptDestroyHash(hHash);
+    if (hCryptProv)
+        CryptReleaseContext(hCryptProv, 0);
+    return result;
+}
+
+BytesBuffer Sha1(PBYTE bytes, size_t n) {
+    HCRYPTPROV hCryptProv;
+    HCRYPTHASH hHash;
+    BYTE* pbHash = NULL;
+    DWORD dwHashLen;
+    DWORD dwCount;
+    auto flag = CryptAcquireContext(
+        &hCryptProv,
+        NULL,
+        MS_ENH_RSA_AES_PROV, PROV_RSA_AES, CRYPT_VERIFYCONTEXT);
+    if (flag == false) {
+        LOG_ERROR_REASON("");
+    }
+
+    flag = CryptCreateHash(
+        hCryptProv,
+        CALG_SHA1,
+        0,
+        0,
+        &hHash);
+    if (flag == false) {
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+    flag = CryptGetHashParam(hHash, HP_HASHSIZE, (BYTE*)&dwHashLen, &dwCount, 0);
+    if (flag == false) {
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+    pbHash = (PBYTE)malloc(dwHashLen);
+    if (pbHash == NULL) {
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+    flag = CryptHashData(
+        hHash,
+        bytes,
+        n,
+        CRYPT_USERDATA
+    );
+    if (flag == false) {
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+
+    flag = CryptGetHashParam(hHash, HP_HASHVAL, pbHash, &dwHashLen, 0);
+    if (flag == false) {
+        if (hHash)
+            CryptDestroyHash(hHash);
+        if (hCryptProv)
+            CryptReleaseContext(hCryptProv, 0);
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+
+
+    BytesBuffer result((char*)pbHash, dwHashLen);
+    free(pbHash);
+    if (hHash)
+        CryptDestroyHash(hHash);
+    if (hCryptProv)
+        CryptReleaseContext(hCryptProv, 0);
+    return result;
+}
+
+#include "StringUtils.h"
+
+GTString Base64Encode(PBYTE bytes, size_t n) {
+    DWORD size = 0;
+    auto flag = CryptBinaryToStringA(
+        bytes,
+        n,
+        CRYPT_STRING_BASE64,
+        NULL,
+        &size
+    );
+    //assert(flag == true);
+    auto base64 = (LPSTR)malloc(size);
+    if (base64 == NULL) {
+        LOG_ERROR_REASON("");
+        return std::string();
+    }
+    flag = CryptBinaryToStringA(
+        bytes,
+        n,
+        CRYPT_STRING_BASE64,
+        base64,
+        &size
+    );
+    if (flag == false) {
+        LOG_ERROR_REASON("");
+        if (base64 == NULL) {
+            delete base64;
+        }
+        return std::string();
+    }
+    assert(base64 != NULL);
+    auto result = StringUtils::Trim(base64);
+    return result;
+}
+
+
 
 DWORD VerifyCatalogSignatureAddition(_In_ LPCWSTR pwszSourceFile,
     _In_ bool UseStrongSigPolicy,GTWString &catalogFile) {

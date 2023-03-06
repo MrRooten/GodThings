@@ -821,7 +821,46 @@ const char* rdp_close_reason(std::string &reason) {
 		return NULL;
 	}
 }
+
+std::map<GTString, GTWString> _get_hash_username() {
+	std::wstring alluserAssist = L"HKEY_USERS";
+	RegistryUtils allUserAssistReg(alluserAssist);
+	std::map<GTString, GTWString> result;
+	auto users = allUserAssistReg.ListSubKeys();
+	for (auto& user : users) {
+		if (user == L".DEFAULT") {
+			continue;
+		}
+
+		//wprintf(L"%s %s\n", user.c_str(),ConvertSidToUsername(user.c_str()));
+		std::wstring servers = L"HKEY_USERS\\" + user + L"\\SOFTWARE\\Microsoft\\Terminal Server Client\\Servers\\";
+		RegistryUtils userAssistReg(servers);
+		auto subs = userAssistReg.ListSubKeys();
+		for (auto& sub : subs) {
+			std::wstring key = servers + sub;
+			RegistryUtils utils(key);
+			auto buffer = RegistryUtils::GetValueStatic(key.c_str(), L"UsernameHint");
+			GTWString wbuffer = (WCHAR*)buffer.c_str();
+			auto username = wbuffer.substr(wbuffer.find(L'\\')+1);
+			auto sha256 = Sha256((PBYTE)username.data(), username.size() * (sizeof WCHAR));
+			if (sha256.size() != 0) {
+				auto base64 = Base64Encode((PBYTE)sha256.data(), sha256.size()) + "-";
+				result[base64] = username;
+			}
+			auto sha1 = Sha1((PBYTE)username.data(), username.size() * (sizeof WCHAR));
+			if (sha1.size() != 0) {
+				auto base64_sha1 = Base64Encode((PBYTE)sha1.data(), sha1.size()) + "-";
+				result[base64_sha1] = username;
+			}
+		}
+	}
+
+
+	return result;
+}
+
 ResultSet* RDPClientSess::ModuleRun() {
+	auto m = _get_hash_username();
 	EvtInfo info;
 	EvtFilter filter;
 	ResultSet* set = new ResultSet();
@@ -852,12 +891,25 @@ ResultSet* RDPClientSess::ModuleRun() {
 		set->PushDictOrdered("remote", client.targetIP);
 		set->PushDictOrdered("domain", client.domain);
 		auto reason = rdp_close_reason(client.closeReason);
+		
+
+		if (m.contains(client.usernameHash)) {
+			set->PushDictOrdered("username", StringUtils::ws2s(m[client.usernameHash]));
+		}
+		else if (client.usernameHash.size() != 0) {
+			set->PushDictOrdered("username", "base64(sha256):"+ client.usernameHash);
+		}
+		else {
+			set->PushDictOrdered("username", "");
+		}
+
 		if (reason != NULL) {
 			set->PushDictOrdered("reason", reason);
 		}
 		else {
 			set->PushDictOrdered("reason", client.closeReason);
 		}
+		
 		
 	}
 	set->SetType(DICT);

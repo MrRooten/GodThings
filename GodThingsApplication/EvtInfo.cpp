@@ -433,20 +433,38 @@ DWORD EventLogInst::Parse(const char* xml) {
     std::vector<tinyxml2::XMLElement*> stack;
     stack.push_back(root);
     helper(this->_save, stack);
-    auto event_datas = root->FirstChildElement()->NextSiblingElement();
+    auto child = root->FirstChildElement();
     std::map<GTWString, GTWString> data;
-    auto cur_data = event_datas->FirstChildElement();
-    while (cur_data != NULL) {
-        auto name = cur_data->FirstAttribute()->Value();
-        auto value = cur_data->GetText();
-        if (name != NULL && value != NULL) {
-            this->_data[name] = value;
+    while (child != NULL) {
+        if (_strcmpi(child->Name(), "eventdata") != 0) {
+            child = child->NextSiblingElement();
+            continue;
         }
-        else if (name != NULL) {
-            this->_data[name] = "";
+        auto event_datas = child;
+        auto cur_data = event_datas->FirstChildElement();
+        while (cur_data != NULL) {
+            if (_strcmpi(cur_data->Name(), "data") != 0) {
+                cur_data = cur_data->NextSiblingElement();
+                continue;
+            }
+            auto name_attr = cur_data->FindAttribute("Name");
+            if (name_attr == NULL) {
+                cur_data = cur_data->NextSiblingElement();
+                continue;
+            }
+            auto name = name_attr->Value();
+            auto value = cur_data->GetText();
+            if (name != NULL && value != NULL) {
+                this->_data[name] = value;
+            }
+            else if (name != NULL) {
+                this->_data[name] = "";
+            }
+            cur_data = cur_data->NextSiblingElement();
         }
-        cur_data = cur_data->NextSiblingElement();
+        break;
     }
+    
     return 0;
 }
 

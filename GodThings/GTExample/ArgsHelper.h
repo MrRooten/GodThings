@@ -60,6 +60,10 @@ public:
 			return L"ModuleNotImplement";
 		}
 
+		if (type == ModuleNotAuto) {
+			return L"ModuleNotAuto";
+		}
+
 		return L"ModuleUnknown";
 	}
 
@@ -267,6 +271,7 @@ public:
 			return;
 		}
 		else if (subcmd == L"run_module") {
+			setlocale(LC_ALL, "chs");
 			if (argc < 3) {
 				wprintf(L"Usage:%s run_module <exist_module>\n", argv[0]);
 				return;
@@ -286,14 +291,8 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			EvtInfo info;
-			auto evts = info.GetEvtSetByEventId(L"0-99", L"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational");
-			auto es = evts->GetAllEvts();
-			/*for (auto e : es) {
-				auto xml = e.GetXml();
-				EventLogInst inst;
-				inst.Parse(xml.c_str());
-			}*/
+			setlocale(LC_ALL, "chs");
+			LOG_ERROR_REASON("hello");
 			return;
 		}
 		else if (subcmd == L"list_path") {
