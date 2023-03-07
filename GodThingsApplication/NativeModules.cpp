@@ -385,7 +385,7 @@ ResultSet* USBHistory::ModuleRun() {
 		auto time = subkey.GetLastWriteTime();
 		//wprintf(L"%s %s\n", subkey.GetKeyName().c_str(), GTTime(time).ToString().c_str());
 		result->PushDictOrdered("Device Name", StringUtils::ws2s(subkey.GetKeyName()));
-		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).String()));
+		result->PushDictOrdered("Time", StringUtils::ws2s(GTTime(time).String_utc_to_local()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -509,8 +509,14 @@ ResultSet* WatchNetstat::ModuleRun() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	std::vector<Connection> last = _copy(mgr.GetAllConnections());
 	for (auto& change : last) {
-		
-		wprintf(L"[Base] %s %d %s %d [%d] %s\n", change.GetLocalIPAsString().c_str(),
+		GTWString protocol = L"";
+		if (change.protocol == Protocol::UDP) {
+			protocol = L"UDP";
+		}
+		else {
+			protocol = L"TCP";
+		}
+		wprintf(L"[Base]%s %s %d %s %d [%d] %s\n", protocol.c_str(), change.GetLocalIPAsString().c_str(),
 				change.localPort,
 				change.GetRemoteIPAsString().c_str(), change.remotePort,
 			change.owningPid, proMgr.processesMap[change.owningPid]->GetProcessName().c_str());
@@ -531,53 +537,59 @@ ResultSet* WatchNetstat::ModuleRun() {
 			else {
 				protocol = L"TCP";
 			}
-
+			SYSTEMTIME st;
+			GetLocalTime(&st); 
+			GTTime t = GTTime::GetTime();
 			if (change.first == false) {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
 					SetConsoleTextAttribute(hConsole, 0xc);
-					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s\n", 
+					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s %s\n", 
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid, 
-						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
+						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str(),
+						t.String().c_str());
 				}
 				else {
 					SetConsoleTextAttribute(hConsole, 0xc);
-					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s\n",
+					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
-						L"");
+						L"",
+						t.String().c_str());
 				}
 			}
 			else {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
 					SetConsoleTextAttribute(hConsole, 0xa);
-					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s\n",
+					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
-						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str());
+						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str(),
+						t.String().c_str());
 				}
 				else {
 					SetConsoleTextAttribute(hConsole, 0xa);
-					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s\n",
+					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
-						L"");
+						L"",
+						t.String().c_str());
 				}
 			}
 		}
@@ -838,7 +850,7 @@ ResultSet* RecentRunning::ModuleRun() {
 				continue;
 			}
 			//wprintf(L"\t%s\n", time.ToString().c_str());
-			result->PushDictOrdered("exec", StringUtils::ws2s(time.String()));
+			result->PushDictOrdered("exec", StringUtils::ws2s(time.String_utc_to_local()));
 			result->PushDictOrdered("type", "Prefetch");
 			result->PushDictOrdered("name", StringUtils::ws2s(pf));
 			
@@ -859,7 +871,7 @@ ResultSet* RecentRunning::ModuleRun() {
 	}
 	for (auto& e : events) {
 		auto t = GTTime::FromISO8601(StringUtils::s2ws(e->createTime));
-		result->PushDictOrdered("exec", StringUtils::ws2s(t.String()));
+		result->PushDictOrdered("exec", StringUtils::ws2s(t.String_utc_to_local()));
 		result->PushDictOrdered("type", "ShellCore-Run");
 		result->PushDictOrdered("name", e->commandLine);
 		
@@ -904,8 +916,8 @@ ResultSet* Accounts::ModuleRun() {
 	for (auto user : users) {
 		result->PushDictOrdered("Uid", std::to_string(user->userId));
 		result->PushDictOrdered("Username", StringUtils::ws2s(user->userName));
-		result->PushDictOrdered("LastLogon", StringUtils::ws2s(user->GetLastLogon().String()));
-		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().String()));
+		result->PushDictOrdered("LastLogon", StringUtils::ws2s(user->GetLastLogon().String_utc_to_local()));
+		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().String_utc_to_local()));
 		result->PushDictOrdered("Comment", StringUtils::ws2s(user->GetComment()));
 		
 	}

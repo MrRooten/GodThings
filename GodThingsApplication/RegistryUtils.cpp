@@ -316,7 +316,7 @@ std::wstring UserAssistParser::GetLastRun() {
 		return L"";
 	}
 
-	return lastRun.String();
+	return lastRun.String_utc_to_local();
 }
 
 GTTime& UserAssistParser::GetFocusTime()

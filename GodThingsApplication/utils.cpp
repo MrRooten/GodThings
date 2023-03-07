@@ -1,5 +1,7 @@
 #include "utils.h"
 #include "utils.h"
+#include "utils.h"
+#include "utils.h"
 #include "StringUtils.h"
 
 LOG_LEVEL GlobalLogLevel = INFO_LEVEL;
@@ -215,13 +217,25 @@ std::wstring s2ws(const std::string& str) {
 	return wstrTo;
 }
 
-std::wstring GTTime::String() {
+std::wstring GTTime::String_utc_to_local() {
 	FILETIME pUTC;
 	FileTimeToLocalFileTime(&this->fTime, &pUTC);
 	GTTime t(pUTC);
 	WCHAR buf[100];
 	swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", t.year, t.month, t.day, t.hour, t.minute, t.second);
 	return buf;
+}
+
+std::wstring GTTime::String() {
+	WCHAR buf[100];
+	swprintf_s(buf, L"%d-%02d-%02d %02d:%02d:%02d", this->year, this->month, this->day, this->hour, this->minute, this->second);
+	return buf;
+}
+
+GTTime GTTime::GetTime() {
+	SYSTEMTIME st;
+	GetLocalTime(&st); //获取本地时间
+	return GTTime(st);
 }
 
 FILETIME UnixTimeToFileTime(time_t t) {

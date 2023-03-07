@@ -21,7 +21,7 @@ ResultSet* LastShutdown::ModuleRun() {
 	ft.dwLowDateTime = t && 0xffffffff;
 	ft.dwHighDateTime = t >> 32;
 	GTTime gTime(ft);
-	result->PushDictOrdered("LastShutdown", StringUtils::ws2s(gTime.String()));
+	result->PushDictOrdered("LastShutdown", StringUtils::ws2s(gTime.String_utc_to_local()));
 	result->SetType(DICT);
 	return result;
 }
@@ -59,7 +59,7 @@ ResultSet* BAMParse::ModuleRun() {
 			auto v = RegistryUtils::GetValueStatic(target.c_str(), name.c_str());
 			auto utc = get_u64l(v.c_str());
 			auto time = GTTime::FromTimeStamp64(utc);
-			result->PushDictOrdered("time", StringUtils::ws2s(time.String()));
+			result->PushDictOrdered("time", StringUtils::ws2s(time.String_utc_to_local()));
 			result->PushDictOrdered("exe", StringUtils::ws2s(name));
 			result->PushDictOrdered("sid", "["+StringUtils::ws2s(key)+"]");
 		}
@@ -88,7 +88,7 @@ ResultSet* JumpListData::ModuleRun() {
 		auto s = get_u64l(v.data());
 		auto exec = GTTime::FromTimeStamp64(s);
 		result->PushDictOrdered("name", StringUtils::ws2s(name));
-		result->PushDictOrdered("exec", StringUtils::ws2s(exec.String()));
+		result->PushDictOrdered("exec", StringUtils::ws2s(exec.String_utc_to_local()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -574,12 +574,12 @@ ResultSet* RDPSessions::ModuleRun() {
 		if (result[index]->s_type == Login) {
 			res->PushDictOrdered("User", result[index]->login_event->user);
 			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->login_event->time_creation.c_str()));
-			res->PushDictOrdered("Start", StringUtils::ws2s(t1.String()));
+			res->PushDictOrdered("Start", StringUtils::ws2s(t1.String_utc_to_local()));
 			INT64 count = -1;
 			if (result[index]->type == CloseConn) {
 				if (result[index]->close_conn_event != NULL) {
 					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->close_conn_event->time_creation.c_str()));
-					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String_utc_to_local()));
 					count = t2 - t1;
 				}
 				else {
@@ -589,7 +589,7 @@ ResultSet* RDPSessions::ModuleRun() {
 			else {
 				if (result[index]->logoff_event != NULL) {
 					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->logoff_event->time_creation.c_str()));
-					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String_utc_to_local()));
 					count = t2 - t1;
 				}
 				else {
@@ -624,12 +624,12 @@ ResultSet* RDPSessions::ModuleRun() {
 		else if (result[index]->s_type == Relogin) {
 			res->PushDictOrdered("User", result[index]->relogin_event->user);
 			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->relogin_event->time_creation.c_str()));
-			res->PushDictOrdered("Start", StringUtils::ws2s(t1.String()));
+			res->PushDictOrdered("Start", StringUtils::ws2s(t1.String_utc_to_local()));
 			INT64 count = -1;
 			if (result[index]->type == CloseConn) {
 				if (result[index]->close_conn_event != NULL) {
 					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->close_conn_event->time_creation.c_str()));
-					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String_utc_to_local()));
 					count = t2 - t1;
 				}
 				else {
@@ -639,7 +639,7 @@ ResultSet* RDPSessions::ModuleRun() {
 			else {
 				if (result[index]->logoff_event != NULL) {
 					auto t2 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->logoff_event->time_creation.c_str()));
-					res->PushDictOrdered("End", StringUtils::ws2s(t2.String()));
+					res->PushDictOrdered("End", StringUtils::ws2s(t2.String_utc_to_local()));
 					count = t2 - t1;
 				}
 				else {
@@ -877,10 +877,10 @@ ResultSet* RDPClientSess::ModuleRun() {
 	std::reverse(result.begin(), result.end());
 	for (auto& client : result) {
 		auto start = GTTime::FromISO8601(client.startTime);
-		set->PushDictOrdered("start", StringUtils::ws2s(start.String()));
+		set->PushDictOrdered("start", StringUtils::ws2s(start.String_utc_to_local()));
 		auto end = GTTime::FromISO8601(client.closeTime);
 		auto count = end - start;
-		set->PushDictOrdered("end", StringUtils::ws2s(end.String()));
+		set->PushDictOrdered("end", StringUtils::ws2s(end.String_utc_to_local()));
 		if (count >= 0) {
 			set->PushDictOrdered("duration", ConvertSectoDay(count / 1000));
 		}
