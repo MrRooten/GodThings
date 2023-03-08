@@ -1,5 +1,9 @@
 #pragma once
 #include "public.h"
+
+#include <iostream>
+#include <string>
+
 class NetworkUtils {
 public:
 	static IN_ADDR ConvertDWORDToIN_ADDR(DWORD address) {

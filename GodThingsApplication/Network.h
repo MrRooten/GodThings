@@ -7,6 +7,7 @@
 #include <tcpmib.h>
 #include <string>
 #include "utils.h"
+#include <map>
 #pragma comment(lib, "Iphlpapi.lib")
 typedef struct _MIB_UDP6ROW_OWNER_MODULE {
 	UCHAR           ucLocalAddr[16];

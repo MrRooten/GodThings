@@ -370,7 +370,7 @@ bool operator==(const Connection& conn1, const Connection& conn2) {
 	return true;
 }
 #include <windns.h>
-
+#pragma comment(lib, "dnsapi.lib")
 typedef struct _DNS_SVCB_OPTION {
 	WORD wCode;
 	WORD wDataLength;
@@ -506,105 +506,217 @@ typedef struct _DNS_CACHE_ENTRY {
 	};
 } DNSCACHEENTRY, * PDNSCACHEENTRY;
 
-typedef int(WINAPI* DNS_GET_CACHE_DATA_TABLE)(PDNSCACHEENTRY);
+typedef struct _DNS_CACHE_TABLE_
+{
+	struct _DNS_CACHE_TABLE_* pNext;
+	PWSTR Name;
+	WORD Type1;
+	WORD Type2;
+	WORD Type3;
+} DNS_CACHE_TABLE, * PDNS_CACHE_TABLE;
+
+
+typedef int(WINAPI* DNS_GET_CACHE_DATA_TABLE)(DNS_CACHE_TABLE** ppTable);
 
 typedef void (WINAPI* P_DnsApiFree)(PVOID pData);
-void UpdateDNS(void)
-{
 
-	PDNSCACHEENTRY pEntry = (PDNSCACHEENTRY)malloc(sizeof(DNSCACHEENTRY));
-	// Loading DLL
-	HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
-	// Get function address
-	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTableA");
-	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
-	int stat = DnsGetCacheDataTable(pEntry);
-	printf("stat = %d\n", stat);
-	auto p = pEntry->pNext;
-	while (p) {
-		wprintf(L"%s : %d \n", (p->pszName), (p->wType));
-		auto _p = p;
-		p = p->pNext;
-		pDnsApiFree(p);
+
+
+DnsCache* DnsCache::single = NULL;
+#define DNS_QUERY_CACHE_NO_FLAGS_MATCH      0x00008000
+GTWString
+GetDnsCachedData(
+	__in IN LPWSTR Name,
+	__in IN WORD Type
+)
+{
+	PDNS_RECORD DnsRecord = NULL;
+	DNS_STATUS DnsStatus;
+
+	DnsStatus = DnsQuery_W(
+		Name,
+		Type,
+		DNS_QUERY_CACHE_ONLY | DNS_QUERY_CACHE_NO_FLAGS_MATCH | DNS_QUERY_NO_HOSTS_FILE
+		| DNS_QUERY_NO_HOSTS_FILE, // nicer, but ipconfig does not use it.
+		NULL,
+		&DnsRecord,
+		NULL);
+
+	if (DnsStatus != NO_ERROR)
+	{
+		switch (DnsStatus)
+		{
+		case DNS_INFO_NO_RECORDS: //quite normal, return, no records anyway
+			//break;
+		case DNS_ERROR_RCODE_SERVER_FAILURE:
+			LOG_ERROR_REASON(L"ERROR: Server failure.");
+			break;
+		case DNS_ERROR_RCODE_NAME_ERROR:
+			LOG_ERROR_REASON(L"ERROR: Name Error.");
+			break;
+		case ERROR_TIMEOUT:
+			LOG_ERROR_REASON(L"ERROR: Timeout. ");
+			break;
+		case DNS_ERROR_RECORD_DOES_NOT_EXIST:
+			//ignore
+			break;
+		default:
+			LOG_ERROR_REASON(L"ERROR: Unknown Error.");
+		}
+		return GTWString();
 	}
 
-	FreeLibrary(hLib);
+	PWSTR pwszAllRecordsWorkBuf;
+	DWORD dwAllRecordsWorkBufChCount;
+	dwAllRecordsWorkBufChCount = 1024;
+	pwszAllRecordsWorkBuf = (PWSTR)LocalAlloc(LPTR, dwAllRecordsWorkBufChCount * sizeof(WCHAR));
+
+	PWSTR pwszAllRecordsDataBuf;
+	DWORD dwAllRecordsDataBufChCount;
+	dwAllRecordsDataBufChCount = 1024*1024;
+	pwszAllRecordsDataBuf = (PWSTR)LocalAlloc(LPTR, dwAllRecordsDataBufChCount * sizeof(WCHAR));
+	GTWString data;
+	while (NULL != DnsRecord)
+	{
+		PWSTR pwszDnsRecordTempBuf;
+		DWORD dwDnsRecordBufChCount = 1024;
+		pwszDnsRecordTempBuf = (PWSTR)LocalAlloc(LPTR, dwDnsRecordBufChCount * sizeof(WCHAR));
+		
+		switch (DnsRecord->wType)
+		{
+		case DNS_TYPE_A:
+			data = DnsRecord->Data.A.IpAddress;
+			break;
+		case DNS_TYPE_NS:
+			data = pwszDnsRecordTempBuf;
+			break;
+		case DNS_TYPE_CNAME:
+			data = pwszDnsRecordTempBuf;
+			break;
+		case DNS_TYPE_SOA:
+			data = pwszDnsRecordTempBuf;
+			break;
+		case DNS_TYPE_PTR:
+			data = pwszDnsRecordTempBuf;
+			break;
+		case DNS_TYPE_MX:
+			data = pwszDnsRecordTempBuf;
+			break;
+		case DNS_TYPE_AAAA:
+			data = pwszDnsRecordTempBuf;
+			break;
+		case DNS_TYPE_SRV:
+			data = pwszDnsRecordTempBuf;
+			break;
+		default:
+			data = pwszDnsRecordTempBuf;
+		}
+
+		LocalFree(pwszDnsRecordTempBuf);
+		DnsRecord = DnsRecord->pNext;
+	}
+	DnsRecordListFree(DnsRecord, TRUE);
+
+	LocalFree(pwszAllRecordsDataBuf);
+	LocalFree(pwszAllRecordsWorkBuf);
+	return data;
 }
-DnsCache* DnsCache::single = NULL;
+
 DnsCache* DnsCache::GetInstance() {
 	if (DnsCache::single != NULL) {
 		return DnsCache::single;
 	}
 	auto cache = new DnsCache();
-	PDNSCACHEENTRY pEntry = (PDNSCACHEENTRY)malloc(sizeof(DNSCACHEENTRY));
+	PDNS_CACHE_TABLE  pTable = NULL;
 
-	if (pEntry == NULL) {
-		return NULL;
-	}
 	// Loading DLL
 	HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
 	// Get function address
 	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTable");
 	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
-	int stat = DnsGetCacheDataTable(pEntry);
-	auto p = pEntry->pNext;
-	while (p) {
-		//wprintf(L"%s : %d \n", (p->pszName), (p->wType));
-		GTString ip = (LPSTR)inet_ntoa(*(PIN_ADDR)&p->Data.Data.A);
-		if (p->wType == DNS_TYPE_A || p->wType == DNS_TYPE_AAAA) {
-			if (p->pszName == INVALID_HANDLE_VALUE || p->pszName == NULL) {
-				auto _p = p;
-				p = p->pNext;
-				continue;
-			}
-			GTWString domain = p->pszName;
-			cache->_cache[ip] = StringUtils::ws2s(p->pszName);
+	//int stat = DnsGetCacheDataTable(1, &pTable);
+	//auto p = pTable->pNext;
+
+
+	PDNS_CACHE_TABLE pDNSCacheTable = NULL;
+	PDNS_CACHE_TABLE pTempDNSCacheTable;
+	DWORD dwRecordCount = 0;
+
+	if (!DnsGetCacheDataTable(&pDNSCacheTable)) //get error + display
+	{
+		//wprintf(L"\tListing DNS Cache failed.\r\n");
+		return NULL;
+	}
+
+	pTempDNSCacheTable = pDNSCacheTable;
+
+	while (pTempDNSCacheTable)
+	{
+		PDNS_CACHE_TABLE pNext = pTempDNSCacheTable->pNext;
+
+		if (pTempDNSCacheTable->Type1 != DNS_TYPE_ZERO)
+		{
+			GetDnsCachedData(
+				pTempDNSCacheTable->Name,
+				pTempDNSCacheTable->Type1);
 		}
-		auto _p = p;
-		p = p->pNext;
-		pDnsApiFree(_p);
+
+		if (pTempDNSCacheTable->Type2 != DNS_TYPE_ZERO)
+		{
+			GetDnsCachedData(
+				pTempDNSCacheTable->Name,
+				pTempDNSCacheTable->Type2);
+		}
+
+		if (pTempDNSCacheTable->Type3 != DNS_TYPE_ZERO)
+		{
+			GetDnsCachedData(
+				pTempDNSCacheTable->Name,
+				pTempDNSCacheTable->Type3);
+		}
+
+		DnsFree(pTempDNSCacheTable->Name, DnsFreeFlat);
+		DnsFree(pTempDNSCacheTable, DnsFreeFlat);
+
+		dwRecordCount++;
+
+		pTempDNSCacheTable = pNext;
 	}
-	free(pEntry);
-	if (hLib != NULL) {
-		FreeLibrary(hLib);
-	}
+
 	DnsCache::single = cache;
 	return cache;
 }
 
 void DnsCache::Update() {
-	PDNSCACHEENTRY pEntry = (PDNSCACHEENTRY)malloc(sizeof(DNSCACHEENTRY));
-	if (pEntry == NULL) {
-		return;
-	}
-	// Loading DLL
-	HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
-	// Get function address
-	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTable");
-	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
-	int stat = DnsGetCacheDataTable(pEntry);
-	auto p = pEntry->pNext;
-	while (p) {
-		if (p->wType == DNS_TYPE_A || p->wType == DNS_TYPE_AAAA) {
-			GTString ip = (LPSTR)inet_ntoa(*(PIN_ADDR)&p->Data.Data.A);
-			if (this->_cache.contains(ip) == false) {
-				if (p->pszName == INVALID_HANDLE_VALUE || p->pszName == NULL) {
-					auto _p = p;
-					p = p->pNext;
-					continue;
-				}
-				GTWString domain = p->pszName;
-				this->_cache[ip] = StringUtils::ws2s(p->pszName);
-			}
-		}
-		auto _p = p;
-		p = p->pNext;
-		pDnsApiFree(_p);
-	}
-	free(pEntry);
-	if (hLib != NULL) {
-		FreeLibrary(hLib);
-	}
+	//PDNS_RECORD  pEntry = NULL;
+	//// Loading DLL
+	//HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
+	//// Get function address
+	//DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTable");
+	//P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
+	//int stat = DnsGetCacheDataTable(&pEntry);
+	//auto p = pEntry->pNext;
+	//while (p) {
+	//	if (p->wType == DNS_TYPE_A || p->wType == DNS_TYPE_AAAA) {
+	//		GTString ip = (LPSTR)inet_ntoa(*(PIN_ADDR)&p->Data.Data.A);
+	//		if (this->_cache.contains(ip) == false) {
+	//			if (p->pszName == INVALID_HANDLE_VALUE || p->pszName == NULL) {
+	//				auto _p = p;
+	//				p = p->pNext;
+	//				continue;
+	//			}
+	//			GTWString domain = p->pszName;
+	//			this->_cache[ip] = StringUtils::ws2s(p->pszName);
+	//		}
+	//	}
+	//	auto _p = p;
+	//	p = p->pNext;
+	//	pDnsApiFree(_p);
+	//}
+	//free(pEntry);
+	//if (hLib != NULL) {
+	//	FreeLibrary(hLib);
+	//}
 }
 
 LPCSTR DnsCache::GetDomain(const char* ip) {

@@ -496,8 +496,7 @@ std::vector<Connection> _copy(std::vector<Connection*> vs) {
 
 	return res;
 }
-
-
+#include "NetworkUtils.h"
 ResultSet* WatchNetstat::ModuleRun() {
 	bool running = TRUE;
 	if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
@@ -511,7 +510,8 @@ ResultSet* WatchNetstat::ModuleRun() {
 	for (auto& change : last) {
 		GTString ip = StringUtils::ws2s(change.GetRemoteIPAsString());
 		auto inst = DnsCache::GetInstance();
-		LPCSTR domain = inst->GetDomain(ip.c_str());
+		//LPCSTR domain = inst->GetDomain(ip.c_str());
+		LPCSTR domain = NULL;
 		if (domain == NULL) {
 			domain = "-";
 		}
@@ -550,7 +550,9 @@ ResultSet* WatchNetstat::ModuleRun() {
 			GTTime t = GTTime::GetTime();
 			GTString ip = StringUtils::ws2s(change.second.GetRemoteIPAsString());
 			auto inst = DnsCache::GetInstance();
-			LPCSTR domain = inst->GetDomain(ip.c_str());
+			//LPCSTR domain = inst->GetDomain(ip.c_str());
+			
+			LPCSTR domain = NULL;
 			if (domain == NULL) {
 				domain = "-";
 			}

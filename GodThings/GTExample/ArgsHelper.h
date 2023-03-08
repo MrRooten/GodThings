@@ -13,6 +13,13 @@
 #include "Module.h"
 
 #include "Network.h"
+#include <windows.h>
+#include <windns.h>
+#include <stdio.h>
+
+
+
+
 
 class ArgsHelper {
 public:
@@ -295,7 +302,7 @@ public:
 		}
 		else if (subcmd == L"test") {
 			setlocale(LC_ALL, "chs");
-			auto cache = DnsCache::GetInstance();
+			
 			return;
 		}
 		else if (subcmd == L"list_path") {
