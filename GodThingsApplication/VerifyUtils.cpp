@@ -345,7 +345,7 @@ BytesBuffer Sha256(PBYTE bytes, size_t n) {
     }
 
     pbHash = (PBYTE)malloc(dwHashLen);
-    if (flag == false) {
+    if (pbHash == NULL) {
         LOG_ERROR_REASON("");
         if (hHash)
             CryptDestroyHash(hHash);

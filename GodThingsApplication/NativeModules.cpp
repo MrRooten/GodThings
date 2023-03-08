@@ -509,6 +509,12 @@ ResultSet* WatchNetstat::ModuleRun() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	std::vector<Connection> last = _copy(mgr.GetAllConnections());
 	for (auto& change : last) {
+		GTString ip = StringUtils::ws2s(change.GetRemoteIPAsString());
+		auto inst = DnsCache::GetInstance();
+		LPCSTR domain = inst->GetDomain(ip.c_str());
+		if (domain == NULL) {
+			domain = "-";
+		}
 		GTWString protocol = L"";
 		if (change.protocol == Protocol::UDP) {
 			protocol = L"UDP";
@@ -516,15 +522,17 @@ ResultSet* WatchNetstat::ModuleRun() {
 		else {
 			protocol = L"TCP";
 		}
-		wprintf(L"[Base]%s %s %d %s %d [%d] %s\n", protocol.c_str(), change.GetLocalIPAsString().c_str(),
+		wprintf(L"[Base]%s %s:%d %s:%d %s [%d] %s\n", protocol.c_str(), change.GetLocalIPAsString().c_str(),
 				change.localPort,
 				change.GetRemoteIPAsString().c_str(), change.remotePort,
+			StringUtils::s2ws(domain).c_str(),
 			change.owningPid, proMgr.processesMap[change.owningPid]->GetProcessName().c_str());
 	}
 	std::vector<Connection> conns;
 	int i = 0;
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	for (; ;i++) {
+		Sleep(100);
 		proMgr.UpdateInfo();
 		conns = _copy(mgr.GetAllConnections());
 		auto changes = _what_is_second_doesnot_have(conns, last);
@@ -540,14 +548,21 @@ ResultSet* WatchNetstat::ModuleRun() {
 			SYSTEMTIME st;
 			GetLocalTime(&st); 
 			GTTime t = GTTime::GetTime();
+			GTString ip = StringUtils::ws2s(change.second.GetRemoteIPAsString());
+			auto inst = DnsCache::GetInstance();
+			LPCSTR domain = inst->GetDomain(ip.c_str());
+			if (domain == NULL) {
+				domain = "-";
+			}
 			if (change.first == false) {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
 					SetConsoleTextAttribute(hConsole, 0xc);
-					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s %s\n", 
+					wprintf(L"[-]%s %s:%d %s:%d %s %s [%d] %s %s\n", 
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						StringUtils::s2ws(domain).c_str(),
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid, 
 						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str(),
@@ -555,11 +570,12 @@ ResultSet* WatchNetstat::ModuleRun() {
 				}
 				else {
 					SetConsoleTextAttribute(hConsole, 0xc);
-					wprintf(L"[-]%s %s:%d %s:%d %s [%d] %s %s\n",
+					wprintf(L"[-]%s %s:%d %s:%d %s %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						StringUtils::s2ws(domain).c_str(),
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
 						L"",
@@ -569,11 +585,12 @@ ResultSet* WatchNetstat::ModuleRun() {
 			else {
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
 					SetConsoleTextAttribute(hConsole, 0xa);
-					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s %s\n",
+					wprintf(L"[+]%s %s:%d %s:%d %s %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						StringUtils::s2ws(domain).c_str(),
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
 						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str(),
@@ -581,11 +598,12 @@ ResultSet* WatchNetstat::ModuleRun() {
 				}
 				else {
 					SetConsoleTextAttribute(hConsole, 0xa);
-					wprintf(L"[+]%s %s:%d %s:%d %s [%d] %s %s\n",
+					wprintf(L"[+]%s %s:%d %s:%d %s %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
+						StringUtils::s2ws(domain).c_str(),
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
 						L"",

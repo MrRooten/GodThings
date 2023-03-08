@@ -11,6 +11,9 @@ void extendInit() {
     new RDPClientSess();
 }
 
+
+
+
 int wmain(int argc, wchar_t* argv[]) {
     InitKernelUtils();
     extendInit();

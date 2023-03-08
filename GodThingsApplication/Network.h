@@ -88,3 +88,15 @@ class Interface {
 public:
 	Interface(wchar_t* guid);
 };
+#include <map>
+
+
+
+class DnsCache {
+	std::map<GTString, GTString> _cache;
+	static DnsCache* single;
+public:
+	static DnsCache* GetInstance();
+	void Update();
+	LPCSTR GetDomain(const char* ip);
+};

@@ -369,3 +369,255 @@ bool operator==(const Connection& conn1, const Connection& conn2) {
 
 	return true;
 }
+#include <windns.h>
+
+typedef struct _DNS_SVCB_OPTION {
+	WORD wCode;
+	WORD wDataLength;
+	BYTE bData[ANYSIZE_ARRAY];
+} DNS_SVCB_OPTION, * PDNS_SVCB_OPTION;
+
+typedef struct _DNS_SVCB_DATA {
+	WORD wPriority;
+	WORD wPort;
+	BYTE chPriorityNameLength;
+	BYTE chServiceNameLength;
+	BYTE chTargetNameLength;
+	BYTE chOptions;
+	BYTE bPriorityName[ANYSIZE_ARRAY];
+	BYTE bServiceName[ANYSIZE_ARRAY];
+	BYTE bTargetName[ANYSIZE_ARRAY];
+	DNS_SVCB_OPTION Options[ANYSIZE_ARRAY];
+} DNS_SVCB_DATA, * PDNS_SVCB_DATA;
+
+typedef struct _DnsRecordA2 {
+	struct _DnsRecordA* pNext;
+	PSTR               pName;
+	WORD               wType;
+	WORD               wDataLength;
+	union {
+		DWORD            DW;
+		DNS_RECORD_FLAGS S;
+	} Flags;
+	DWORD              dwTtl;
+	DWORD              dwReserved;
+	union {
+		DNS_A_DATA          A;
+		DNS_SOA_DATAA       SOA;
+		DNS_SOA_DATAA       Soa;
+		DNS_PTR_DATAA       PTR;
+		DNS_PTR_DATAA       Ptr;
+		DNS_PTR_DATAA       NS;
+		DNS_PTR_DATAA       Ns;
+		DNS_PTR_DATAA       CNAME;
+		DNS_PTR_DATAA       Cname;
+		DNS_PTR_DATAA       DNAME;
+		DNS_PTR_DATAA       Dname;
+		DNS_PTR_DATAA       MB;
+		DNS_PTR_DATAA       Mb;
+		DNS_PTR_DATAA       MD;
+		DNS_PTR_DATAA       Md;
+		DNS_PTR_DATAA       MF;
+		DNS_PTR_DATAA       Mf;
+		DNS_PTR_DATAA       MG;
+		DNS_PTR_DATAA       Mg;
+		DNS_PTR_DATAA       MR;
+		DNS_PTR_DATAA       Mr;
+		DNS_MINFO_DATAA     MINFO;
+		DNS_MINFO_DATAA     Minfo;
+		DNS_MINFO_DATAA     RP;
+		DNS_MINFO_DATAA     Rp;
+		DNS_MX_DATAA        MX;
+		DNS_MX_DATAA        Mx;
+		DNS_MX_DATAA        AFSDB;
+		DNS_MX_DATAA        Afsdb;
+		DNS_MX_DATAA        RT;
+		DNS_MX_DATAA        Rt;
+		DNS_TXT_DATAA       HINFO;
+		DNS_TXT_DATAA       Hinfo;
+		DNS_TXT_DATAA       ISDN;
+		DNS_TXT_DATAA       Isdn;
+		DNS_TXT_DATAA       TXT;
+		DNS_TXT_DATAA       Txt;
+		DNS_TXT_DATAA       X25;
+		DNS_NULL_DATA       Null;
+		DNS_WKS_DATA        WKS;
+		DNS_WKS_DATA        Wks;
+		DNS_AAAA_DATA       AAAA;
+		DNS_KEY_DATA        KEY;
+		DNS_KEY_DATA        Key;
+		DNS_SIG_DATAA       SIG;
+		DNS_SIG_DATAA       Sig;
+		DNS_ATMA_DATA       ATMA;
+		DNS_ATMA_DATA       Atma;
+		DNS_NXT_DATAA       NXT;
+		DNS_NXT_DATAA       Nxt;
+		DNS_SRV_DATAA       SRV;
+		DNS_SRV_DATAA       Srv;
+		DNS_NAPTR_DATAA     NAPTR;
+		DNS_NAPTR_DATAA     Naptr;
+		DNS_OPT_DATA        OPT;
+		DNS_OPT_DATA        Opt;
+		DNS_DS_DATA         DS;
+		DNS_DS_DATA         Ds;
+		DNS_RRSIG_DATAA     RRSIG;
+		DNS_RRSIG_DATAA     Rrsig;
+		DNS_NSEC_DATAA      NSEC;
+		DNS_NSEC_DATAA      Nsec;
+		DNS_DNSKEY_DATA     DNSKEY;
+		DNS_DNSKEY_DATA     Dnskey;
+		DNS_TKEY_DATAA      TKEY;
+		DNS_TKEY_DATAA      Tkey;
+		DNS_TSIG_DATAA      TSIG;
+		DNS_TSIG_DATAA      Tsig;
+		DNS_WINS_DATA       WINS;
+		DNS_WINS_DATA       Wins;
+		DNS_WINSR_DATAA     WINSR;
+		DNS_WINSR_DATAA     WinsR;
+		DNS_WINSR_DATAA     NBSTAT;
+		DNS_WINSR_DATAA     Nbstat;
+		DNS_DHCID_DATA      DHCID;
+		DNS_NSEC3_DATA      NSEC3;
+		DNS_NSEC3_DATA      Nsec3;
+		DNS_NSEC3PARAM_DATA NSEC3PARAM;
+		DNS_NSEC3PARAM_DATA Nsec3Param;
+		DNS_TLSA_DATA       TLSA;
+		DNS_TLSA_DATA       Tlsa;
+		DNS_SVCB_DATA       SVCB;
+		DNS_SVCB_DATA       Svcb;
+		DNS_UNKNOWN_DATA    UNKNOWN;
+		DNS_UNKNOWN_DATA    Unknown;
+		PBYTE               pDataPtr;
+	} Data;
+} DNS_RECORDA2, * PDNS_RECORDA2;
+
+
+
+typedef struct _DNS_CACHE_ENTRY {
+	struct _DNS_CACHE_ENTRY* pNext; // Pointer to next entry
+	PWSTR pszName; // DNS Record Name
+	unsigned short wType; // DNS Record Type
+	unsigned short wDataLength; // Not referenced
+	unsigned long dwFlags; // DNS Record FlagsB
+	union {
+		DNS_RECORDA Data;
+		DNS_RECORDA DataUTF8;
+		DNS_RECORDA DataAscii;
+	};
+} DNSCACHEENTRY, * PDNSCACHEENTRY;
+
+typedef int(WINAPI* DNS_GET_CACHE_DATA_TABLE)(PDNSCACHEENTRY);
+
+typedef void (WINAPI* P_DnsApiFree)(PVOID pData);
+void UpdateDNS(void)
+{
+
+	PDNSCACHEENTRY pEntry = (PDNSCACHEENTRY)malloc(sizeof(DNSCACHEENTRY));
+	// Loading DLL
+	HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
+	// Get function address
+	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTableA");
+	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
+	int stat = DnsGetCacheDataTable(pEntry);
+	printf("stat = %d\n", stat);
+	auto p = pEntry->pNext;
+	while (p) {
+		wprintf(L"%s : %d \n", (p->pszName), (p->wType));
+		auto _p = p;
+		p = p->pNext;
+		pDnsApiFree(p);
+	}
+
+	FreeLibrary(hLib);
+}
+DnsCache* DnsCache::single = NULL;
+DnsCache* DnsCache::GetInstance() {
+	if (DnsCache::single != NULL) {
+		return DnsCache::single;
+	}
+	auto cache = new DnsCache();
+	PDNSCACHEENTRY pEntry = (PDNSCACHEENTRY)malloc(sizeof(DNSCACHEENTRY));
+
+	if (pEntry == NULL) {
+		return NULL;
+	}
+	// Loading DLL
+	HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
+	// Get function address
+	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTable");
+	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
+	int stat = DnsGetCacheDataTable(pEntry);
+	auto p = pEntry->pNext;
+	while (p) {
+		//wprintf(L"%s : %d \n", (p->pszName), (p->wType));
+		GTString ip = (LPSTR)inet_ntoa(*(PIN_ADDR)&p->Data.Data.A);
+		if (p->wType == DNS_TYPE_A || p->wType == DNS_TYPE_AAAA) {
+			if (p->pszName == INVALID_HANDLE_VALUE || p->pszName == NULL) {
+				auto _p = p;
+				p = p->pNext;
+				continue;
+			}
+			GTWString domain = p->pszName;
+			cache->_cache[ip] = StringUtils::ws2s(p->pszName);
+		}
+		auto _p = p;
+		p = p->pNext;
+		pDnsApiFree(_p);
+	}
+	free(pEntry);
+	if (hLib != NULL) {
+		FreeLibrary(hLib);
+	}
+	DnsCache::single = cache;
+	return cache;
+}
+
+void DnsCache::Update() {
+	PDNSCACHEENTRY pEntry = (PDNSCACHEENTRY)malloc(sizeof(DNSCACHEENTRY));
+	if (pEntry == NULL) {
+		return;
+	}
+	// Loading DLL
+	HINSTANCE hLib = LoadLibrary(TEXT("DNSAPI.dll"));
+	// Get function address
+	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTable");
+	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
+	int stat = DnsGetCacheDataTable(pEntry);
+	auto p = pEntry->pNext;
+	while (p) {
+		if (p->wType == DNS_TYPE_A || p->wType == DNS_TYPE_AAAA) {
+			GTString ip = (LPSTR)inet_ntoa(*(PIN_ADDR)&p->Data.Data.A);
+			if (this->_cache.contains(ip) == false) {
+				if (p->pszName == INVALID_HANDLE_VALUE || p->pszName == NULL) {
+					auto _p = p;
+					p = p->pNext;
+					continue;
+				}
+				GTWString domain = p->pszName;
+				this->_cache[ip] = StringUtils::ws2s(p->pszName);
+			}
+		}
+		auto _p = p;
+		p = p->pNext;
+		pDnsApiFree(_p);
+	}
+	free(pEntry);
+	if (hLib != NULL) {
+		FreeLibrary(hLib);
+	}
+}
+
+LPCSTR DnsCache::GetDomain(const char* ip) {
+	if (ip == NULL) {
+		return ip;
+	}
+
+	GTString _s_ip = ip;
+	if (this->_cache.contains(_s_ip)) {
+		return this->_cache[_s_ip].c_str();
+	}
+
+	return NULL;
+}
+
+

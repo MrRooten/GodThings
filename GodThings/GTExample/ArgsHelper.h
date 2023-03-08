@@ -11,6 +11,9 @@
 #include "Service.h"
 #include "ProcServer.h"
 #include "Module.h"
+
+#include "Network.h"
+
 class ArgsHelper {
 public:
 	static void help(wchar_t* file) {
@@ -292,7 +295,7 @@ public:
 		}
 		else if (subcmd == L"test") {
 			setlocale(LC_ALL, "chs");
-			LOG_ERROR_REASON("hello");
+			auto cache = DnsCache::GetInstance();
 			return;
 		}
 		else if (subcmd == L"list_path") {
