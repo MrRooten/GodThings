@@ -531,8 +531,10 @@ ResultSet* WatchNetstat::ModuleRun() {
 	std::vector<Connection> conns;
 	int i = 0;
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	auto inst = DnsCache::GetInstance();
 	for (; ;i++) {
 		Sleep(100);
+		//inst->Update();
 		proMgr.UpdateInfo();
 		conns = _copy(mgr.GetAllConnections());
 		auto changes = _what_is_second_doesnot_have(conns, last);
