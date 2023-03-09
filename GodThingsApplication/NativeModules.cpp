@@ -454,9 +454,9 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 std::vector<std::pair<bool, Connection>> _what_is_second_doesnot_have(std::vector<Connection>& first, std::vector<Connection>& second) {
 	std::vector<std::pair<bool,Connection>> res;
 	bool flag = false;
-	for (auto s : second) {
+	for (auto &s : second) {
 		flag = false;
-		for (auto f : first) {
+		for (auto &f : first) {
 			if (f == s) {
 				flag = true;
 				break;
@@ -469,9 +469,9 @@ std::vector<std::pair<bool, Connection>> _what_is_second_doesnot_have(std::vecto
 		}
 	}
 
-	for (auto f : first) {
+	for (auto &f : first) {
 		flag = false;
-		for (auto s : second) {
+		for (auto &s : second) {
 			if (f == s) {
 				flag = true;
 				break;
@@ -508,12 +508,12 @@ ResultSet* WatchNetstat::ModuleRun() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	std::vector<Connection> last = _copy(mgr.GetAllConnections());
 	for (auto& change : last) {
-		GTString ip = StringUtils::ws2s(change.GetRemoteIPAsString());
+		GTWString ip = change.GetRemoteIPAsString();
 		auto inst = DnsCache::GetInstance();
-		//LPCSTR domain = inst->GetDomain(ip.c_str());
-		LPCSTR domain = NULL;
+		LPCWSTR domain = inst->GetDomain(ip.c_str());
+		//LPCSTR domain = NULL;
 		if (domain == NULL) {
-			domain = "-";
+			domain = L"-";
 		}
 		GTWString protocol = L"";
 		if (change.protocol == Protocol::UDP) {
@@ -522,22 +522,27 @@ ResultSet* WatchNetstat::ModuleRun() {
 		else {
 			protocol = L"TCP";
 		}
-		wprintf(L"[Base]%s %s:%d %s:%d %s [%d] %s\n", protocol.c_str(), change.GetLocalIPAsString().c_str(),
+		wprintf(L"[Base]%s %s:%d %s:%d/%s [%d] %s\n", protocol.c_str(), change.GetLocalIPAsString().c_str(),
 				change.localPort,
 				change.GetRemoteIPAsString().c_str(), change.remotePort,
-			StringUtils::s2ws(domain).c_str(),
+			domain,
 			change.owningPid, proMgr.processesMap[change.owningPid]->GetProcessName().c_str());
 	}
 	std::vector<Connection> conns;
-	int i = 0;
+	UINT64 i = 0;
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	auto inst = DnsCache::GetInstance();
 	for (; ;i++) {
-		Sleep(100);
-		//inst->Update();
-		proMgr.UpdateInfo();
+		//Sleep(50);
+		if (i % 32 == 0) {
+			//inst->Update();
+		}
+		std::map<PID, GTWString> procsMap ;
 		conns = _copy(mgr.GetAllConnections());
 		auto changes = _what_is_second_doesnot_have(conns, last);
+		if (changes.size() > 0) {
+			procsMap = proMgr.GetProcesses_Light();
+		}
 		//print changes
 		for (auto& change : changes) {
 			GTWString protocol = L"";
@@ -550,36 +555,40 @@ ResultSet* WatchNetstat::ModuleRun() {
 			SYSTEMTIME st;
 			GetLocalTime(&st); 
 			GTTime t = GTTime::GetTime();
-			GTString ip = StringUtils::ws2s(change.second.GetRemoteIPAsString());
+			GTWString ip = change.second.GetRemoteIPAsString();
 			auto inst = DnsCache::GetInstance();
-			//LPCSTR domain = inst->GetDomain(ip.c_str());
+			LPCWSTR domain = inst->GetDomain(ip.c_str());
 			
-			LPCSTR domain = NULL;
+			//LPCSTR domain = NULL;
 			if (domain == NULL) {
-				domain = "-";
+				domain = L"-";
 			}
 			if (change.first == false) {
+				LPCWSTR name = L"";
+				if (procsMap.contains(change.second.owningPid)) {
+					name = procsMap[change.second.owningPid].c_str();
+				}
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
 					SetConsoleTextAttribute(hConsole, 0xc);
-					wprintf(L"[-]%s %s:%d %s:%d %s %s [%d] %s %s\n", 
+					wprintf(L"[-]%s %s:%d %s:%d/%s %s [%d] %s %s\n", 
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
-						StringUtils::s2ws(domain).c_str(),
+						domain,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid, 
-						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str(),
+						name,
 						t.String().c_str());
 				}
 				else {
 					SetConsoleTextAttribute(hConsole, 0xc);
-					wprintf(L"[-]%s %s:%d %s:%d %s %s [%d] %s %s\n",
+					wprintf(L"[-]%s %s:%d %s:%d/%s %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
-						StringUtils::s2ws(domain).c_str(),
+						domain,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
 						L"",
@@ -587,27 +596,31 @@ ResultSet* WatchNetstat::ModuleRun() {
 				}
 			}
 			else {
+				LPCWSTR name = L"";
+				if (procsMap.contains(change.second.owningPid)) {
+					name = procsMap[change.second.owningPid].c_str();
+				}
 				if (proMgr.processesMap[change.second.owningPid] != NULL) {
 					SetConsoleTextAttribute(hConsole, 0xa);
-					wprintf(L"[+]%s %s:%d %s:%d %s %s [%d] %s %s\n",
+					wprintf(L"[+]%s %s:%d %s:%d/%s %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
-						StringUtils::s2ws(domain).c_str(),
+						domain,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
-						proMgr.processesMap[change.second.owningPid]->GetProcessName().c_str(),
+						name,
 						t.String().c_str());
 				}
 				else {
 					SetConsoleTextAttribute(hConsole, 0xa);
-					wprintf(L"[+]%s %s:%d %s:%d %s %s [%d] %s %s\n",
+					wprintf(L"[+]%s %s:%d %s:%d/%s %s [%d] %s %s\n",
 						protocol.c_str(),
 						change.second.GetLocalIPAsString().c_str(),
 						change.second.localPort,
 						change.second.GetRemoteIPAsString().c_str(), change.second.remotePort,
-						StringUtils::s2ws(domain).c_str(),
+						domain,
 						change.second.GetStateAsString().c_str(),
 						change.second.owningPid,
 						L"",

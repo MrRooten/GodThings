@@ -94,10 +94,10 @@ public:
 
 
 class DnsCache {
-	std::map<GTString, GTString> _cache;
+	std::map<GTWString, GTWString> _cache;
 	static DnsCache* single;
 public:
 	static DnsCache* GetInstance();
 	void Update();
-	LPCSTR GetDomain(const char* ip);
+	LPCWSTR GetDomain(const wchar_t* ip);
 };

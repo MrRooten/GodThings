@@ -536,8 +536,8 @@ GetDnsCachedData(
 	DnsStatus = DnsQuery_W(
 		Name,
 		Type,
-		DNS_QUERY_CACHE_ONLY | DNS_QUERY_CACHE_NO_FLAGS_MATCH | DNS_QUERY_NO_HOSTS_FILE
-		| DNS_QUERY_NO_HOSTS_FILE, // nicer, but ipconfig does not use it.
+		DNS_QUERY_CACHE_ONLY | DNS_QUERY_CACHE_NO_FLAGS_MATCH, //|DNS_QUERY_NO_HOSTS_FILE
+		//| DNS_QUERY_NO_HOSTS_FILE, // nicer, but ipconfig does not use it.
 		NULL,
 		&DnsRecord,
 		NULL);
@@ -549,19 +549,19 @@ GetDnsCachedData(
 		case DNS_INFO_NO_RECORDS: //quite normal, return, no records anyway
 			//break;
 		case DNS_ERROR_RCODE_SERVER_FAILURE:
-			LOG_ERROR_REASON(L"ERROR: Server failure.");
+			LOG_DEBUG_REASON(L"ERROR: Server failure.");
 			break;
 		case DNS_ERROR_RCODE_NAME_ERROR:
-			LOG_ERROR_REASON(L"ERROR: Name Error.");
+			LOG_DEBUG_REASON(L"ERROR: Name Error.");
 			break;
 		case ERROR_TIMEOUT:
-			LOG_ERROR_REASON(L"ERROR: Timeout. ");
+			LOG_DEBUG_REASON(L"ERROR: Timeout. ");
 			break;
 		case DNS_ERROR_RECORD_DOES_NOT_EXIST:
 			//ignore
 			break;
 		default:
-			LOG_ERROR_REASON(L"ERROR: Unknown Error.");
+			LOG_DEBUG_REASON(L"ERROR: Unknown Error.");
 		}
 		return GTWString();
 	}
@@ -569,18 +569,19 @@ GetDnsCachedData(
 	PWSTR pwszAllRecordsWorkBuf;
 	DWORD dwAllRecordsWorkBufChCount;
 	dwAllRecordsWorkBufChCount = 1024;
-	pwszAllRecordsWorkBuf = (PWSTR)LocalAlloc(LPTR, dwAllRecordsWorkBufChCount * sizeof(WCHAR));
+	pwszAllRecordsWorkBuf = (PWSTR)LocalAlloc(GPTR, dwAllRecordsWorkBufChCount * sizeof(WCHAR));
 
 	PWSTR pwszAllRecordsDataBuf;
 	DWORD dwAllRecordsDataBufChCount;
 	dwAllRecordsDataBufChCount = 1024*1024;
-	pwszAllRecordsDataBuf = (PWSTR)LocalAlloc(LPTR, dwAllRecordsDataBufChCount * sizeof(WCHAR));
+	pwszAllRecordsDataBuf = (PWSTR)LocalAlloc(GPTR, dwAllRecordsDataBufChCount * sizeof(WCHAR));
 	GTWString data;
+	auto save = DnsRecord;
 	while (NULL != DnsRecord)
 	{
 		PWSTR pwszDnsRecordTempBuf;
 		DWORD dwDnsRecordBufChCount = 1024;
-		pwszDnsRecordTempBuf = (PWSTR)LocalAlloc(LPTR, dwDnsRecordBufChCount * sizeof(WCHAR));
+		pwszDnsRecordTempBuf = (PWSTR)LocalAlloc(GPTR, dwDnsRecordBufChCount * sizeof(WCHAR));
 		
 		switch (DnsRecord->wType)
 		{
@@ -588,7 +589,7 @@ GetDnsCachedData(
 			data = ConvertIP(DnsRecord->Data.A.IpAddress);
 			break;
 		case DNS_TYPE_NS:
-			data = pwszDnsRecordTempBuf;
+			//data = StringUtils::s2ws(DnsRecord->Data.NS.pNameHost);
 			break;
 		case DNS_TYPE_CNAME:
 			data = pwszDnsRecordTempBuf;
@@ -613,9 +614,11 @@ GetDnsCachedData(
 		}
 
 		LocalFree(pwszDnsRecordTempBuf);
+		auto _p = DnsRecord;
 		DnsRecord = DnsRecord->pNext;
+		
 	}
-	DnsRecordListFree(DnsRecord, TRUE);
+	DnsRecordListFree(save, TRUE);
 
 	LocalFree(pwszAllRecordsDataBuf);
 	LocalFree(pwszAllRecordsWorkBuf);
@@ -659,7 +662,7 @@ DnsCache* DnsCache::GetInstance() {
 			auto key = GetDnsCachedData(
 				pTempDNSCacheTable->Name,
 				pTempDNSCacheTable->Type1);
-			cache->_cache[StringUtils::ws2s(key)] = StringUtils::ws2s(pTempDNSCacheTable->Name);
+			cache->_cache[key] = pTempDNSCacheTable->Name;
 		}
 
 		if (pTempDNSCacheTable->Type2 != DNS_TYPE_ZERO)
@@ -667,7 +670,7 @@ DnsCache* DnsCache::GetInstance() {
 			auto key = GetDnsCachedData(
 				pTempDNSCacheTable->Name,
 				pTempDNSCacheTable->Type2);
-			cache->_cache[StringUtils::ws2s(key)] = StringUtils::ws2s(pTempDNSCacheTable->Name);
+			cache->_cache[key] = pTempDNSCacheTable->Name;
 		}
 
 		if (pTempDNSCacheTable->Type3 != DNS_TYPE_ZERO)
@@ -675,7 +678,7 @@ DnsCache* DnsCache::GetInstance() {
 			auto key = GetDnsCachedData(
 				pTempDNSCacheTable->Name,
 				pTempDNSCacheTable->Type3);
-			cache->_cache[StringUtils::ws2s(key)] = StringUtils::ws2s(pTempDNSCacheTable->Name);
+			cache->_cache[key] = pTempDNSCacheTable->Name;
 		}
 
 		DnsFree(pTempDNSCacheTable->Name, DnsFreeFlat);
@@ -685,7 +688,9 @@ DnsCache* DnsCache::GetInstance() {
 
 		pTempDNSCacheTable = pNext;
 	}
-
+	if (hLib != NULL) {
+		FreeLibrary(hLib);
+	}
 	DnsCache::single = cache;
 	return cache;
 }
@@ -698,17 +703,12 @@ void DnsCache::Update() {
 	// Get function address
 	DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hLib, "DnsGetCacheDataTable");
 	P_DnsApiFree pDnsApiFree = (P_DnsApiFree)GetProcAddress(hLib, "DnsApiFree");
-	//int stat = DnsGetCacheDataTable(1, &pTable);
-	//auto p = pTable->pNext;
-
 
 	PDNS_CACHE_TABLE pDNSCacheTable = NULL;
 	PDNS_CACHE_TABLE pTempDNSCacheTable;
 	DWORD dwRecordCount = 0;
 
-	if (!DnsGetCacheDataTable(&pDNSCacheTable)) //get error + display
-	{
-		//wprintf(L"\tListing DNS Cache failed.\r\n");
+	if (!DnsGetCacheDataTable(&pDNSCacheTable)) {
 		return ;
 	}
 
@@ -723,7 +723,7 @@ void DnsCache::Update() {
 			auto key = GetDnsCachedData(
 				pTempDNSCacheTable->Name,
 				pTempDNSCacheTable->Type1);
-			this->_cache[StringUtils::ws2s(key)] = StringUtils::ws2s(pTempDNSCacheTable->Name);
+			this->_cache[key] = pTempDNSCacheTable->Name;
 		}
 
 		if (pTempDNSCacheTable->Type2 != DNS_TYPE_ZERO)
@@ -731,7 +731,7 @@ void DnsCache::Update() {
 			auto key = GetDnsCachedData(
 				pTempDNSCacheTable->Name,
 				pTempDNSCacheTable->Type2);
-			this->_cache[StringUtils::ws2s(key)] = StringUtils::ws2s(pTempDNSCacheTable->Name);
+			this->_cache[key] = pTempDNSCacheTable->Name;
 		}
 
 		if (pTempDNSCacheTable->Type3 != DNS_TYPE_ZERO)
@@ -739,7 +739,7 @@ void DnsCache::Update() {
 			auto key = GetDnsCachedData(
 				pTempDNSCacheTable->Name,
 				pTempDNSCacheTable->Type3);
-			this->_cache[StringUtils::ws2s(key)] = StringUtils::ws2s(pTempDNSCacheTable->Name);
+			this->_cache[key] = pTempDNSCacheTable->Name;
 		}
 
 		DnsFree(pTempDNSCacheTable->Name, DnsFreeFlat);
@@ -749,16 +749,19 @@ void DnsCache::Update() {
 
 		pTempDNSCacheTable = pNext;
 	}
+
+	if (hLib != NULL) {
+		FreeLibrary(hLib);
+	}
 }
 
-LPCSTR DnsCache::GetDomain(const char* ip) {
+LPCWSTR DnsCache::GetDomain(const wchar_t* ip) {
 	if (ip == NULL) {
 		return ip;
 	}
 
-	GTString _s_ip = ip;
-	if (this->_cache.contains(_s_ip)) {
-		return this->_cache[_s_ip].c_str();
+	if (this->_cache.contains(ip)) {
+		return this->_cache[ip].c_str();
 	}
 
 	return NULL;

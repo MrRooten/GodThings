@@ -334,6 +334,7 @@ public:
 	std::map<PID, std::vector<Thread*>> threadsMap;
 	BOOL SetAllThreads();
 	BOOL SetAllProcesses();
+	std::map<PID, GTWString> GetProcesses_Light();
 	DWORD SetAllProcesses2();
 
 };
