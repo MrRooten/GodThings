@@ -3,10 +3,10 @@ This project is a framework of Windows system analysis and provide some system a
 ## Godthings.sys
   This is kernel driver of this project that supply some kernel mode ability.This must be developped in VS2019,but now I'm in VS2022(Too lazy to install VS2019,So may quit for a while)
   
-## GodAgent.exe
+## GodAgent.lib
   This is the main program of this project.
   ### Args
-    GodAgent.exe <subcommand> <option>
+    GTExample2.exe <subcommand> <option>
       gui_serve: Run the GUI Serve
       info_module: Module Information
       run_module <module>: Run a module
