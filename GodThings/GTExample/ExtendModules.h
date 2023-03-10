@@ -36,3 +36,9 @@ public:
 	RDPClientSess();
 	ResultSet* ModuleRun();
 };
+
+class LoadedFiles : public NativeModule {
+public:
+	LoadedFiles();
+	ResultSet* ModuleRun();
+};

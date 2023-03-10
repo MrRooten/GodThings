@@ -2,7 +2,7 @@
 pNtQueryObject NtQueryObject = NULL;
 std::wstring ObjectInfo::GetObjectName(HANDLE hObject) {
     if (hObject == NULL) {
-        return L"Unknown";
+        return L"";
     }
     std::wstring res;
     
@@ -10,7 +10,7 @@ std::wstring ObjectInfo::GetObjectName(HANDLE hObject) {
         NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
     }
     if (NtQueryObject == NULL) {
-        return L"Unknown";
+        return L"";
     }
     OBJECT_NAME_INFORMATION* name = NULL;
     DWORD size = 0;
@@ -32,7 +32,7 @@ std::wstring ObjectInfo::GetObjectName(HANDLE hObject) {
     }
 
     if (name==NULL||name->Name.Buffer == NULL) {
-        return L"Unknown";
+        return L"";
     }
     res = name->Name.Buffer;
 cleanup:
@@ -44,14 +44,14 @@ cleanup:
 std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
     if (hObject == NULL) {
         
-        return L"Unknown";
+        return L"";
     }
     std::wstring res;
     if (NtQueryObject == NULL) {
         NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
     }
     if (NtQueryObject == NULL) {
-        return L"Unknown";
+        return L"";
     }
     OBJECT_TYPE_INFORMATION* type = NULL;
     DWORD size = 0;
@@ -70,7 +70,7 @@ std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
     }
 
     if (type != NULL && type->TypeName.Buffer == NULL) {
-        return L"Unknown";
+        return L"";
     }
     res = type->TypeName.Buffer;
 cleanup:

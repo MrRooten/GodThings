@@ -535,7 +535,7 @@ ResultSet* WatchNetstat::ModuleRun() {
 	for (; ;i++) {
 		//Sleep(50);
 		if (i % 32 == 0) {
-			//inst->Update();
+			inst->Update();
 		}
 		std::map<PID, GTWString> procsMap ;
 		conns = _copy(mgr.GetAllConnections());

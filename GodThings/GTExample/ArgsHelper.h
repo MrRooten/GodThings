@@ -302,7 +302,8 @@ public:
 		}
 		else if (subcmd == L"test") {
 			setlocale(LC_ALL, "chs");
-			
+			Process p(3540);
+			p.GetLoadedFiles();
 			return;
 		}
 		else if (subcmd == L"list_path") {

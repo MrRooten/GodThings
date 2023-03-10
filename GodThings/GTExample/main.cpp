@@ -9,6 +9,7 @@ void extendInit() {
     new ListSSP();
     new RDPSessions();
     new RDPClientSess();
+    new LoadedFiles();
 }
 
 

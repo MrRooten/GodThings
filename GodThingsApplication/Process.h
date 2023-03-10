@@ -108,8 +108,7 @@ typedef struct _HandleState {
 	int GDIHandles;
 	int USERHandles;
 	DWORD _bufferSize;
-	PPROCESS_HANDLE_SNAPSHOT_INFORMATION handles;
-	
+	PSYSTEM_HANDLE_INFORMATION_EX handles;
 }HandleState;
 
 typedef struct _ImageState {
@@ -241,6 +240,7 @@ public:
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
 	std::vector<LoadedDll> GetLoadedDlls();
+	std::vector<GTWString> GetLoadedFiles();
 	GTWString GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);

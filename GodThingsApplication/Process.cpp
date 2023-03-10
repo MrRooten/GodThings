@@ -7,6 +7,7 @@
 #include "NtSystemInfo.h"
 #include "ProcessUtils.h"
 #include "SystemUtils.h"
+#include "ObjectInfo.h"
 #define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
 #define STATUS_UNSUCCESSFUL           ((NTSTATUS)0xC0000001L)
 typedef NTSTATUS(NTAPI* pfnNtQueryInformationProcess)(
@@ -115,9 +116,9 @@ Process::Process(PID processId, ProcessManager* processesManager) {
 }
 
 Process::Process(PID processId) {
-	this->_cachedHandle = GTOpenProcess(processId, PROCESS_ALL_ACCESS);
+	this->_cachedHandle = GTOpenProcess(processId,  PROCESS_QUERY_LIMITED_INFORMATION);
 	if (this->_cachedHandle != NULL) {
-		this->_maxRight = (0x000F0000 | 0x00100000 | 0xFFFF);
+		this->_maxRight = PROCESS_QUERY_LIMITED_INFORMATION;
 	} 
 
 	this->processId = processId;
@@ -163,7 +164,10 @@ std::vector<Segment>& Process::GetSegments() {
 }
 
 Process::~Process() {
-	CloseHandle(this->_cachedHandle);
+	DWORD out;
+	if (GetHandleInformation(this->_cachedHandle, &out)) {
+		CloseHandle(this->_cachedHandle);
+	}
 
 	if (memoryState != nullptr)
 		delete this->memoryState;
@@ -606,13 +610,13 @@ DWORD Process::SetProcessHandleState() {
 	NTSTATUS status;
 	ULONG returnLength = 0;
 	ULONG attempts = 0;
-	HANDLE hProcess = GTOpenProcess(processId, PROCESS_QUERY_INFORMATION);
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS,false, this->processId);
 	if (hProcess == NULL) {
 		return GetLastError();
 	}
 	if (this->handleState->handles == NULL) {
 		this->handleState->_bufferSize = 0x8000;
-		this->handleState->handles = (PPROCESS_HANDLE_SNAPSHOT_INFORMATION)malloc(this->handleState->_bufferSize);
+		this->handleState->handles = (PSYSTEM_HANDLE_INFORMATION_EX)malloc(this->handleState->_bufferSize);
 	}
 	pNtQueryInformationProcess NtQueryInfomationProcess;
 	NtQueryInfomationProcess = (pNtQueryInformationProcess)GetNativeProc("NtQueryInformationProcess");
@@ -628,7 +632,7 @@ DWORD Process::SetProcessHandleState() {
 	{
 		free(this->handleState->handles);
 		this->handleState->_bufferSize = returnLength;
-		this->handleState->handles = (PPROCESS_HANDLE_SNAPSHOT_INFORMATION)malloc(this->handleState->_bufferSize);
+		this->handleState->handles = (PSYSTEM_HANDLE_INFORMATION_EX)malloc(this->handleState->_bufferSize);
 
 		status = NtQueryInfomationProcess(
 			hProcess,
@@ -641,6 +645,12 @@ DWORD Process::SetProcessHandleState() {
 		attempts++;
 	}
 
+	auto a = this->handleState->handles->NumberOfHandles;
+	for (int i = 0; i < this->handleState->handles->NumberOfHandles; i++) {
+		//auto b = this->handleState->handles->Handles[i].HandleCount;
+		auto v = ObjectInfo::GetObjectName((HANDLE)this->handleState->handles->Handles[i].HandleValue);
+		wprintf(L"%s\n", v.c_str());
+	}
 	if (NT_SUCCESS(status))
 	{
 		// NOTE: This is needed to workaround minimal processes on Windows 10
@@ -661,7 +671,8 @@ DWORD Process::SetProcessHandleState() {
 		
 		this->handleState = NULL;
 	}
-	CloseHandle(hProcess);
+
+
 	return NtStatusHandler(status);
 }
 
@@ -861,13 +872,50 @@ CPUState* Process::GetCPUState() {
 	return this->cpuState;
 }
 
+std::vector<GTWString> Process::GetLoadedFiles() {
+	std::vector<GTWString> files;
+	DWORD size;
+	WCHAR path[1024];
+
+	auto hProcess = GetCachedHandle(PROCESS_VM_READ);
+	if (hProcess == NULL) {
+		LOG_DEBUG_REASON(L"Error OpenProcess");
+		return files;
+	}
+
+	auto handles = this->GetHandlesState();
+	if (handles == NULL) {
+		LOG_DEBUG_REASON("Process::GetLoadedFiles()");
+		return files;
+	}
+
+	if (handles->handles == NULL) {
+		LOG_DEBUG_REASON("Process::GetLoadedFiles() handles->handles");
+		return files;
+	}
+	auto count = handles->handles->NumberOfHandles;
+	
+	for (int i = 0; i < count; i++) {
+		auto handle = handles->handles->Handles[i].HandleValue;
+		//auto t_name = ObjectInfo::GetTypeName(handle);
+		//if (_wcsicmp(t_name.c_str(), L"File") == 0 || _wcsicmp(t_name.c_str(), L"Directory") == 0) {
+		//	auto name = ObjectInfo::GetObjectName(handle);
+		//	//auto status = GetFinalPathNameByHandleW(handle, path, 1024, FILE_NAME_NORMALIZED);
+		//	files.push_back(name);
+		//	ZeroMemory(path, 1024 * sizeof(WCHAR));
+		//}
+	}
+
+	return files;
+}
+
 std::vector<LoadedDll> Process::GetLoadedDlls() {
 	std::vector<LoadedDll> dlls;
 	DWORD size;
 	WCHAR path[1024];
 	HMODULE _tmp;
 	//auto hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION |PROCESS_VM_READ);
-	auto hProcess = GTOpenProcess(this->GetPID(),PROCESS_QUERY_INFORMATION | PROCESS_VM_READ);
+	auto hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ);
 	if (hProcess == NULL) {
 		LOG_DEBUG_REASON( L"Error OpenProcess");
 		return dlls;
@@ -881,14 +929,12 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	HMODULE* modules = (HMODULE*)LocalAlloc(GPTR,size);
 	if (modules == NULL) {
 		LOG_DEBUG_REASON( L"Error LocalAlloc");
-		CloseHandle(hProcess);
 		return dlls;
 	}
 	
 	if (!EnumProcessModules(hProcess, modules, size, &size)) {
 		LOG_DEBUG_REASON( L"Error EnumProcessModules");
 		LocalFree(modules);
-		CloseHandle(hProcess);
 		return dlls;
 	}
 
@@ -901,7 +947,6 @@ std::vector<LoadedDll> Process::GetLoadedDlls() {
 	}
 
 	LocalFree(modules);
-	CloseHandle(hProcess);
 	return dlls;
 }
 

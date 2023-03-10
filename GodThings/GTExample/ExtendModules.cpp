@@ -935,3 +935,42 @@ DWORD ClientSession::PushEvent(EventLogInst& inst) {
 	}
 	return 0;
 }
+
+LoadedFiles::LoadedFiles() {
+	this->Name = L"LoadedFiles";
+	this->Path = L"System";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Loaded Files group by process";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* LoadedFiles::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	std::vector<UINT32> pids;
+	if (!this->args.contains("pid")) {
+		this->args["pid"] = "*";
+	}
+
+	if (this->args["pid"] == "*") {
+		auto mgr = ProcessManager::GetMgr();
+		mgr->SetAllProcesses();
+		for (auto pid : mgr->processesMap) {
+			pids.push_back(pid.first);
+		}
+	}
+	else {
+		auto pid = stoi(this->args["pid"]);
+		pids.push_back(pid);
+	}
+	for (auto pid : pids) {
+		auto *p = new Process(pid);
+		auto files = p->GetLoadedFiles();
+		for (auto& file : files) {
+			wprintf(L"%s\n", file.c_str());
+		}
+		delete p;
+	}
+	return nullptr;
+}
