@@ -60,6 +60,8 @@ public:
 	PSYSTEM_DPC_BEHAVIOR_INFORMATION pDPCBehaviorInfo = NULL;
 	DWORD SetDPCBehaviorInfo();
 
+	PSYSTEM_HANDLE_INFORMATION pSystemHandleInfoEx = NULL;
+	DWORD SetSystemHandles();
 	static POSVERSIONINFOEXW GetSystemVersion();
 
 };

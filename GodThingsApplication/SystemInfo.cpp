@@ -171,6 +171,81 @@ DWORD SystemInfo::SetFlagsInfo() {
 		&dwSize);
 	return NtStatusHandler(status);
 }
+#define STATUS_INFO_LENGTH_MISMATCH      ((NTSTATUS)0xC0000004L)
+#define STATUS_UNSUCCESSFUL           ((NTSTATUS)0xC0000001L)
+#include "ObjectInfo.h"
+DWORD SystemInfo::SetSystemHandles()
+{
+	static ULONG initialBufferSize = 0x10000;
+	NTSTATUS status;
+	PVOID buffer;
+	ULONG bufferSize;
+	ULONG returnLength = 0;
+	ULONG attempts = 0;
+
+	bufferSize = initialBufferSize;
+	buffer = malloc(bufferSize);
+
+	status = NtQuerySystemInformation(
+		SystemHandleInformation,
+		buffer,
+		bufferSize,
+		&returnLength
+	);
+
+	while (status == STATUS_INFO_LENGTH_MISMATCH && attempts < 10)
+	{
+		free(buffer);
+		bufferSize = returnLength;
+		buffer = malloc(bufferSize);
+
+		status = NtQuerySystemInformation(
+			SystemHandleInformation,
+			buffer,
+			bufferSize,
+			&returnLength
+		);
+
+		attempts++;
+	}
+
+	if (status != 0)
+	{
+		// Fall back to using the previous code that we've used since Windows XP (dmex)
+		bufferSize = initialBufferSize;
+		buffer = malloc(bufferSize);
+
+		while ((status = NtQuerySystemInformation(
+			SystemHandleInformation,
+			buffer,
+			bufferSize,
+			NULL
+		)) == STATUS_INFO_LENGTH_MISMATCH)
+		{
+			free(buffer);
+			bufferSize *= 2;
+
+			// Fail if we're resizing the buffer to something very large.
+			if (bufferSize > (256 * 1024 * 1024))
+				return 0xC0000009A; //STATUS_INSUFFICIENT_RESOURCES
+
+			buffer = malloc(bufferSize);
+		}
+	}
+
+	if (status != 0)
+	{
+		free(buffer);
+		return status;
+	}
+
+	if (bufferSize <= 0x200000) initialBufferSize = bufferSize;
+	this->pSystemHandleInfoEx = (PSYSTEM_HANDLE_INFORMATION)buffer;
+	for (int i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
+		wprintf(L"%d %s\n", this->pSystemHandleInfoEx->Handles[i].HandleValue, ObjectInfo::GetObjectName((HANDLE)this->pSystemHandleInfoEx->Handles[i].HandleValue).c_str());
+	}
+	return status;
+}
 
 POSVERSIONINFOEXW SystemInfo::GetSystemVersion() {
 	POSVERSIONINFOEXW version = nullptr;

@@ -108,7 +108,7 @@ typedef struct _HandleState {
 	int GDIHandles;
 	int USERHandles;
 	DWORD _bufferSize;
-	PSYSTEM_HANDLE_INFORMATION_EX handles;
+	PPROCESS_HANDLE_SNAPSHOT_INFORMATION handles;
 }HandleState;
 
 typedef struct _ImageState {

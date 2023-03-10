@@ -288,13 +288,13 @@ HANDLE Process::GetCachedHandle(DWORD accessRight) {
 	if ((accessRight | _maxRight) == _maxRight) {
 		return this->_cachedHandle;
 	}
+	CloseHandle(this->_cachedHandle);
 	HANDLE hProcess = GTOpenProcess(this->GetPID(), accessRight|_maxRight);
 	if (hProcess == NULL) {
 		return NULL;
 	}
 
 	_maxRight = (accessRight | _maxRight);
-	CloseHandle(this->_cachedHandle);
 	this->_cachedHandle = hProcess;
 	return this->_cachedHandle;
 }
@@ -607,16 +607,17 @@ DWORD Process::SetProcessCPUState() {
 
 
 DWORD Process::SetProcessHandleState() {
+	SetLastError(0);
 	NTSTATUS status;
 	ULONG returnLength = 0;
 	ULONG attempts = 0;
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS,false, this->processId);
+	HANDLE hProcess = GetCachedHandle(PROCESS_ALL_ACCESS);
 	if (hProcess == NULL) {
 		return GetLastError();
 	}
 	if (this->handleState->handles == NULL) {
 		this->handleState->_bufferSize = 0x8000;
-		this->handleState->handles = (PSYSTEM_HANDLE_INFORMATION_EX)malloc(this->handleState->_bufferSize);
+		this->handleState->handles = (PPROCESS_HANDLE_SNAPSHOT_INFORMATION)malloc(this->handleState->_bufferSize);
 	}
 	pNtQueryInformationProcess NtQueryInfomationProcess;
 	NtQueryInfomationProcess = (pNtQueryInformationProcess)GetNativeProc("NtQueryInformationProcess");
@@ -627,12 +628,13 @@ DWORD Process::SetProcessHandleState() {
 		this->handleState->_bufferSize,
 		&returnLength
 	);
-
+	status = NtStatusHandler(status);
+	SetLastError(status);
 	while (status == STATUS_INFO_LENGTH_MISMATCH && attempts < 8)
 	{
 		free(this->handleState->handles);
 		this->handleState->_bufferSize = returnLength;
-		this->handleState->handles = (PSYSTEM_HANDLE_INFORMATION_EX)malloc(this->handleState->_bufferSize);
+		this->handleState->handles = (PPROCESS_HANDLE_SNAPSHOT_INFORMATION)malloc(this->handleState->_bufferSize);
 
 		status = NtQueryInfomationProcess(
 			hProcess,
@@ -645,12 +647,6 @@ DWORD Process::SetProcessHandleState() {
 		attempts++;
 	}
 
-	auto a = this->handleState->handles->NumberOfHandles;
-	for (int i = 0; i < this->handleState->handles->NumberOfHandles; i++) {
-		//auto b = this->handleState->handles->Handles[i].HandleCount;
-		auto v = ObjectInfo::GetObjectName((HANDLE)this->handleState->handles->Handles[i].HandleValue);
-		wprintf(L"%s\n", v.c_str());
-	}
 	if (NT_SUCCESS(status))
 	{
 		// NOTE: This is needed to workaround minimal processes on Windows 10
@@ -877,11 +873,6 @@ std::vector<GTWString> Process::GetLoadedFiles() {
 	DWORD size;
 	WCHAR path[1024];
 
-	auto hProcess = GetCachedHandle(PROCESS_VM_READ);
-	if (hProcess == NULL) {
-		LOG_DEBUG_REASON(L"Error OpenProcess");
-		return files;
-	}
 
 	auto handles = this->GetHandlesState();
 	if (handles == NULL) {
@@ -897,13 +888,26 @@ std::vector<GTWString> Process::GetLoadedFiles() {
 	
 	for (int i = 0; i < count; i++) {
 		auto handle = handles->handles->Handles[i].HandleValue;
-		//auto t_name = ObjectInfo::GetTypeName(handle);
-		//if (_wcsicmp(t_name.c_str(), L"File") == 0 || _wcsicmp(t_name.c_str(), L"Directory") == 0) {
-		//	auto name = ObjectInfo::GetObjectName(handle);
-		//	//auto status = GetFinalPathNameByHandleW(handle, path, 1024, FILE_NAME_NORMALIZED);
-		//	files.push_back(name);
-		//	ZeroMemory(path, 1024 * sizeof(WCHAR));
-		//}
+		pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
+		HANDLE object = NULL;
+		NtDuplicateObject(
+			this->GetCachedHandle(0),
+			handle,
+			GetCurrentProcess(),
+			&object,
+			0,
+			0,
+			0
+		);
+		auto name = ObjectInfo::GetObjectName(object);
+		auto t_name = ObjectInfo::GetTypeName(object);
+		if (_wcsicmp(t_name.c_str(), L"File") == 0 || _wcsicmp(t_name.c_str(), L"Directory") == 0) {
+			
+			wprintf(L"%s %s\n", t_name.c_str(), name.c_str());
+			//auto status = GetFinalPathNameByHandleW(handle, path, 1024, FILE_NAME_NORMALIZED);
+			files.push_back(name);
+			ZeroMemory(path, 1024 * sizeof(WCHAR));
+		}
 	}
 
 	return files;

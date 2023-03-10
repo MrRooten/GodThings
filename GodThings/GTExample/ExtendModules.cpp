@@ -965,7 +965,8 @@ ResultSet* LoadedFiles::ModuleRun() {
 		pids.push_back(pid);
 	}
 	for (auto pid : pids) {
-		auto *p = new Process(pid);
+		auto mgr = ProcessManager::GetMgr();
+		auto p = mgr->processesMap[pid];
 		auto files = p->GetLoadedFiles();
 		for (auto& file : files) {
 			wprintf(L"%s\n", file.c_str());
