@@ -39,6 +39,14 @@ cleanup:
     LocalFree(name);
     return res;
 }
+bool ObjectInfo::IsValidObject(HANDLE hObject) {
+    DWORD out;
+    if (GetHandleInformation(hObject, &out)) {
+        return true;
+    }
+
+    return false;
+}
 #include "utils.h"
 
 std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {

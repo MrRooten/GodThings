@@ -195,6 +195,7 @@
     <ClCompile Include="HackDetectModules.cpp" />
     <ClCompile Include="KernelUtils.cpp" />
     <ClCompile Include="LDAPUtils.cpp" />
+    <ClCompile Include="MagicUtils.cpp" />
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="NtAPI.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="KerberosUtils.h" />
     <ClInclude Include="KernelUtils.h" />
     <ClInclude Include="LDAPUtils.h" />
+    <ClInclude Include="MagicUtils.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="NtFileInfo.h" />

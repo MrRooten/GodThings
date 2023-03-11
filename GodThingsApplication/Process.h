@@ -189,7 +189,7 @@ class Process {
 
 	HANDLE _cachedHandle = NULL;
 	DWORD _maxRight = 0;
-	HANDLE GetCachedHandle(DWORD accessRight);
+	
 	
 	PROCESS_MEMORY_COUNTERS_EX pMemoryCounters;
 	IO_COUNTERS ioCounters;
@@ -208,6 +208,10 @@ class Process {
 	
 	PPROCESS_EXTENDED_BASIC_INFORMATION pExtendedBasicInfo = NULL;
 	DWORD SetExtendedBasicInfo();
+
+	HANDLE GetDupObject(HANDLE hObject);
+
+	VOID CloseObject(HANDLE hObject);
 public:
 	std::vector<Thread*>* threads;
 	static std::map<DWORD, GTWString> _pidProcessNameMap;
@@ -240,7 +244,7 @@ public:
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
 	std::vector<LoadedDll> GetLoadedDlls();
-	std::vector<GTWString> GetLoadedFiles();
+	std::vector<std::pair<GTWString,GTWString>> GetLoadedFiles();
 	GTWString GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
@@ -254,7 +258,7 @@ public:
 	void InitProcessStaticState();
 	//set Process User Name after setting Process Security State
 	
-
+	HANDLE GetCachedHandle(DWORD accessRight);
 	
 	BOOL IsProtected();
 	
@@ -264,6 +268,7 @@ public:
 	BOOL IsStronglyNamed();
 	BOOL IsSecureProcess();
 	BOOL IsSubsystemProcess();
+	BOOL IsDead();
 };
 
 class Thread {

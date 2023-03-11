@@ -945,9 +945,14 @@ LoadedFiles::LoadedFiles() {
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
+#include <signal.h>
+void SignalHandler(int signal)
+{
+
+}
 
 ResultSet* LoadedFiles::ModuleRun() {
-	ResultSet* result = new ResultSet();
+	//ResultSet* result = new ResultSet();
 	std::vector<UINT32> pids;
 	if (!this->args.contains("pid")) {
 		this->args["pid"] = "*";
@@ -964,14 +969,25 @@ ResultSet* LoadedFiles::ModuleRun() {
 		auto pid = stoi(this->args["pid"]);
 		pids.push_back(pid);
 	}
+	typedef void (*SignalHandlerPointer)(int);
+
+	SignalHandlerPointer previousHandler;
+	previousHandler = signal(SIGSEGV, SignalHandler);
 	for (auto pid : pids) {
 		auto mgr = ProcessManager::GetMgr();
 		auto p = mgr->processesMap[pid];
-		auto files = p->GetLoadedFiles();
-		for (auto& file : files) {
-			wprintf(L"%s\n", file.c_str());
+		try {
+			auto files = p->GetLoadedFiles();
+			wprintf(L"%s\n", p->GetProcessName().c_str());
+			for (auto& file : files) {
+				wprintf(L"\t%s: '%s'\n", file.first.c_str(), file.second.c_str());
+			}
+			delete p;
 		}
-		delete p;
+		catch (char* e) {
+
+		}
+		
 	}
 	return nullptr;
 }

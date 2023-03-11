@@ -1,7 +1,14 @@
 #pragma once
 #include "NtSystemInfo.h"
 #include <string>
+#include <map>
+#include <vector>
 #include "utils.h"
+enum FileType {
+	SysDirectory,
+	SysFile
+};
+
 class SystemInfo {
 public:
 	SystemInfo();
@@ -63,5 +70,6 @@ public:
 	PSYSTEM_HANDLE_INFORMATION pSystemHandleInfoEx = NULL;
 	DWORD SetSystemHandles();
 	static POSVERSIONINFOEXW GetSystemVersion();
+	std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> GetSystemLoadedFiles();
 
 };

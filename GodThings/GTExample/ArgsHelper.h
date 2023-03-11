@@ -17,7 +17,7 @@
 #include <windns.h>
 #include <stdio.h>
 
-
+#include "MagicUtils.h"
 
 
 
@@ -302,9 +302,7 @@ public:
 		}
 		else if (subcmd == L"test") {
 			setlocale(LC_ALL, "chs");
-			Process p(5224);
-			auto files = p.GetLoadedFiles();
-
+			FileMagic magic("D:\\123.png");
 			return;
 		}
 		else if (subcmd == L"list_path") {

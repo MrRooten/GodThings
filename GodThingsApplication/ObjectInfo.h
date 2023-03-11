@@ -12,5 +12,7 @@ public:
 
 	static std::wstring GetObjectName(HANDLE hObject);
 
+	static bool IsValidObject(HANDLE hObject);
+
 };
 #endif // !_OBJECT_INFO_H

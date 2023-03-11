@@ -117,6 +117,9 @@
     <ClCompile Include="XmlUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="MagicUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -249,6 +252,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="KerberosUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MagicUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

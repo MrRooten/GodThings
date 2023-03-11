@@ -241,9 +241,6 @@ DWORD SystemInfo::SetSystemHandles()
 
 	if (bufferSize <= 0x200000) initialBufferSize = bufferSize;
 	this->pSystemHandleInfoEx = (PSYSTEM_HANDLE_INFORMATION)buffer;
-	for (int i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
-		wprintf(L"%d %s\n", this->pSystemHandleInfoEx->Handles[i].HandleValue, ObjectInfo::GetObjectName((HANDLE)this->pSystemHandleInfoEx->Handles[i].HandleValue).c_str());
-	}
 	return status;
 }
 
@@ -251,4 +248,74 @@ POSVERSIONINFOEXW SystemInfo::GetSystemVersion() {
 	POSVERSIONINFOEXW version = nullptr;
 	//GetVersionExW((LPOSVERSIONINFOW)&version);
 	return version;
+}
+#include "NtProcessInfo.h"
+#include "ProcessUtils.h"
+#include "Process.h"
+std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> SystemInfo::GetSystemLoadedFiles() {
+	if (this->pSystemHandleInfoEx != NULL) {
+		LocalFree(pSystemHandleInfoEx);
+	}
+	std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> result;
+	this->SetSystemHandles();
+	pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
+	if (NtDuplicateObject == NULL) {
+		LOG_ERROR_REASON(L"NtDuplicateObject failed to load");
+	}
+	ProcessManager* mgr = ProcessManager::GetMgr();
+	mgr->SetAllProcesses();
+	for (int i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
+		auto pid = this->pSystemHandleInfoEx->Handles[i].UniqueProcessId;
+		if (mgr->processesMap.contains(pid) == false) {
+			continue;
+		}
+		HANDLE hObject = NULL;
+		auto status = NtDuplicateObject(
+			mgr->processesMap[pid]->GetCachedHandle(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ),
+			(HANDLE)this->pSystemHandleInfoEx->Handles[i].HandleValue,
+			GetCurrentProcess(),
+			&hObject,
+			0,
+			0,
+			0
+		);
+
+		SetLastError(NtStatusHandler(status));
+		if (status != 0) {
+			continue;
+		}
+		auto t_name = ObjectInfo::GetTypeName(hObject);
+		if (_wcsicmp(t_name.c_str(), L"Directory") == 0 || _wcsicmp(t_name.c_str(), L"File") == 0) {
+			WCHAR filename[MAX_PATH];
+			auto a = GetFileType(hObject);
+			if (a == FILE_TYPE_PIPE || a == FILE_TYPE_CHAR) {
+				CloseHandle(hObject);
+				continue;
+			}
+			status = GetFinalPathNameByHandleW(hObject, filename, MAX_PATH, FILE_NAME_NORMALIZED);
+			if (status != 0) {
+				CloseHandle(hObject);
+				continue;
+			}
+
+			if (result.contains(pid) == false) {
+				std::vector<std::tuple<GTWString, FileType, GTWString>> v;
+				result[pid] = v;
+			}
+			FileType ft;
+			if (_wcsicmp(t_name.c_str(), L"Directory") == 0) {
+				ft = SysDirectory;
+			}
+			else {
+				ft = SysFile;
+			}
+			auto processName = mgr->processesMap[pid]->GetProcessName();
+			
+			result[pid].push_back(std::tuple<GTWString, FileType, GTWString>(processName, ft, filename));
+		}
+		
+		CloseHandle(hObject);
+	}
+
+	return result;
 }

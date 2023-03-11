@@ -355,6 +355,33 @@ DWORD Process::SetExtendedBasicInfo() {
 	return NtStatusHandler(status);
 }
 
+HANDLE Process::GetDupObject(HANDLE hObject) {
+	pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
+	HANDLE object = NULL;
+	auto status = NtDuplicateObject(
+		this->GetCachedHandle(0),
+		hObject,
+		GetCurrentProcess(),
+		&object,
+		0,
+		0,
+		0
+	);
+	SetLastError(NtStatusHandler(status));
+	if (status != 0) {
+		return NULL;
+	}
+	return object;
+}
+
+VOID Process::CloseObject(HANDLE hObject) {
+	if (hObject == NULL || hObject == INVALID_HANDLE_VALUE) {
+		return;
+	}
+
+	CloseHandle(hObject);
+}
+
 DWORD Process::SetProcessUserName() {
 	SetLastError(ERROR_SUCCESS);
 	DWORD res = 0;
@@ -868,8 +895,8 @@ CPUState* Process::GetCPUState() {
 	return this->cpuState;
 }
 
-std::vector<GTWString> Process::GetLoadedFiles() {
-	std::vector<GTWString> files;
+std::vector<std::pair<GTWString, GTWString>> Process::GetLoadedFiles() {
+	std::vector<std::pair<GTWString, GTWString>> files;
 	DWORD size;
 	WCHAR path[1024];
 
@@ -887,6 +914,7 @@ std::vector<GTWString> Process::GetLoadedFiles() {
 	auto count = handles->handles->NumberOfHandles;
 	
 	for (int i = 0; i < count; i++) {
+
 		auto handle = handles->handles->Handles[i].HandleValue;
 		pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
 		HANDLE object = NULL;
@@ -899,15 +927,20 @@ std::vector<GTWString> Process::GetLoadedFiles() {
 			0,
 			0
 		);
-		auto name = ObjectInfo::GetObjectName(object);
+		
 		auto t_name = ObjectInfo::GetTypeName(object);
 		if (_wcsicmp(t_name.c_str(), L"File") == 0 || _wcsicmp(t_name.c_str(), L"Directory") == 0) {
-			
-			wprintf(L"%s %s\n", t_name.c_str(), name.c_str());
-			//auto status = GetFinalPathNameByHandleW(handle, path, 1024, FILE_NAME_NORMALIZED);
-			files.push_back(name);
-			ZeroMemory(path, 1024 * sizeof(WCHAR));
+			WCHAR filePath[MAX_PATH];
+			auto a = GetFileType(object);
+			if (a == FILE_TYPE_PIPE || a == FILE_TYPE_CHAR) {
+				CloseHandle(object);
+				continue;
+			}
+			auto name = ObjectInfo::GetObjectName(object);// , filePath, MAX_PATH, FILE_NAME_NORMALIZED);
+			files.push_back(std::pair(t_name,name));
 		}
+
+		CloseHandle(object);
 	}
 
 	return files;
@@ -1287,8 +1320,8 @@ BOOL ProcessManager::SetAllProcesses() {
 			processesMap[pid]->parentPID = parentPid;
 			processesMap[pid]->processName = pe32.szExeFile;
 
-			processesMap[pid]->InitProcessStaticState();
-			processesMap[pid]->GetCPUState();
+			//processesMap[pid]->InitProcessStaticState();
+			//processesMap[pid]->GetCPUState();
 		}
 	} while (Process32NextW(hProcessSnap, &pe32));
 
@@ -1497,4 +1530,18 @@ GTWString Segment::GetTypeAsString() {
 		result.push_back(L"MEM_RPIVATE");
 	}
 	return StringUtils::StringsJoin(result, L"|");
+}
+
+BOOL Process::IsDead() {
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
+	DWORD code = 0;
+	GetExitCodeProcess(
+		hProcess,
+		&code
+	);
+
+	if (code == STILL_ACTIVE) {
+		return FALSE;
+	}
+	return TRUE;
 }
