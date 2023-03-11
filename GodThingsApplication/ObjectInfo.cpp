@@ -36,6 +36,7 @@ std::wstring ObjectInfo::GetObjectName(HANDLE hObject) {
     }
     res = name->Name.Buffer;
 cleanup:
+    SetLastError(NtStatusHandler(status));
     LocalFree(name);
     return res;
 }
@@ -51,7 +52,6 @@ OBJECT_BASIC_INFORMATION* ObjectInfo::GetObjectInfo(HANDLE hObject) {
     if (hObject == NULL) {
         return NULL;
     }
-    std::wstring res;
 
     if (NtQueryObject == NULL) {
         NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
@@ -65,6 +65,7 @@ OBJECT_BASIC_INFORMATION* ObjectInfo::GetObjectInfo(HANDLE hObject) {
     NTSTATUS status = NtQueryObject(hObject, ObjectBasicInformation, result, size, &size);
     SetLastError(NtStatusHandler(status));
     if (status != 0) {
+        delete result;
         return NULL;
     }
     return result;
@@ -106,6 +107,7 @@ std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
     }
     res = type->TypeName.Buffer;
 cleanup:
+    SetLastError(NtStatusHandler(status));
     LocalFree(type);
     return res;
 }
