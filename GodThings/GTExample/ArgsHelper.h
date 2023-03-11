@@ -18,8 +18,7 @@
 #include <stdio.h>
 
 #include "MagicUtils.h"
-
-
+#include "ObjectInfo.h"
 
 class ArgsHelper {
 public:
@@ -302,7 +301,8 @@ public:
 		}
 		else if (subcmd == L"test") {
 			setlocale(LC_ALL, "chs");
-			FileMagic magic("D:\\123.png");
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, 27232);
+			auto h = ObjectInfo::GetObjectInfo(hProcess);
 			return;
 		}
 		else if (subcmd == L"list_path") {

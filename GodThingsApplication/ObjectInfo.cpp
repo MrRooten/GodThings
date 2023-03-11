@@ -47,6 +47,30 @@ bool ObjectInfo::IsValidObject(HANDLE hObject) {
 
     return false;
 }
+OBJECT_BASIC_INFORMATION* ObjectInfo::GetObjectInfo(HANDLE hObject) {
+    if (hObject == NULL) {
+        return NULL;
+    }
+    std::wstring res;
+
+    if (NtQueryObject == NULL) {
+        NtQueryObject = (pNtQueryObject)GetNativeProc("NtQueryObject");
+    }
+    if (NtQueryObject == NULL) {
+        return NULL;
+    }
+
+    OBJECT_BASIC_INFORMATION* result = new OBJECT_BASIC_INFORMATION();
+    DWORD size = sizeof(OBJECT_BASIC_INFORMATION);
+    NTSTATUS status = NtQueryObject(hObject, ObjectBasicInformation, result, size, &size);
+    SetLastError(NtStatusHandler(status));
+    if (status != 0) {
+        return NULL;
+    }
+    return result;
+}
+
+
 #include "utils.h"
 
 std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {

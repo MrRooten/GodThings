@@ -14,5 +14,6 @@ public:
 
 	static bool IsValidObject(HANDLE hObject);
 
+	static OBJECT_BASIC_INFORMATION* GetObjectInfo(HANDLE hObject);
 };
 #endif // !_OBJECT_INFO_H
