@@ -92,6 +92,9 @@ std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
     if (status != 0) {
         if (status == 0xc0000004) {
             type = (OBJECT_TYPE_INFORMATION*)LocalAlloc(GPTR,size);
+            if (type == NULL) {
+                return NULL;
+            }
             status = NtQueryObject(hObject, ObjectTypeInformation, type, size, &size);
             if (status != 0) {
                 goto cleanup;
@@ -102,9 +105,10 @@ std::wstring ObjectInfo::GetTypeName(HANDLE hObject) {
         }
     }
 
-    if (type != NULL && type->TypeName.Buffer == NULL) {
+    if (type == NULL || type->TypeName.Buffer == NULL) {
         return L"";
     }
+
     res = type->TypeName.Buffer;
 cleanup:
     SetLastError(NtStatusHandler(status));
