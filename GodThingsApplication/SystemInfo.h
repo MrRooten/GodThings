@@ -3,10 +3,11 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <set>
 #include "utils.h"
 enum FileType {
-	SysDirectory,
-	SysFile
+	SysDirectory=0,
+	SysFile=1
 };
 
 class SystemInfo {
@@ -70,6 +71,6 @@ public:
 	PSYSTEM_HANDLE_INFORMATION pSystemHandleInfoEx = NULL;
 	DWORD SetSystemHandles();
 	static POSVERSIONINFOEXW GetSystemVersion();
-	std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> GetSystemLoadedFiles();
+	std::map<DWORD, std::set<std::pair<FileType, GTWString>>> GetSystemLoadedFiles();
 
 };

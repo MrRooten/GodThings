@@ -651,7 +651,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 	ResultSet* result = new ResultSet();
 	std::vector<UINT32> pids;
 	if (!this->args.contains("pid")) {
-		result->SetErrorMessage("Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}',running all processes");
+		//result->SetErrorMessage("Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}',running all processes");
 		LOG_INFO(L"Must set a pid to get dll information: ./GodAgent.exe Process.UnsignedProcessDlls 'pid=${pid}',running all processes");
 		this->args["pid"] = "*";
 	}
@@ -667,6 +667,8 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 		auto pid = stoi(this->args["pid"]);
 		pids.push_back(pid);
 	}
+
+	
 	for (auto pid : pids) {
 		SetLastError(0);
 		GTTime* t = NULL;

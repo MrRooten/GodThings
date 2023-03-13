@@ -317,7 +317,7 @@ BytesBuffer Sha256(PBYTE bytes, size_t n) {
         NULL,
         MS_ENH_RSA_AES_PROV, PROV_RSA_AES, CRYPT_VERIFYCONTEXT);
     if (flag == false) {
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -330,7 +330,7 @@ BytesBuffer Sha256(PBYTE bytes, size_t n) {
     if (flag == false) {
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -340,13 +340,13 @@ BytesBuffer Sha256(PBYTE bytes, size_t n) {
             CryptDestroyHash(hHash);
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
     pbHash = (PBYTE)malloc(dwHashLen);
     if (pbHash == NULL) {
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         if (hHash)
             CryptDestroyHash(hHash);
         if (hCryptProv)
@@ -383,7 +383,7 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
         NULL,
         MS_ENH_RSA_AES_PROV, PROV_RSA_AES, CRYPT_VERIFYCONTEXT);
     if (flag == false) {
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
     }
 
     flag = CryptCreateHash(
@@ -397,7 +397,7 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
             CryptDestroyHash(hHash);
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -407,7 +407,7 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
             CryptDestroyHash(hHash);
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -417,7 +417,7 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
             CryptDestroyHash(hHash);
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -432,7 +432,7 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
             CryptDestroyHash(hHash);
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -443,7 +443,7 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
             CryptDestroyHash(hHash);
         if (hCryptProv)
             CryptReleaseContext(hCryptProv, 0);
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
 
@@ -471,7 +471,7 @@ GTString Base64Encode(PBYTE bytes, size_t n) {
     //assert(flag == true);
     auto base64 = (LPSTR)malloc(size);
     if (base64 == NULL) {
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         return std::string();
     }
     flag = CryptBinaryToStringA(
@@ -482,7 +482,7 @@ GTString Base64Encode(PBYTE bytes, size_t n) {
         &size
     );
     if (flag == false) {
-        LOG_ERROR_REASON("");
+        LOG_ERROR_REASON(L"");
         if (base64 == NULL) {
             delete base64;
         }

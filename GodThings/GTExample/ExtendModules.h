@@ -42,3 +42,9 @@ public:
 	LoadedFiles();
 	ResultSet* ModuleRun();
 };
+
+class File : public NativeModule {
+public:
+	File();
+	ResultSet* ModuleRun();
+};

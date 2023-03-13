@@ -244,7 +244,7 @@ public:
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
 	std::vector<LoadedDll> GetLoadedDlls();
-	std::vector<std::pair<GTWString,GTWString>> GetLoadedFiles();
+	std::set<std::pair<GTWString,GTWString>> GetLoadedFiles();
 	GTWString GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);

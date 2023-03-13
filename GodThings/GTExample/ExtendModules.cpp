@@ -3,6 +3,8 @@
 #include "RegistryUtils.h"
 #include "EvtInfo.h"
 #include <vector>
+#include <iostream>
+#include <chrono>
 LastShutdown::LastShutdown() {
 	this->Name = L"LastShutdown";
 	this->Path = L"System";
@@ -950,7 +952,7 @@ void SignalHandler(int signal)
 {
 
 }
-
+#include <VersionHelpers.h>
 ResultSet* LoadedFiles::ModuleRun() {
 	//ResultSet* result = new ResultSet();
 	std::vector<UINT32> pids;
@@ -973,21 +975,134 @@ ResultSet* LoadedFiles::ModuleRun() {
 
 	SignalHandlerPointer previousHandler;
 	previousHandler = signal(SIGSEGV, SignalHandler);
-	for (auto pid : pids) {
-		auto mgr = ProcessManager::GetMgr();
-		auto p = mgr->processesMap[pid];
-		try {
-			auto files = p->GetLoadedFiles();
-			wprintf(L"%s\n", p->GetProcessName().c_str());
-			for (auto& file : files) {
-				wprintf(L"\t%s: '%s'\n", file.first.c_str(), file.second.c_str());
+	OSVERSIONINFOA version;
+	//if (IsWindows8OrGreater()) {
+	if (false) { //Test which is better, always use the SystemInfo::GetSystemLoadedFiles
+		for (auto pid : pids) {
+			auto mgr = ProcessManager::GetMgr();
+			auto p = mgr->processesMap[pid];
+			try {
+				auto files = p->GetLoadedFiles();
+				wprintf(L"%s:%d\n", p->GetProcessName().c_str(), pid);
+				for (auto& file : files) {
+					wprintf(L"\t%s: '%s'\n", file.first.c_str(), file.second.c_str());
+				}
+				delete p;
 			}
-			delete p;
-		}
-		catch (char* e) {
+			catch (char* e) {
+
+			}
 
 		}
-		
 	}
+	else {
+		SystemInfo info;
+		auto all_files = info.GetSystemLoadedFiles();
+		auto mgr = ProcessManager::GetMgr();
+		for (auto pid : pids) {
+			auto p = mgr->processesMap[pid];
+			auto &files = all_files[pid];
+			wprintf(L"%s:%d\n", p->GetProcessName().c_str(), pid);
+			for (auto& file : files) {
+				if (file.first == SysDirectory) {
+					wprintf(L"\tDirectory: '%s'\n", file.second.c_str());
+				}
+				else if (file.first == SysFile) {
+					wprintf(L"\tFile: '%s'\n", file.second.c_str());
+				}
+			}
+		}
+	}
+	
 	return nullptr;
+}
+#include "MagicUtils.h"
+File::File() {
+	this->Name = L"File";
+	this->Path = L"File";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get File Type of specified file";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+int IsWhat(const std::string& path)
+{
+	DWORD fileAttributes = ::GetFileAttributesA(path.c_str());
+
+	if (fileAttributes == FILE_ATTRIBUTE_DIRECTORY && (fileAttributes != INVALID_FILE_ATTRIBUTES)) {
+		return -1;
+	}
+
+
+	return 1;
+}
+
+ResultSet* File::ModuleRun() {
+	auto result = new ResultSet();
+	if (!this->args.contains("file")) {
+		result->SetErrorMessage("Must set a pid to get dll information: File.File 'file=${file}'");
+		LOG_INFO(L"Must set a pid to get dll information: File.File 'file=${file}'");
+	}
+
+	auto& file = args["file"];
+	FileMagic* magic = FileMagic::NewInstance(".\\magic.mgc");
+	if (magic == NULL) {
+		auto error = magic->GetErrorString();
+		LOG_ERROR(StringUtils::s2ws(error).c_str());
+		return NULL;
+	}
+
+	if (file.ends_with("\\")) {
+		file = file.substr(0, file.size() - 1);
+	}
+	auto ret = IsWhat(file);
+	if (ret == -1) { //If is directory
+		Dir dir(StringUtils::s2ws(file).c_str());
+		auto files = dir.listFiles();
+		for (auto& _tmp_file : files) {
+			auto start = std::chrono::high_resolution_clock::now();
+			auto _tmp_file_a = StringUtils::ws2s(_tmp_file);
+			if (_tmp_file_a == "." || _tmp_file_a == "..") {
+				continue;
+			}
+			auto path = file + "\\" + _tmp_file_a;
+			const char* f = magic->FileFile(path.c_str());
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = duration_cast<std::chrono::microseconds>(end - start);
+			if (f == NULL) {
+				auto error = magic->GetErrorString();
+				LOG_ERROR(StringUtils::s2ws(error).c_str());
+				continue;
+			}
+
+			//printf("%s\n", f);
+			result->PushDictOrdered("Path", path.c_str());
+			result->PushDictOrdered("File", f);
+		}
+	}
+	else if (ret == 1) { //If is normal file
+		auto start = std::chrono::high_resolution_clock::now();
+		const char* f = magic->FileFile(file.c_str());
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = duration_cast<std::chrono::microseconds>(end - start);
+		if (f == NULL) {
+			auto error = magic->GetErrorString();
+			LOG_ERROR(StringUtils::s2ws(error).c_str());
+			return NULL;
+		}
+
+		//printf("%s\n", f);
+		result->PushDictOrdered("Path", file.c_str());
+		result->PushDictOrdered("File", f);
+	}
+	else {
+		LOG_ERROR_REASON(L"");
+		return NULL;
+	}
+	
+	
+	result->SetType(DICT);
+	return result;
 }

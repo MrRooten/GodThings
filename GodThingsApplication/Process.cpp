@@ -895,11 +895,11 @@ CPUState* Process::GetCPUState() {
 	return this->cpuState;
 }
 
-std::vector<std::pair<GTWString, GTWString>> Process::GetLoadedFiles() {
-	std::vector<std::pair<GTWString, GTWString>> files;
+std::set<std::pair<GTWString, GTWString>> Process::GetLoadedFiles() {
+	std::set<std::pair<GTWString, GTWString>> files;
 	DWORD size;
 	WCHAR path[1024];
-
+	DWORD status = 0;
 
 	auto handles = this->GetHandlesState();
 	if (handles == NULL) {
@@ -914,7 +914,7 @@ std::vector<std::pair<GTWString, GTWString>> Process::GetLoadedFiles() {
 	auto count = handles->handles->NumberOfHandles;
 	
 	for (int i = 0; i < count; i++) {
-
+		WCHAR path[4096] = { 0 };
 		auto handle = handles->handles->Handles[i].HandleValue;
 		pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
 		HANDLE object = NULL;
@@ -936,8 +936,11 @@ std::vector<std::pair<GTWString, GTWString>> Process::GetLoadedFiles() {
 				CloseHandle(object);
 				continue;
 			}
-			auto name = ObjectInfo::GetObjectName(object);// , filePath, MAX_PATH, FILE_NAME_NORMALIZED);
-			files.push_back(std::pair(t_name,name));
+			status = GetFinalPathNameByHandleW(object, path, 4096, FILE_NAME_NORMALIZED);
+			if (status != 0) {
+				continue;
+			}
+			files.insert(std::pair(t_name,path));
 		}
 
 		CloseHandle(object);

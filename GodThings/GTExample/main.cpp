@@ -10,6 +10,7 @@ void extendInit() {
     new RDPSessions();
     new RDPClientSess();
     new LoadedFiles();
+    new File();
 }
 
 

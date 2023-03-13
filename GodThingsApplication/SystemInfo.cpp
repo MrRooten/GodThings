@@ -252,11 +252,11 @@ POSVERSIONINFOEXW SystemInfo::GetSystemVersion() {
 #include "NtProcessInfo.h"
 #include "ProcessUtils.h"
 #include "Process.h"
-std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> SystemInfo::GetSystemLoadedFiles() {
+std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemLoadedFiles() {
 	if (this->pSystemHandleInfoEx != NULL) {
 		LocalFree(pSystemHandleInfoEx);
 	}
-	std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> result;
+	std::map<DWORD, std::set<std::pair<FileType, GTWString>>> result;
 	this->SetSystemHandles();
 	pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
 	if (NtDuplicateObject == NULL) {
@@ -264,6 +264,7 @@ std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> SystemI
 	}
 	ProcessManager* mgr = ProcessManager::GetMgr();
 	mgr->SetAllProcesses();
+	std::map<DWORD, std::set<GTWString>> resultSet;
 	for (int i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
 		auto pid = this->pSystemHandleInfoEx->Handles[i].UniqueProcessId;
 		if (mgr->processesMap.contains(pid) == false) {
@@ -271,7 +272,7 @@ std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> SystemI
 		}
 		HANDLE hObject = NULL;
 		auto status = NtDuplicateObject(
-			mgr->processesMap[pid]->GetCachedHandle(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ),
+			mgr->processesMap[pid]->GetCachedHandle(PROCESS_DUP_HANDLE),
 			(HANDLE)this->pSystemHandleInfoEx->Handles[i].HandleValue,
 			GetCurrentProcess(),
 			&hObject,
@@ -299,7 +300,7 @@ std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> SystemI
 			}
 
 			if (result.contains(pid) == false) {
-				std::vector<std::tuple<GTWString, FileType, GTWString>> v;
+				std::set<std::pair<FileType, GTWString>> v;
 				result[pid] = v;
 			}
 			FileType ft;
@@ -311,11 +312,16 @@ std::map<DWORD, std::vector<std::tuple<GTWString, FileType, GTWString>>> SystemI
 			}
 			auto processName = mgr->processesMap[pid]->GetProcessName();
 			
-			result[pid].push_back(std::tuple<GTWString, FileType, GTWString>(processName, ft, filename));
+			result[pid].insert(std::pair<FileType, GTWString>(ft, filename));
 		}
 		
 		CloseHandle(hObject);
 	}
 
 	return result;
+}
+
+DWORD SystemInfo::SetPoolTag()
+{
+	return 0;
 }
