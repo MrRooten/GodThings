@@ -868,7 +868,7 @@ ResultSet* RecentRunning::ModuleRun() {
 
 	Dir d(L"C:\\Windows\\Prefetch");
 
-	auto files = d.listFiles();
+	auto files = d.ListFiles();
 	std::vector<std::wstring> pfs;
 	for (auto& f : files) {
 		if (f.ends_with(L".pf")) {

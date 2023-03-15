@@ -41,7 +41,7 @@ private:
 	std::wstring dirpath;
 public:
 	Dir(const wchar_t* dirpath);
-	std::vector<std::wstring> listFiles();
+	std::vector<std::wstring> ListFiles();
 };
 
 class MFTReader {
@@ -51,4 +51,6 @@ public:
 	DWORD Initialize();
 };
 
+
+GTWString TryNTPathToDOSPath(const wchar_t* path);
 #endif // !_FILE_UTILS_H

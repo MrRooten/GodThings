@@ -540,7 +540,7 @@ GTString ConvertSectoDay(INT64 n) {
 	int minutes = n / 60;
 
 	n %= 60;
-	int seconds = n;
+	INT64 seconds = n;
 	std::stringstream buffer;
 	if (day == 0 && hour == 0 && minutes == 0) {
 		buffer << seconds << "s";
@@ -572,7 +572,7 @@ ResultSet* RDPSessions::ModuleRun() {
 		info.EnumEventLogs(filter, RDPProcess, &result, false, NULL);
 	}
 	ResultSet* res = new ResultSet();
-	for (int index = result.size()-1; index >= 0; index--) {
+	for (int index = (int)result.size()-1; index >= 0; index--) {
 		if (result[index]->s_type == Login) {
 			res->PushDictOrdered("User", result[index]->login_event->user);
 			auto t1 = GTTime::FromISO8601(StringUtils::s2ws(result[index]->login_event->time_creation.c_str()));
@@ -953,6 +953,8 @@ void SignalHandler(int signal)
 
 }
 #include <VersionHelpers.h>
+#include "MagicUtils.h"
+#include "FileUtils.h"
 ResultSet* LoadedFiles::ModuleRun() {
 	//ResultSet* result = new ResultSet();
 	std::vector<UINT32> pids;
@@ -975,9 +977,10 @@ ResultSet* LoadedFiles::ModuleRun() {
 
 	SignalHandlerPointer previousHandler;
 	previousHandler = signal(SIGSEGV, SignalHandler);
-	OSVERSIONINFOA version;
 	//if (IsWindows8OrGreater()) {
+		
 	if (false) { //Test which is better, always use the SystemInfo::GetSystemLoadedFiles
+		FileMagic* magic = FileMagic::NewInstance(".\\magic.mgc");
 		for (auto pid : pids) {
 			auto mgr = ProcessManager::GetMgr();
 			auto p = mgr->processesMap[pid];
@@ -985,11 +988,20 @@ ResultSet* LoadedFiles::ModuleRun() {
 				auto files = p->GetLoadedFiles();
 				wprintf(L"%s:%d\n", p->GetProcessName().c_str(), pid);
 				for (auto& file : files) {
-					wprintf(L"\t%s: '%s'\n", file.first.c_str(), file.second.c_str());
+					auto dos_path = TryNTPathToDOSPath(file.second.c_str());
+					const CHAR* f_type = NULL;
+					if (magic != NULL) {
+						f_type = magic->FileFile(StringUtils::ws2s(dos_path).c_str());
+					}
+					else {
+						f_type = "";
+					}
+					
+					wprintf(L"\t%s: '%s' \n\tType: '%s'\n", file.first.c_str(), file.second.c_str(), StringUtils::s2ws(f_type).c_str());
 				}
 				delete p;
 			}
-			catch (char* e) {
+			catch (char* _) {
 
 			}
 
@@ -999,16 +1011,26 @@ ResultSet* LoadedFiles::ModuleRun() {
 		SystemInfo info;
 		auto all_files = info.GetSystemLoadedFiles();
 		auto mgr = ProcessManager::GetMgr();
+		int i = 0;
+		FileMagic* magic = FileMagic::NewInstance(".\\magic.mgc");
 		for (auto pid : pids) {
 			auto p = mgr->processesMap[pid];
 			auto &files = all_files[pid];
 			wprintf(L"%s:%d\n", p->GetProcessName().c_str(), pid);
 			for (auto& file : files) {
+				auto dos_path = TryNTPathToDOSPath(file.second.c_str());
+				const CHAR* f_type = NULL;
+				if (magic != NULL) {
+					f_type = magic->FileFile(StringUtils::ws2s(dos_path).c_str());
+				}
+				else {
+					f_type = "";
+				}
 				if (file.first == SysDirectory) {
-					wprintf(L"\tDirectory: '%s'\n", file.second.c_str());
+					wprintf(L"\tDirectory: '%s' \n\tType: '%s'\n", dos_path.c_str(), StringUtils::s2ws(f_type).c_str());
 				}
 				else if (file.first == SysFile) {
-					wprintf(L"\tFile: '%s'\n", file.second.c_str());
+					wprintf(L"\tFile: '%s' \n\tType: '%s'\n", dos_path.c_str(), StringUtils::s2ws(f_type).c_str());
 				}
 			}
 		}
@@ -1016,7 +1038,7 @@ ResultSet* LoadedFiles::ModuleRun() {
 	
 	return nullptr;
 }
-#include "MagicUtils.h"
+
 File::File() {
 	this->Name = L"File";
 	this->Path = L"File";
@@ -1049,8 +1071,7 @@ ResultSet* File::ModuleRun() {
 	auto& file = args["file"];
 	FileMagic* magic = FileMagic::NewInstance(".\\magic.mgc");
 	if (magic == NULL) {
-		auto error = magic->GetErrorString();
-		LOG_ERROR(StringUtils::s2ws(error).c_str());
+		LOG_ERROR_REASON(L"Error to new .\\magic.mgc");
 		return NULL;
 	}
 
@@ -1060,7 +1081,7 @@ ResultSet* File::ModuleRun() {
 	auto ret = IsWhat(file);
 	if (ret == -1) { //If is directory
 		Dir dir(StringUtils::s2ws(file).c_str());
-		auto files = dir.listFiles();
+		auto files = dir.ListFiles();
 		for (auto& _tmp_file : files) {
 			auto start = std::chrono::high_resolution_clock::now();
 			auto _tmp_file_a = StringUtils::ws2s(_tmp_file);
@@ -1077,7 +1098,6 @@ ResultSet* File::ModuleRun() {
 				continue;
 			}
 
-			//printf("%s\n", f);
 			result->PushDictOrdered("Path", path.c_str());
 			result->PushDictOrdered("File", f);
 		}
@@ -1093,7 +1113,6 @@ ResultSet* File::ModuleRun() {
 			return NULL;
 		}
 
-		//printf("%s\n", f);
 		result->PushDictOrdered("Path", file.c_str());
 		result->PushDictOrdered("File", f);
 	}

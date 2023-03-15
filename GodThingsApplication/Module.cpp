@@ -230,7 +230,7 @@ DWORD ModuleMgr::LoadModules() {
 	std::wstring currPath = std::filesystem::current_path().native().c_str();
 	std::wstring pluginPath = currPath + L"\\plugins\\*";
 	Dir dir(pluginPath.c_str());
-	auto files = dir.listFiles();
+	auto files = dir.ListFiles();
 	for (auto& f : files) {
 		try {
 			auto f2 = f.substr(0, f.size() - 3);

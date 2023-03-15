@@ -141,7 +141,7 @@ Dir::Dir(const wchar_t* dirpath) {
 	this->dirpath = dirpath;
 }
 
-std::vector<std::wstring> Dir::listFiles() {
+std::vector<std::wstring> Dir::ListFiles() {
 	WIN32_FIND_DATAW ffd = { 0 };
 	std::vector<std::wstring> res;
 	std::wstring path;
@@ -159,6 +159,170 @@ std::vector<std::wstring> Dir::listFiles() {
 	return res;
 }
 
+GTWString DisplayVolumePaths(
+	__in PWCHAR VolumeName
+)
+{
+	DWORD  CharCount = 4096;
+	WCHAR Names[4096];
+	PWCHAR NameIdx = NULL;
+	BOOL   Success = FALSE;
+
+	for (;;)
+	{
+		//
+		//  Allocate a buffer to hold the paths.
+
+		if (!Names)
+		{
+			//
+			//  If memory can't be allocated, return.
+			return L"";
+		}
+
+		//
+		//  Obtain all of the paths
+		//  for this volume.
+		Success = GetVolumePathNamesForVolumeNameW(
+			VolumeName, Names, CharCount, &CharCount
+		);
+
+		if (Success)
+		{
+			break;
+		}
+
+		if (GetLastError() != ERROR_MORE_DATA)
+		{
+			break;
+		}
+
+		//
+		//  Try again with the
+		//  new suggested size.
+	}
+
+	if (Success)
+	{
+		//
+		//  Display the various paths.
+		return Names;
+	}
+
+
+	return L"";
+}
+
+bool IsInitDevice = false;
+
+std::map<GTWString, GTWString> DeviceToDrivers;
+
+DWORD InitDevice(void) {
+	DWORD  CharCount = 0;
+	WCHAR  DeviceName[MAX_PATH] = L"";
+	DWORD  Error = ERROR_SUCCESS;
+	HANDLE FindHandle = INVALID_HANDLE_VALUE;
+	BOOL   Found = FALSE;
+	size_t Index = 0;
+	BOOL   Success = FALSE;
+	WCHAR  VolumeName[MAX_PATH] = L"";
+
+	//
+	//  Enumerate all volumes in the system.
+	FindHandle = FindFirstVolumeW(VolumeName, ARRAYSIZE(VolumeName));
+
+	if (FindHandle == INVALID_HANDLE_VALUE)
+	{
+		Error = GetLastError();
+		return Error;
+	}
+
+	for (;;)
+	{
+		//
+		//  Skip the \\?\ prefix and remove the trailing backslash.
+		Index = wcslen(VolumeName) - 1;
+
+		if (VolumeName[0] != L'\\' ||
+			VolumeName[1] != L'\\' ||
+			VolumeName[2] != L'?' ||
+			VolumeName[3] != L'\\' ||
+			VolumeName[Index] != L'\\')
+		{
+			Error = ERROR_BAD_PATHNAME;
+			break;
+		}
+
+		//
+		//  QueryDosDeviceW does not allow a trailing backslash,
+		//  so temporarily remove it.
+		VolumeName[Index] = L'\0';
+
+		CharCount = QueryDosDeviceW(&VolumeName[4], DeviceName, ARRAYSIZE(DeviceName));
+
+		VolumeName[Index] = L'\\';
+
+		if (CharCount == 0)
+		{
+			Error = GetLastError();
+			//wprintf(L"QueryDosDeviceW failed with error code %d\n", Error);
+			break;
+		}
+
+		DeviceToDrivers[DeviceName] = DisplayVolumePaths(VolumeName);
+
+		//
+		//  Move on to the next volume.
+		Success = FindNextVolumeW(FindHandle, VolumeName, ARRAYSIZE(VolumeName));
+
+		if (!Success)
+		{
+			Error = GetLastError();
+
+			if (Error != ERROR_NO_MORE_FILES)
+			{
+				//wprintf(L"FindNextVolumeW failed with error code %d\n", Error);
+				break;
+			}
+
+			//
+			//  Finished iterating
+			//  through all the volumes.
+			Error = ERROR_SUCCESS;
+			break;
+		}
+	}
+
+	FindVolumeClose(FindHandle);
+	FindHandle = INVALID_HANDLE_VALUE;
+
+	IsInitDevice = true;
+	return 0;
+}
+
+GTWString TryNTPathToDOSPath(const wchar_t* path) {
+	if (IsInitDevice == false) {
+		InitDevice();
+	}
+	GTWString volume_nt_name = path;
+	if (volume_nt_name.starts_with(L"\\Device") == FALSE) {
+		return path;
+	}
+
+	GTWString driver = L"";
+	for (auto& kv : DeviceToDrivers) {
+		if (volume_nt_name.starts_with(kv.first)) {
+			driver = kv.second;
+			volume_nt_name = driver + volume_nt_name.substr(kv.first.size() + 1);
+			break;
+		}
+	}
+
+	if (driver.size() == 0) {
+		return path;
+	}
+	return volume_nt_name;
+}
 
 
 

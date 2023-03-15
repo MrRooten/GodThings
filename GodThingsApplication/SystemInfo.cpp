@@ -261,11 +261,12 @@ std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemL
 	pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
 	if (NtDuplicateObject == NULL) {
 		LOG_ERROR_REASON(L"NtDuplicateObject failed to load");
+		return result;
 	}
 	ProcessManager* mgr = ProcessManager::GetMgr();
 	mgr->SetAllProcesses();
 	std::map<DWORD, std::set<GTWString>> resultSet;
-	for (int i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
+	for (ULONG i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
 		auto pid = this->pSystemHandleInfoEx->Handles[i].UniqueProcessId;
 		if (mgr->processesMap.contains(pid) == false) {
 			continue;
@@ -293,7 +294,8 @@ std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemL
 				CloseHandle(hObject);
 				continue;
 			}
-			status = GetFinalPathNameByHandleW(hObject, filename, MAX_PATH, FILE_NAME_NORMALIZED);
+			//status = GetFinalPathNameByHandleW(hObject, filename, MAX_PATH, VOLUME_NAME_NT);
+			auto filename2 = ObjectInfo::GetObjectName(hObject);
 			if (status != 0) {
 				CloseHandle(hObject);
 				continue;
@@ -312,7 +314,7 @@ std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemL
 			}
 			auto processName = mgr->processesMap[pid]->GetProcessName();
 			
-			result[pid].insert(std::pair<FileType, GTWString>(ft, filename));
+			result[pid].insert(std::pair<FileType, GTWString>(ft, filename2));
 		}
 		
 		CloseHandle(hObject);

@@ -687,7 +687,7 @@ DWORD PrefetchFile::Parse() {
 		this->_latest_exec_date = NewBytesBuffer(this->_bytes.first + 0x0080, 64);
 		this->_exec_count = MPEBytes::BytesToINT32L(this->_bytes.first + 0x00c8);
 	}
-
+	return 0;
 }
 
 FileMetrics& PrefetchFile::NextFileMetrics() {

@@ -14,6 +14,9 @@ void extendInit() {
 }
 
 
+#include <windows.h>
+#include <stdio.h>
+
 
 
 int wmain(int argc, wchar_t* argv[]) {

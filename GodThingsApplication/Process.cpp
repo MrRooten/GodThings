@@ -919,7 +919,7 @@ std::set<std::pair<GTWString, GTWString>> Process::GetLoadedFiles() {
 		pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
 		HANDLE object = NULL;
 		NtDuplicateObject(
-			this->GetCachedHandle(0),
+			this->GetCachedHandle(PROCESS_DUP_HANDLE),
 			handle,
 			GetCurrentProcess(),
 			&object,
@@ -1246,6 +1246,7 @@ ProcessManager* ProcessManager::GetMgr() {
 		return ProcessManager::_mgr;
 	}
 	ProcessManager::_mgr = new ProcessManager();
+	return ProcessManager::_mgr;
 }
 
 std::vector<UINT32> ProcessManager::GetPids() {
@@ -1323,7 +1324,7 @@ BOOL ProcessManager::SetAllProcesses() {
 			processesMap[pid]->parentPID = parentPid;
 			processesMap[pid]->processName = pe32.szExeFile;
 
-			//processesMap[pid]->InitProcessStaticState();
+			processesMap[pid]->InitProcessStaticState();
 			//processesMap[pid]->GetCPUState();
 		}
 	} while (Process32NextW(hProcessSnap, &pe32));
