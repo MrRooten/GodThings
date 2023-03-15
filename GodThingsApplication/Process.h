@@ -199,8 +199,7 @@ class Process {
 
 	std::vector<Process*>* childProcesses = nullptr;
 	MemoryState* memoryState = new MemoryState();
-	CPUState* cpuState = new CPUState();
-	CPUState* latestCpuState = new CPUState();
+	
 	IOState* ioState = new IOState();
 	HandleState* handleState = new HandleState();
 	ImageState* imageState = new ImageState();
@@ -215,7 +214,8 @@ class Process {
 public:
 	std::vector<Thread*>* threads;
 	static std::map<DWORD, GTWString> _pidProcessNameMap;
-
+	CPUState* cpuState = new CPUState();
+	CPUState* latestCpuState = new CPUState();
 	PID processId;
 	GTWString processName;
 	GTWString userName;
@@ -243,6 +243,7 @@ public:
 	IOState* GetIOState();
 	MemoryState* GetMemoryState();
 	CPUState* GetCPUState();
+	CPUState* GetLastestCPUState();
 	std::vector<LoadedDll> GetLoadedDlls();
 	std::set<std::pair<GTWString,GTWString>> GetLoadedFiles();
 	GTWString GetProcessName();
@@ -341,7 +342,7 @@ public:
 	BOOL SetAllProcesses();
 	std::map<PID, GTWString> GetProcesses_Light();
 	DWORD SetAllProcesses2();
-
+	std::map<PID, Process*> GetProcesses();
 };
 
 

@@ -18,15 +18,27 @@ ProcessModule::ProcessModule() {
 
 ResultSet* ProcessModule::ModuleRun() {
 	ResultSet* result = new ResultSet();
-
 	ProcessManager* mgr = new ProcessManager();
+	SystemInfo info;
+	auto time1 = info.GetSystemTimeInfo();
 	mgr->SetAllProcesses();
+	Sleep(1000);
 	for (auto item : mgr->processesMap) {
 		//result->dataDict["id"].push_back(std::to_string(item.first));
 		result->PushDictOrdered("id", std::to_string(item.first));
 		//result->dataDict["name"].push_back(StringUtils::ws2s(item.second->processName));
 		result->PushDictOrdered("name", StringUtils::ws2s(item.second->GetProcessName()));
-
+		auto process = item.second;
+		process->UpdateInfo();
+		auto time2 = info.GetSystemTimeInfo();
+		auto latest = process->latestCpuState;
+		auto old = process->cpuState;
+		INT64 p_ktime = (latest->kernelTime.dwLowDateTime - old->kernelTime.dwLowDateTime) + ((latest->kernelTime.dwHighDateTime - old->kernelTime.dwHighDateTime) << 32);
+		INT64 p_utime = (latest->userTime.dwLowDateTime - old->userTime.dwLowDateTime) + ((latest->userTime.dwHighDateTime - old->userTime.dwHighDateTime) << 32);
+		INT64 s_ktime = (time2.kernelTime.dwLowDateTime - time1.kernelTime.dwLowDateTime) + ((time2.kernelTime.dwHighDateTime - time1.kernelTime.dwHighDateTime) << 32);
+		INT64 s_utime = (time2.userTime.dwLowDateTime - time1.userTime.dwLowDateTime) + ((time2.userTime.dwHighDateTime - time1.userTime.dwHighDateTime) << 32);
+		FLOAT percent = (float)(p_ktime + p_utime) * 100 / (float)(s_ktime + s_utime);
+		result->PushDictOrdered("cpu%", std::to_string(percent));
 		result->PushDictOrdered("userName", StringUtils::ws2s(item.second->UserName()));
 		result->PushDictOrdered("cmdline", StringUtils::ws2s(item.second->GetImageState()->cmdline));
 		result->PushDictOrdered("filepath", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
@@ -179,9 +191,7 @@ ResultSet* StartupModule::ModuleRun() {
 				//wprintf(L"\t%s   %ld bytes\n", ffd.cFileName, filesize.QuadPart);
 				//result->dataDict["fileName"].push_back(StringUtils::ws2s(ffd.cFileName));
 				result->PushDictOrdered("fileName", StringUtils::ws2s(ffd.cFileName));
-				//result->dataDict["source"].push_back(StringUtils::ws2s(path));
 				result->PushDictOrdered("source", StringUtils::ws2s(path));
-				//result->dataDict["cmdline"].push_back(StringUtils::ws2s(ffd.cFileName));
 				result->PushDictOrdered("cmdline", StringUtils::ws2s(ffd.cFileName));
 			}
 		} while (FindNextFileW(hFind, &ffd) != 0);

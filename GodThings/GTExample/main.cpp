@@ -11,6 +11,7 @@ void extendInit() {
     new RDPClientSess();
     new LoadedFiles();
     new File();
+    new ProcessHandle();
 }
 
 

@@ -1,4 +1,6 @@
 #include "Process.h"
+#include "Process.h"
+#include "Process.h"
 #include "utils.h"
 #include <stdlib.h>
 #include <set>
@@ -289,6 +291,7 @@ HANDLE Process::GetCachedHandle(DWORD accessRight) {
 		return this->_cachedHandle;
 	}
 	CloseHandle(this->_cachedHandle);
+
 	HANDLE hProcess = GTOpenProcess(this->GetPID(), accessRight|_maxRight);
 	if (hProcess == NULL) {
 		return NULL;
@@ -296,6 +299,19 @@ HANDLE Process::GetCachedHandle(DWORD accessRight) {
 
 	_maxRight = (accessRight | _maxRight);
 	this->_cachedHandle = hProcess;
+	/*if (accessRight == this->_maxRight) {
+		return this->_cachedHandle;
+	}
+	if (this->_cachedHandle != NULL) {
+		CloseHandle(this->_cachedHandle);
+	}
+	HANDLE hProcess = GTOpenProcess(this->GetPID(), accessRight);
+	if (hProcess == NULL) {
+		this->_maxRight = 0;
+		return NULL;
+	}
+	this->_cachedHandle = hProcess;
+	this->_maxRight = accessRight;*/
 	return this->_cachedHandle;
 }
 
@@ -597,13 +613,13 @@ DWORD Process::SetProcessCPUState() {
 		//error when alloc CPUState struct
 	}
 
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
+	
+	if (hProcess == NULL) {
+		return GetLastError();
+	}
 	if (cpuState != NULL && latestCpuState != NULL)
 		*cpuState = *latestCpuState;
-
-	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
-	if (hProcess == NULL) {
-		hProcess = GetCachedHandle(PROCESS_QUERY_LIMITED_INFORMATION);
-	}
 	if (!GetProcessTimes(hProcess, &latestCpuState->createTime, &latestCpuState->exitTime, &latestCpuState->kernelTime, &latestCpuState->userTime)) {
 		//error when get Processes times
 		res = GetLastError();
@@ -1034,6 +1050,10 @@ GTWString Process::GetProcessName() {
 	return L"";
 }
 
+CPUState* Process::GetLastestCPUState() {
+	return this->latestCpuState;
+}
+
 DWORD Process::ReadMemoryFromAddress(PVOID address, PBYTE data,size_t size) {
 	DWORD status = 0;
 	HANDLE hProcess = GetCachedHandle(PROCESS_VM_READ);
@@ -1327,6 +1347,7 @@ BOOL ProcessManager::SetAllProcesses() {
 			processesMap[pid]->InitProcessStaticState();
 			//processesMap[pid]->GetCPUState();
 		}
+		processesMap[pid]->UpdateInfo();
 	} while (Process32NextW(hProcessSnap, &pe32));
 
 	for (auto oldPid : this->lastUpdatePids) {
@@ -1417,6 +1438,11 @@ DWORD ProcessManager::SetAllProcesses2() {
 	LocalFree(pProcessesInfo);
 	return 0;
 }
+
+std::map<PID, Process*> ProcessManager::GetProcesses() {
+	return std::map<PID, Process*>();
+}
+
 std::vector<Thread*>* ProcessManager::GetThreadsByPID(PID pid) {
 	return &this->threadsMap[pid];
 }

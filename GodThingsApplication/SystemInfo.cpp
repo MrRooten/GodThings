@@ -1,4 +1,7 @@
 #include "SystemInfo.h"
+#include "SystemInfo.h"
+#include "SystemInfo.h"
+#include "SystemInfo.h"
 
 SystemInfo::SystemInfo() {
 	if (NtQuerySystemInformation == NULL) {
@@ -111,6 +114,18 @@ std::wstring SystemInfo::GetProcessorArch() {
 	}
 	}
 	return L"";
+}
+
+SystemTimeInfo SystemInfo::GetSystemTimeInfo() {
+	FILETIME idleTime;
+	FILETIME kernelTime;
+	FILETIME userTime;
+	GetSystemTimes(&idleTime, &kernelTime, &userTime);
+	return SystemTimeInfo{
+		idleTime,
+		kernelTime,
+		userTime
+	};
 }
 
 DWORD SystemInfo::SetPerformanceInfo() {
@@ -287,7 +302,7 @@ std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemL
 			continue;
 		}
 		auto t_name = ObjectInfo::GetTypeName(hObject);
-		if (_wcsicmp(t_name.c_str(), L"Directory") == 0 || _wcsicmp(t_name.c_str(), L"File") == 0) {
+		if (_wcsicmp(t_name.c_str(), L"Directory") == 0 || _wcsicmp(t_name.c_str(), L"File") == 0 || _wcsicmp(t_name.c_str(), L"Key")) {
 			WCHAR filename[MAX_PATH];
 			auto a = GetFileType(hObject);
 			if (a == FILE_TYPE_PIPE || a == FILE_TYPE_CHAR) {
@@ -309,8 +324,11 @@ std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemL
 			if (_wcsicmp(t_name.c_str(), L"Directory") == 0) {
 				ft = SysDirectory;
 			}
-			else {
+			else if (_wcsicmp(t_name.c_str(), L"File") == 0) {
 				ft = SysFile;
+			}
+			else {
+				ft = SysKey;
 			}
 			auto processName = mgr->processesMap[pid]->GetProcessName();
 			
@@ -322,6 +340,49 @@ std::map<DWORD, std::set<std::pair<FileType, GTWString>>> SystemInfo::GetSystemL
 
 	return result;
 }
+
+VOID SystemInfo::IterateSystemHandle(std::function<void(DWORD, HANDLE)> handler, std::set<DWORD>& pids) {
+	if (this->pSystemHandleInfoEx != NULL) {
+		LocalFree(pSystemHandleInfoEx);
+	}
+	this->SetSystemHandles();
+	pNtDuplicateObject NtDuplicateObject = (pNtDuplicateObject)GetNativeProc("NtDuplicateObject");
+	if (NtDuplicateObject == NULL) {
+		LOG_ERROR_REASON(L"NtDuplicateObject failed to load");
+		return ;
+	}
+	ProcessManager* mgr = ProcessManager::GetMgr();
+	for (ULONG i = 0; i < this->pSystemHandleInfoEx->NumberOfHandles; i++) {
+		auto pid = this->pSystemHandleInfoEx->Handles[i].UniqueProcessId;
+		if (mgr->processesMap.contains(pid) == false) {
+			continue;
+		}
+
+		if (pids.contains(pid) == false) {
+			continue;
+		}
+		HANDLE hObject = NULL;
+		auto status = NtDuplicateObject(
+			mgr->processesMap[pid]->GetCachedHandle(PROCESS_DUP_HANDLE),
+			(HANDLE)this->pSystemHandleInfoEx->Handles[i].HandleValue,
+			GetCurrentProcess(),
+			&hObject,
+			0,
+			0,
+			0
+		);
+
+		SetLastError(NtStatusHandler(status));
+		if (status != 0) {
+			continue;
+		}
+		handler(pid, hObject);
+
+		CloseHandle(hObject);
+	}
+	return VOID();
+}
+
 
 DWORD SystemInfo::SetPoolTag()
 {

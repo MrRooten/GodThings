@@ -1032,6 +1032,9 @@ ResultSet* LoadedFiles::ModuleRun() {
 				else if (file.first == SysFile) {
 					wprintf(L"\tFile: '%s' \n\tType: '%s'\n", dos_path.c_str(), StringUtils::s2ws(f_type).c_str());
 				}
+				else if (file.first == SysKey) {
+					wprintf(L"\tKey: '%s'\n", file.second.c_str());
+				}
 			}
 		}
 	}
@@ -1123,5 +1126,69 @@ ResultSet* File::ModuleRun() {
 	
 	
 	result->SetType(DICT);
+	return result;
+}
+#include "ObjectInfo.h"
+ProcessHandle::ProcessHandle() {
+	this->Name = L"Handle";
+	this->Path = L"Process";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get File Type of specified file";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* ProcessHandle::ModuleRun() {
+	std::vector<UINT32> pids;
+	ResultSet* result = new ResultSet();
+	if ((!this->args.contains("pid")) && (!this->args.contains("name"))) {
+		result->SetErrorMessage("Error must set pid=${pid} or name=${process}, name can be substr of origin process name");
+		result->SetType(ResultType::ERROR_MESSAGE);
+		return result;
+	}
+	auto mgr = ProcessManager::GetMgr();
+	mgr->SetAllProcesses();
+	if (this->args["pid"] == "*") {
+		for (auto pid : mgr->processesMap) {
+			pids.push_back(pid.first);
+		}
+	}
+	else {
+		auto pid = stoi(this->args["pid"]);
+		pids.push_back(pid);
+	}
+
+	if (this->args.contains("name")) {
+		auto& name = this->args["name"];
+		for (auto& proc : mgr->processesMap) {
+			if (proc.second->GetProcessName().find(StringUtils::s2ws(name))) {
+				pids.push_back(proc.first);
+			}
+		}
+	}
+
+	std::set<DWORD> s_pids(pids.begin(), pids.end());
+	SystemInfo info;
+	info.IterateSystemHandle(
+		[&result, &mgr, &s_pids](auto pid, auto hObject) {
+			auto& map = mgr->processesMap;
+			if (s_pids.contains(pid) == false || map.contains(pid) == false) {
+				return;
+			}
+			auto a = GetFileType(hObject);
+			if (a == FILE_TYPE_PIPE || a == FILE_TYPE_CHAR) {
+				return;
+			}
+
+			Process* process = map[pid];
+			auto name = process->GetProcessName();
+			GTWString objName = ObjectInfo::GetObjectName(hObject);
+			auto objType = ObjectInfo::GetTypeName(hObject);
+			wprintf(L"\t%s: %s\n", objType.c_str(), objName.c_str());
+		}, s_pids
+	);
+
+
 	return result;
 }

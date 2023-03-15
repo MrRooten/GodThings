@@ -4,12 +4,19 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <functional>
 #include "utils.h"
 enum FileType {
 	SysDirectory=0,
-	SysFile=1
+	SysFile=1,
+	SysKey=2
 };
 
+struct SystemTimeInfo {
+	FILETIME idleTime;
+	FILETIME kernelTime;
+	FILETIME userTime;
+};
 class SystemInfo {
 public:
 	SystemInfo();
@@ -25,6 +32,7 @@ public:
 	DWORD SetProcessorInfo();
 	std::wstring GetProcessorArch();
 
+	SystemTimeInfo GetSystemTimeInfo();
 
 	PSYSTEM_PERFORMANCE_INFORMATION pPerformanceInfo = NULL;
 	DWORD SetPerformanceInfo();
@@ -72,5 +80,7 @@ public:
 	DWORD SetSystemHandles();
 	static POSVERSIONINFOEXW GetSystemVersion();
 	std::map<DWORD, std::set<std::pair<FileType, GTWString>>> GetSystemLoadedFiles();
+
+	VOID IterateSystemHandle(std::function<void(DWORD, HANDLE)> handler, std::set<DWORD>& pids);
 
 };

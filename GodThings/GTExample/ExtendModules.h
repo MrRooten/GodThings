@@ -48,3 +48,15 @@ public:
 	File();
 	ResultSet* ModuleRun();
 };
+
+class ProcessHandle : public NativeModule {
+public:
+	ProcessHandle();
+	ResultSet* ModuleRun();
+};
+
+class ProcessTree : public NativeModule {
+public:
+	ProcessTree();
+	ResultSet* ModuleRun();
+};
