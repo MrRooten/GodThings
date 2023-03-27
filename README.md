@@ -67,4 +67,13 @@ This project is a framework of Windows system analysis and provide some system a
     open_fileinfo_cache(...)
         Open fileinfo cache to cache fileinfo
 
+## GTExample2.exe
+  ![image](https://user-images.githubusercontent.com/25635931/227888007-9d35f94d-01a1-416e-bd4e-9c8441e7d424.png)
+  ### System.LoadedFiles
+  ![image](https://user-images.githubusercontent.com/25635931/227888102-870491f3-9075-4fc8-8f06-4da307d95d1a.png)
+  ### File.File  
+  "file=${path}", the path can be file or directory, if is directory then show all file type that own by this directory  
+  ![image](https://user-images.githubusercontent.com/25635931/227888288-0a9a3f46-3947-4106-9619-1cb335a6e89e.png)
+  if there is end with backslash, then need a double-backslash to escape the quote
+  ![image](https://user-images.githubusercontent.com/25635931/227888396-30312726-a87f-46fe-b123-f5ae242e0b8e.png)
 
