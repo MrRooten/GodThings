@@ -1,5 +1,5 @@
 # Godthings
-This project is a framework of Windows system analysis and provide some system api to write C or Python code to extend the function of this system. (The code most of it is written in C++/C#, but there are some necessary python libraries so the github code analysis show the python code is most of this project)
+This project is a framework of Windows system analysis and provide some system api to write C or Python code to extend the function of this system. 
 ## Godthings.sys
   This is kernel driver of this project that supply some kernel mode ability.This must be developped in VS2019,but now I'm in VS2022(Too lazy to install VS2019,So may quit for a while)
   
