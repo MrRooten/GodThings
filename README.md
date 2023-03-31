@@ -72,7 +72,7 @@ This project is a framework of Windows system analysis and provide some system a
   ### System.LoadedFiles
   ![image](https://user-images.githubusercontent.com/25635931/227888102-870491f3-9075-4fc8-8f06-4da307d95d1a.png)
   ### File.File  
-  "file=${path}", the path can be file or directory, if is directory then show all file type that own by this directory  
+  "file=${path}", the path can be file or directory, if is a directory then show all file type that own by this directory  
   ![image](https://user-images.githubusercontent.com/25635931/227888288-0a9a3f46-3947-4106-9619-1cb335a6e89e.png)
   if there is end with backslash, then need a double-backslash to escape
   ![image](https://user-images.githubusercontent.com/25635931/227888396-30312726-a87f-46fe-b123-f5ae242e0b8e.png)
