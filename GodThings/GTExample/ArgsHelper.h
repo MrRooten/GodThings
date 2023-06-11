@@ -19,7 +19,7 @@
 
 #include "MagicUtils.h"
 #include "ObjectInfo.h"
-
+#include "LDAPUtils.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t* file) {
@@ -301,8 +301,6 @@ public:
 		}
 		else if (subcmd == L"test") {
 			setlocale(LC_ALL, "chs");
-			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, 27232);
-			auto h = ObjectInfo::GetObjectInfo(hProcess);
 			return;
 		}
 		else if (subcmd == L"list_path") {

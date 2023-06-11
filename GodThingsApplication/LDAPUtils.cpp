@@ -1,6 +1,6 @@
 #include "LDAPUtils.h"
-
-LDAPIdentity::LDAPIdentity(GTRawWString username, GTRawWString domain, GTRawWString password, UINT32 flag) {
+#pragma comment(lib,"Wldap32.lib")
+LDAPIdentity::LDAPIdentity(LPCWSTR username, LPCWSTR domain, LPCWSTR password, UINT32 flag) {
 	this->username = username;
 	this->domain = domain;
 	this->password = password;
@@ -19,7 +19,7 @@ SEC_WINNT_AUTH_IDENTITY_W LDAPIdentity::GetIdentity() {
 	return ret;
 }
 
-LDAPSession::LDAPSession(GTRawWString host, ULONG port) {
+LDAPSession::LDAPSession(LPCWSTR host, ULONG port) {
 	this->host = host;
 	this->port = port;
 }
@@ -49,8 +49,8 @@ LDAPResult LDAPSession::Login() {
 LDAPResult LDAPSession::Authenticate(LDAPIdentity& identity,ULONG method) {
 	auto ret = ldap_bind_sW(
 		this->ldap,
-		(PWSTR)this->host.c_str(),
-		(PWCHAR)&identity,
+		(PWSTR)L"cn=admin,dc=nsfocusad,dc=com",
+		(PWCHAR)L"1qaz@WSX",
 		method
 	);
 
@@ -91,8 +91,7 @@ PLDAPMessage* LDAPResult::GetMessageAddr() {
 	return &message;
 }
 
-GTWString LDAPResult::GetReason()
-{
+GTWString LDAPResult::GetReason() {
 	return GTWString();
 }
 

@@ -3,15 +3,16 @@
 #include "utils.h"
 #include <string>
 #include <Winldap.h>
+
 class LDAPIdentity {
 	GTWString username;
 	GTWString password;
 	GTWString domain;
 	UINT32 flag;
 public:
-	LDAPIdentity(GTRawWString username,
-		GTRawWString domain,
-		GTRawWString password,
+	LDAPIdentity(LPCWSTR username,
+		LPCWSTR domain,
+		LPCWSTR password,
 		UINT32 flag);
 
 	SEC_WINNT_AUTH_IDENTITY_W GetIdentity();
@@ -36,7 +37,7 @@ class LDAPSession {
 	ULONG port;
 	LDAP* ldap = NULL;
 public:
-	LDAPSession(GTRawWString host, ULONG port);
+	LDAPSession(LPCWSTR host, ULONG port);
 
 	LDAPResult Initialize();
 
@@ -47,6 +48,7 @@ public:
 	LDAPResult Authenticate(LDAPIdentity& identity,ULONG method);
 
 	LDAPResult Search(ULONG scope, PWSTR filter, PWSTR* attrs);
+
 
 	~LDAPSession();
 };

@@ -366,6 +366,7 @@ VOID Srv::SetDisplayName(LPCWSTR displayName) {
 }
 
 VOID Srv::SetFilePath(LPCWSTR filePath) {
+	
 	this->filePath = filePath;
 }
 
@@ -390,6 +391,9 @@ std::wstring& Srv::GetDisplayName() {
 }
 
 std::wstring& Srv::GetFilePath() {
+	if (this->filePath.size() == 0) {
+		this->SetConfig();
+	}
 	return this->filePath;
 }
 

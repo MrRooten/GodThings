@@ -160,6 +160,17 @@ DWORD Process::InjectDll(const LPWSTR filename) {
 	return 0;
 }
 
+GTTime Process::GetStartTime() {
+	auto res = this->SetProcessCPUState();
+	if (res != 0) {
+		return GTTime();
+	}
+
+	auto ctime = this->latestCpuState->createTime;
+	auto time = GTTime(ctime);
+	return time;
+}
+
 std::vector<Segment>& Process::GetSegments() {
 	this->SetSegments();
 	return this->_segments;
@@ -760,8 +771,8 @@ DWORD Process::SetProcessImageState() {
 		}
 	} while (0);
 	//Get path
-	
-	if (!GetProcessImageFileNameW(hProcess, path, 2048)) {
+	DWORD _size = 2048;
+	if (!QueryFullProcessImageNameW(hProcess, 0, path, &_size)) {
 		res = GetLastError();
 	}
 	else {

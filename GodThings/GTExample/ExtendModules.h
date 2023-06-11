@@ -60,3 +60,9 @@ public:
 	ProcessTree();
 	ResultSet* ModuleRun();
 };
+
+class LocalAccountTokenFilterPolicyBackDoor : public NativeModule {
+public:
+	LocalAccountTokenFilterPolicyBackDoor();
+	ResultSet* ModuleRun();
+};

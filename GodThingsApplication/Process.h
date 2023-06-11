@@ -250,6 +250,7 @@ public:
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
 	DWORD InjectDll(const LPWSTR dllname);
+	GTTime GetStartTime();
 	std::vector<Segment>& GetSegments();
 	~Process();
 

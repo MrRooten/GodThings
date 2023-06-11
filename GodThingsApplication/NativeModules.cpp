@@ -25,9 +25,10 @@ ResultSet* ProcessModule::ModuleRun() {
 	Sleep(1000);
 	for (auto item : mgr->processesMap) {
 		//result->dataDict["id"].push_back(std::to_string(item.first));
-		result->PushDictOrdered("id", std::to_string(item.first));
+		result->PushDictOrdered("PID", std::to_string(item.first));
+		result->PushDictOrdered("PPID", std::to_string(item.second->parentPID));
 		//result->dataDict["name"].push_back(StringUtils::ws2s(item.second->processName));
-		result->PushDictOrdered("name", StringUtils::ws2s(item.second->GetProcessName()));
+		result->PushDictOrdered("NAME", StringUtils::ws2s(item.second->GetProcessName()));
 		auto process = item.second;
 		process->UpdateInfo();
 		auto time2 = info.GetSystemTimeInfo();
@@ -38,10 +39,12 @@ ResultSet* ProcessModule::ModuleRun() {
 		INT64 s_ktime = (time2.kernelTime.dwLowDateTime - time1.kernelTime.dwLowDateTime) + ((time2.kernelTime.dwHighDateTime - time1.kernelTime.dwHighDateTime) << 32);
 		INT64 s_utime = (time2.userTime.dwLowDateTime - time1.userTime.dwLowDateTime) + ((time2.userTime.dwHighDateTime - time1.userTime.dwHighDateTime) << 32);
 		FLOAT percent = (float)(p_ktime + p_utime) * 100 / (float)(s_ktime + s_utime);
-		result->PushDictOrdered("cpu%", std::to_string(percent));
-		result->PushDictOrdered("userName", StringUtils::ws2s(item.second->UserName()));
-		result->PushDictOrdered("cmdline", StringUtils::ws2s(item.second->GetImageState()->cmdline));
-		result->PushDictOrdered("filepath", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
+		result->PushDictOrdered("CPU", std::to_string(percent));
+		result->PushDictOrdered("User name", StringUtils::ws2s(item.second->UserName()));
+		result->PushDictOrdered("Command line", StringUtils::ws2s(item.second->GetImageState()->cmdline));
+		result->PushDictOrdered("File path", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
+		result->PushDictOrdered("Start time", StringUtils::ws2s(item.second->GetStartTime().String()));
+		
 	}
 	delete mgr;
 	result->SetType(DICT);
@@ -80,13 +83,16 @@ ResultSet* ServiceModule::ModuleRun() {
 	ServiceManager* mgr = new ServiceManager();
 	mgr->SetAllServices();
 	for (auto item : mgr->services) {
-		//result->dataDict["serviceName"].push_back(StringUtils::ws2s(item->serviceName));
 		result->PushDictOrdered("serviceName", StringUtils::ws2s(item->GetServiceName()));
-		//result->dataDict["serviceStatus"].push_back(StringUtils::ws2s(item->GetServiceStatus()));
+		auto userName = item->GetServiceName();
+		result->PushDictOrdered("userName", StringUtils::ws2s(userName));
 		result->PushDictOrdered("serviceStatus", StringUtils::ws2s(item->GetServiceStatus()));
-		auto a = item->GetDescription();
-		//result->dataDict["description"].push_back(StringUtils::ws2s(a));
-		result->PushDictOrdered("description", StringUtils::ws2s(a));
+		auto path = item->GetFilePath();
+		result->PushDictOrdered("path", StringUtils::ws2s(path));
+		auto description = item->GetDescription();
+		result->PushDictOrdered("description", StringUtils::ws2s(description));
+		auto pid = item->GetOwningPid();
+		result->PushDictOrdered("owningPid", std::to_string(pid));
 	}
 	delete mgr;
 	result->SetType(DICT);
