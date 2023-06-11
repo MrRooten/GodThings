@@ -191,6 +191,7 @@
     <ClCompile Include="EvtInfo.cpp" />
     <ClCompile Include="FileInfo.cpp" />
     <ClCompile Include="FileUtils.cpp" />
+    <ClCompile Include="FireWallInfo.cpp" />
     <ClCompile Include="GodAgent.cpp" />
     <ClCompile Include="HackDetectModules.cpp" />
     <ClCompile Include="KernelUtils.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="EvtInfo.h" />
     <ClInclude Include="FileInfo.h" />
     <ClInclude Include="FileUtils.h" />
+    <ClInclude Include="FireWallInfo.h" />
     <ClInclude Include="HackDetectModules.h" />
     <ClInclude Include="DCHackModules.h" />
     <ClInclude Include="HookUtils.h" />

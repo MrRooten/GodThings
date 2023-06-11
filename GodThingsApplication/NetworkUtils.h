@@ -20,3 +20,27 @@ public:
 		return addr;
 	}
 };
+
+
+class IPv4 {
+	IN_ADDR a;
+public:
+	GTString AsString();
+	GTWString AsWString();
+	UINT32 AsUINT32();
+	IPv4(UINT32 addr);
+	IPv4(IN_ADDR addr);
+	IPv4(GTString addr);
+	IPv4(GTWString addr);
+};
+
+class IPv6 {
+	in_addr6 a;
+public:
+	GTString AsString();
+	GTWString AsWString();
+	UINT32 AsUINT32();
+	IPv6(in_addr6 addr);
+	IPv6(GTString addr);
+	IPv6(GTWString addr);
+};
