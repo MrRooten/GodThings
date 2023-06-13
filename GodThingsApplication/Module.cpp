@@ -225,6 +225,7 @@ DWORD ModuleMgr::LoadModules() {
 	MailiousProcessDlls* unsignedDlls = new MailiousProcessDlls();
 	new RecentRunning();
 	new Accounts();
+	new FwRules();
 #ifdef  PYTHON_ENABLE
 
 	std::wstring currPath = std::filesystem::current_path().native().c_str();

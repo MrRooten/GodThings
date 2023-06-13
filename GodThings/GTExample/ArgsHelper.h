@@ -20,6 +20,7 @@
 #include "MagicUtils.h"
 #include "ObjectInfo.h"
 #include "LDAPUtils.h"
+#include "FireWallInfo.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t* file) {
@@ -30,7 +31,6 @@ public:
 		wprintf(L"    pyfile <file>: Run python file\n");
 		wprintf(L"    python: Run python interpreter\n");
 #endif
-		wprintf(L"    gui_serve: Run the GUI Serve\n");
 		wprintf(L"    info_module: Module Information\n");
 		wprintf(L"    run_module <module>: Run a module\n");
 		wprintf(L"    run_all: Run all autorun-able modules\n");
@@ -91,6 +91,12 @@ public:
 	static void RunModule(wchar_t* moduleName, int len_args, wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		bool is_csv_output = true;
+		for (int i = 0; i < len_args; i++) {
+			if (lstrcmpW(args[i], L"--disable-csv") == 0) {
+				is_csv_output = false;
+			}
+		}
 		for (auto& mod : mgr->modules) {
 			auto fullPath = mod->Path + L"." + mod->Name;
 			if (fullPath == moduleName) {
@@ -121,6 +127,7 @@ public:
 				auto data = json["Data"];
 				int size = 0;
 				auto orders = res->GetMapOrder();
+				
 				for (auto& key : orders) {
 					printf("%-30s ", key.c_str());
 					size = data[key].size();
@@ -151,6 +158,13 @@ public:
 					printf("\n");
 				}
 				SetConsoleTextAttribute(hConsole, 7);
+				if (is_csv_output == true) {
+					std::wstring filename = mod->Path + L"." + mod->Name + L".csv";
+					auto file = GTFileUtils::Open(filename.c_str(), L"w");
+					auto s = "\xef\xbb\xbf" + res->ToCsvString();
+					file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
+					delete file;
+				}
 				delete res;
 				return;
 			}
@@ -300,7 +314,10 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			setlocale(LC_ALL, "chs");
+			FwRuleMgr::IterateFwRule([](FwRule* rule) -> bool {
+				printf("%x\n", rule);
+				return true;
+				});
 			return;
 		}
 		else if (subcmd == L"list_path") {

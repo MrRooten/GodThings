@@ -6,6 +6,7 @@
 #include "shlwapi.h"
 #include <tinyxml2.h>
 #include "Network.h"
+#include "FireWallInfo.h"
 ProcessModule::ProcessModule() {
 	this->Name = L"Process";
 	this->Path = L"Process";
@@ -928,8 +929,6 @@ ResultSet* RecentRunning::ModuleRun() {
 		result->PushDictOrdered("type", "ShellCore-Run");
 		result->PushDictOrdered("name", e->commandLine);
 		
-		
-		
 	}
 	
 	result->SetType(DICT);
@@ -1004,4 +1003,30 @@ ResultSet* RecentApps::ModuleRun() {
 	return nullptr;
 }
 
+FwRules::FwRules() {
+	this->Name = L"FwRules";
+	this->Path = L"FireWall";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"List Fire Wall Rules";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
 
+ResultSet* FwRules::ModuleRun() {
+	auto result = new ResultSet();
+	FwRuleMgr::IterateFwRule([result](FwRule* rule) -> bool {
+		result->PushDictOrdered("Name", StringUtils::ws2s(rule->GetName()));
+		result->PushDictOrdered("AppName", StringUtils::ws2s(rule->GetAppName()));
+		result->PushDictOrdered("LocalAddr", StringUtils::ws2s(rule->GetLocalAddresses()));
+		result->PushDictOrdered("LocalPorts", StringUtils::ws2s(rule->GetLocalPorts()));
+		result->PushDictOrdered("RemoteAddr", StringUtils::ws2s(rule->GetRemoteAddresses()));
+		result->PushDictOrdered("RemotePorts", StringUtils::ws2s(rule->GetRemotePorts()));
+		result->PushDictOrdered("Description", StringUtils::ws2s(rule->GetDescription()));
+		result->PushDictOrdered("Protocol", StringUtils::ws2s(rule->GetProtocol()));
+		result->PushDictOrdered("Action", StringUtils::ws2s(rule->GetAction().WString()));
+		return true;
+		});
+	result->SetType(DICT);
+	return result;
+}

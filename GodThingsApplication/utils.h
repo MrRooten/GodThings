@@ -121,4 +121,11 @@ GTWString red_s(const wchar_t* s);
 GTWString blue_s(const wchar_t* s);
 GTWString green_s(const wchar_t* s);
 GTWString yellow_s(const wchar_t* s);
+
+class GTException : public std::exception {
+	GTString msg;
+public:
+	GTException(const char* msg);
+	char* what();
+};
 #endif

@@ -158,5 +158,9 @@ public:
 	ResultSet* ModuleRun();
 };
 
-
+class FwRules : public NativeModule {
+public:
+	FwRules();
+	ResultSet* ModuleRun();
+};
 #endif

@@ -505,3 +505,11 @@ std::wstring GTTime::ToISO8601() {
 	GTTime t(pUTC);
 	return _helperISO8601(t);
 }
+
+char* GTException::what() {
+	return (char*)this->msg.c_str();
+}
+
+GTException::GTException(const char* msg) {
+	this->msg = msg;
+}
