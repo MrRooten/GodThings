@@ -212,11 +212,16 @@ DWORD ProcHandler::Process() {
         if (command == "list_modules") {
             auto Mgr = ModuleMgr::GetMgr();
             size_t len = Mgr->modules.size();
+            int result_i = 0;
             for (int i = 0; i < len; i++) {
                 //if (Mgr->modules[i]->Type == L"LastMode") {
                 //    continue;
                 //}
-                result["list_modules"][i] = Mgr->modules[i]->GetModuleMetaJson();
+                if (Mgr->modules[i]->RunType != ModuleAuto) {
+                    continue;
+                }
+                result["list_modules"][result_i] = Mgr->modules[i]->GetModuleMetaJson();
+                result_i += 1;
             }
         }
         else if (command == "run_module") {

@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Godthings", "Godthings\Godt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GTExample2", "GTExample2\GTExample2.vcxproj", "{D9463261-B8D7-4B02-A2C9-FCF8D8F0531A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTGui", "GTGui\GTGui.csproj", "{853EC810-7D0C-4EAA-98B3-2089EFF2B861}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,26 @@ Global
 		{D9463261-B8D7-4B02-A2C9-FCF8D8F0531A}.Release|x64.Build.0 = Release|x64
 		{D9463261-B8D7-4B02-A2C9-FCF8D8F0531A}.Release|x86.ActiveCfg = Release|Win32
 		{D9463261-B8D7-4B02-A2C9-FCF8D8F0531A}.Release|x86.Build.0 = Release|Win32
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|ARM.Build.0 = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|x64.Build.0 = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Debug|x86.Build.0 = Debug|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|Any CPU.Build.0 = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|ARM.ActiveCfg = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|ARM.Build.0 = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|ARM64.Build.0 = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|x64.ActiveCfg = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|x64.Build.0 = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|x86.ActiveCfg = Release|Any CPU
+		{853EC810-7D0C-4EAA-98B3-2089EFF2B861}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

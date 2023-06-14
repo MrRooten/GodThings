@@ -298,17 +298,24 @@ DWORD Process::SetSegments() {
 }
 
 HANDLE Process::GetCachedHandle(DWORD accessRight) {
+	if (this->processId == 0) {
+		return NULL;
+	}
 	if ((accessRight | _maxRight) == _maxRight) {
 		return this->_cachedHandle;
 	}
-	CloseHandle(this->_cachedHandle);
-
-	HANDLE hProcess = GTOpenProcess(this->GetPID(), accessRight|_maxRight);
+	if (this->_cachedHandle != NULL && this->_cachedHandle != INVALID_HANDLE_VALUE) {
+		CloseHandle(this->_cachedHandle);
+		this->_cachedHandle = NULL;
+	}
+	
+	
+	HANDLE hProcess = GTOpenProcess(this->GetPID(), accessRight);
 	if (hProcess == NULL) {
 		return NULL;
 	}
 
-	_maxRight = (accessRight | _maxRight);
+	_maxRight = accessRight;
 	this->_cachedHandle = hProcess;
 	/*if (accessRight == this->_maxRight) {
 		return this->_cachedHandle;

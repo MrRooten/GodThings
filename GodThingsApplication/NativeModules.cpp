@@ -25,10 +25,8 @@ ResultSet* ProcessModule::ModuleRun() {
 	mgr->SetAllProcesses();
 	Sleep(1000);
 	for (auto item : mgr->processesMap) {
-		//result->dataDict["id"].push_back(std::to_string(item.first));
 		result->PushDictOrdered("PID", std::to_string(item.first));
 		result->PushDictOrdered("PPID", std::to_string(item.second->parentPID));
-		//result->dataDict["name"].push_back(StringUtils::ws2s(item.second->processName));
 		result->PushDictOrdered("NAME", StringUtils::ws2s(item.second->GetProcessName()));
 		auto process = item.second;
 		process->UpdateInfo();
