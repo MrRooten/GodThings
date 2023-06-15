@@ -264,7 +264,7 @@ DWORD ProcHandler::Process() {
             ResultSet* _result_set = NULL;
             _result_set = mod->ModuleRun();
             result["module_result"] = _result_set->ToJsonObject();
-                
+            delete _result_set;
             
             /*enable_threads_scope* scope = NULL;
             bool is_lock = false;
