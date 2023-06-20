@@ -441,6 +441,7 @@ ResultSet* ListSchduleTask::ModuleRun() {
 		result->PushDictOrdered("Path", StringUtils::ws2s(task.getPath()));
 	}
 	result->SetType(DICT);
+	delete mgr;
 	return result;
 }
 
@@ -950,7 +951,7 @@ ResultSet* MRUList::ModuleRun() {
 
 Accounts::Accounts() {
 	this->Name = L"Accounts";
-	this->Path = L"Registry";
+	this->Path = L"Account";
 	this->Type = L"Native";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Accounts";

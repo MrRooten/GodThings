@@ -79,6 +79,7 @@ class SchduleTaskMgr {
 public:
 	static SchduleTaskMgr* _single;
 	static SchduleTaskMgr* GetMgr();
+	static void DeleteMgr();
 	SchduleTaskMgr();
 	std::vector<SchduleTask> GetTasks();
 	void EnumTasks(std::function<void(SchduleTask*)> callback);

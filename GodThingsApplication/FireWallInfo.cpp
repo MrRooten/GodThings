@@ -36,7 +36,7 @@ void FwRuleMgr::IterateFwRule(FwCallback callback) {
     ULONG cFetched = 0;
     CComVariant var;
 
-    IUnknown* pEnumerator;
+    IUnknown* pEnumerator = NULL;
     IEnumVARIANT* pVariant = NULL;
 
     INetFwPolicy2* pNetFwPolicy2 = NULL;
@@ -113,16 +113,19 @@ void FwRuleMgr::IterateFwRule(FwCallback callback) {
             if (SUCCEEDED(hr))
             {
                 // Output the properties of this rule
-          
+                
                 auto rule = FwRule::NewFwRule(pFwRule);
                 if (rule == NULL) {
                     continue;
                 }
                 auto ok = callback(rule);
                 if (ok == false) {
+                    delete rule;
                     break;
                 }
                 delete rule;
+                pFwRule->Release();
+                pFwRule = NULL;
             }
         }
     }
