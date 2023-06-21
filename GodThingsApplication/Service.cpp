@@ -11,10 +11,9 @@ DWORD Srv::SetStatusProcess() {
 			return GetLastError();
 		}
 	}
-	SC_HANDLE hSCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
-	SC_HANDLE hService = OpenServiceW(hSCManager, this->serviceName.c_str(), SERVICE_QUERY_CONFIG|SERVICE_QUERY_STATUS);
+
+	SC_HANDLE hService = OpenServiceW(this->pSrvManager->hSCManger, this->serviceName.c_str(), SERVICE_QUERY_CONFIG|SERVICE_QUERY_STATUS);
 	if (hService == NULL) {
-		CloseServiceHandle(hSCManager);
 		return GetLastError();
 	}
 	DWORD ret = 0;
@@ -22,6 +21,7 @@ DWORD Srv::SetStatusProcess() {
 		return GetLastError();
 	}
 
+	CloseServiceHandle(hService);
 	return GetLastError();
 }
 
@@ -50,12 +50,9 @@ Srv::~Srv() {
 
 }
 DWORD Srv::SetConfig() {
-	SC_HANDLE hSCManager = NULL;
 	LPQUERY_SERVICE_CONFIGW lpConfig = NULL;
-	hSCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
-	SC_HANDLE hService = OpenServiceW(hSCManager, this->serviceName.c_str(), SERVICE_QUERY_CONFIG);
+	SC_HANDLE hService = OpenServiceW(this->pSrvManager->hSCManger, this->serviceName.c_str(), SERVICE_QUERY_CONFIG);
 	if (hService == NULL) {
-		CloseServiceHandle(hSCManager);
 		return GetLastError();
 	}
 
@@ -76,15 +73,18 @@ DWORD Srv::SetConfig() {
 				dwSize,
 				&dwSize
 			)) {
+				CloseServiceHandle(hService);
 				return GetLastError();
 			}
 		}
 		else {
+			CloseServiceHandle(hService);
 			return GetLastError();
 		}
 	}
 
 	this->filePath = lpConfig->lpBinaryPathName;
+	CloseServiceHandle(hService);
 	LocalFree(lpConfig);
 	return 0;
 }
@@ -136,16 +136,11 @@ DWORD Srv::SetFailureActions() {
 		ZeroMemory(this->pFailureActions, sizeof LPSERVICE_FAILURE_ACTIONSW);
 	}
 
-	SC_HANDLE hSCManager = NULL;
-	hSCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
 	
 
-	if (hSCManager == NULL) {
-		return GetLastError();
-	}
-	SC_HANDLE hService = OpenServiceW(hSCManager, this->serviceName.c_str(), SERVICE_QUERY_CONFIG);
+	SC_HANDLE hService = OpenServiceW(this->pSrvManager->hSCManger, this->serviceName.c_str(), SERVICE_QUERY_CONFIG);
 	if (hService == NULL) {
-		CloseServiceHandle(hSCManager);
+
 		return GetLastError();
 	}
 
@@ -167,32 +162,26 @@ DWORD Srv::SetFailureActions() {
 				&dwSize
 			)) {
 				CloseServiceHandle(hService);
-				CloseServiceHandle(hSCManager);
+
 				return GetLastError();
 			}
 		}
 		else {
 			CloseServiceHandle(hService);
-			CloseServiceHandle(hSCManager);
+
 			return GetLastError();
 		}
 	}
 	CloseServiceHandle(hService);
-	CloseServiceHandle(hSCManager);
+
 	return 0;
 }
 
 std::wstring Srv::GetServiceStatus() {
-	SC_HANDLE hSCManager = NULL;
-	hSCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
-
-
-	if (hSCManager == NULL) {
-		return L"UNKNOWN";
-	}
-	SC_HANDLE hService = OpenServiceW(hSCManager, this->serviceName.c_str(), SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS);
+	
+	SC_HANDLE hService = OpenServiceW(this->pSrvManager->hSCManger, this->serviceName.c_str(), SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS);
 	if (hService == NULL) {
-		CloseServiceHandle(hSCManager);
+
 		return L"UNKNOWN";
 	}
 
@@ -224,6 +213,8 @@ std::wstring Srv::GetServiceStatus() {
 	else {
 		res = L"UNKNOWN";
 	}
+
+	CloseServiceHandle(hService);
 	return res;
 }
 
@@ -239,16 +230,9 @@ DWORD Srv::SetDescription() {
 		ZeroMemory(pDescription, sizeof LPSERVICE_DESCRIPTIONW);
 	}
 
-	SC_HANDLE hSCManager = NULL;
-	hSCManager = OpenSCManagerW(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
 	
-
-	if (hSCManager == NULL) {
-		return GetLastError();
-	}
-	SC_HANDLE hService = OpenServiceW(hSCManager, this->serviceName.c_str(), SERVICE_QUERY_CONFIG);
+	SC_HANDLE hService = OpenServiceW(this->pSrvManager->hSCManger, this->serviceName.c_str(), SERVICE_QUERY_CONFIG);
 	if (hService == NULL) {
-		CloseServiceHandle(hSCManager);
 		return GetLastError();
 	}
 
@@ -270,13 +254,13 @@ DWORD Srv::SetDescription() {
 				&dwSize
 			)) {
 				CloseServiceHandle(hService);
-				CloseServiceHandle(hSCManager);
+
 				return GetLastError();
 			}
 		}
 		else {
 			CloseServiceHandle(hService);
-			CloseServiceHandle(hSCManager);
+
 			return GetLastError();
 		}
 	}
@@ -289,7 +273,7 @@ DWORD Srv::SetDescription() {
 	}
 	GlobalFree(pDescription);
 	CloseServiceHandle(hService);
-	CloseServiceHandle(hSCManager);
+
 	return 0;
 }
 
@@ -511,6 +495,10 @@ DWORD ServiceManager::CreateService(LPCWSTR name, LPCWSTR displayName, DWORD typ
 }
 
 ServiceManager::~ServiceManager() {
+	if (this->hSCManger != NULL || this->hSCManger != INVALID_HANDLE_VALUE) {
+		CloseServiceHandle(this->hSCManger);
+	}
+	
 	for (auto service : this->services) {
 		delete service;
 	}

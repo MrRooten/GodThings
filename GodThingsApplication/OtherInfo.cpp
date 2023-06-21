@@ -15,6 +15,11 @@ SchduleTaskMgr* SchduleTaskMgr::GetMgr() {
     return SchduleTaskMgr::_single;
 }
 
+void SchduleTaskMgr::DeleteMgr() {
+    delete SchduleTaskMgr::_single;
+    SchduleTaskMgr::_single = NULL;
+}
+
 SchduleTaskMgr::SchduleTaskMgr() {
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     ITaskService* pService = NULL;
@@ -137,6 +142,7 @@ static void _get_tasks_helper2(std::function<void(SchduleTask&)> callback, ITask
         }
     }
     collection->Release();
+
 }
 std::vector<SchduleTask> SchduleTaskMgr::GetTasks() {
     std::vector<SchduleTask> result;
@@ -146,6 +152,7 @@ std::vector<SchduleTask> SchduleTaskMgr::GetTasks() {
     pTaskCollection->get_Count(&count);
     //TASK_STATE taskState;
     _get_tasks_helper(result, this->pRootFolder);
+
     return result;
 }
 
@@ -158,6 +165,10 @@ void SchduleTaskMgr::EnumTasks(std::function<void(SchduleTask*)> callback) {
 
 
 SchduleTaskMgr::~SchduleTaskMgr() {
+    if (this->pRootFolder != NULL) {
+        this->pRootFolder->Release();
+    }
+
     CoUninitialize();
 }
 

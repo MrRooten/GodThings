@@ -35,18 +35,17 @@
 
             <!--状态栏-->
             <StackPanel Width="Auto" Height="25" Background="LightGray" Orientation="Horizontal" DockPanel.Dock="Bottom">
-                <Label Width="Auto" Height="Auto" Content="状态栏" FontFamily="Arial" FontSize="12"/>
+                <Label Width="Auto" Height="Auto" Content="Status" FontFamily="Arial" FontSize="12"/>
             </StackPanel>
             <!--Left-->
-            <StackPanel Width="Auto" Height="Auto" Background="White" DockPanel.Dock="Left">
-            <TreeView Background="GhostWhite" x:Name="ItemTree">
-                
+        <DockPanel Width="120" Height="Auto" Background="White" DockPanel.Dock="Left" >
+           
+               <TreeView Background="GhostWhite" x:Name="ItemTree"/>
 
-            </TreeView>
-            </StackPanel>
+        </DockPanel>
 
             <!--Right-->
-            <Grid Width="Auto" Height="Auto" Background="White">
+        <Grid Width="Auto" Height="Auto" Background="White" HorizontalAlignment="Stretch">
                 
 
                 <Grid.ColumnDefinitions>

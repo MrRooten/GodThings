@@ -8,6 +8,10 @@
 #include <string>
 #pragma comment(lib, "netapi32.lib")
 class AccountInfo {
+	bool isSidInit = false;
+	SID* sid = NULL;
+
+	WCHAR* domainName = NULL;
 public:
 	DWORD Initialize(PUSER_INFO_3 userInfo);
 	std::wstring userName;
@@ -48,7 +52,9 @@ public:
 	std::wstring profile;
 	GTWString& GetProfile();
 	std::wstring homeDirDrive;
+	SID* GetSid();
 	DWORD passwordExpired;
+	~AccountInfo();
 };
 
 class AccountInfoManager {
