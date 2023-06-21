@@ -3,7 +3,7 @@ DWORD AccountInfo::Initialize(PUSER_INFO_3 userInfo) {
 	if (userInfo == NULL) {
 		return ERROR_INVALID_PARAMETER;
 	}
-
+	this->sid = (SID*)LocalAlloc(GPTR, 1024);
 	this->userName = userInfo->usri3_name;
 
 	this->comment = userInfo->usri3_comment;
@@ -62,6 +62,18 @@ GTWString& AccountInfo::GetProfile()
 {
 	return profile;
 }
+
+SID* AccountInfo::GetSid() {
+	return NULL;
+}
+
+AccountInfo::~AccountInfo() {
+	if (this->sid != NULL) {
+		LocalFree(this->sid);
+	}
+	
+}
+
 DWORD AccountInfoManager::Initialize() {
 	PBYTE bytes = NULL;
 	DWORD size = 0x1000;
