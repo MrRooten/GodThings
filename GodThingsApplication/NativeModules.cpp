@@ -27,7 +27,7 @@ ResultSet* ProcessModule::ModuleRun() {
 	for (auto item : mgr->processesMap) {
 		result->PushDictOrdered("PID", std::to_string(item.first));
 		result->PushDictOrdered("PPID", std::to_string(item.second->parentPID));
-		result->PushDictOrdered("NAME", StringUtils::ws2s(item.second->GetProcessName()));
+		result->PushDictOrdered("Name", StringUtils::ws2s(item.second->GetProcessName()));
 		auto process = item.second;
 		process->UpdateInfo();
 		auto time2 = info.GetSystemTimeInfo();
@@ -43,6 +43,9 @@ ResultSet* ProcessModule::ModuleRun() {
 		result->PushDictOrdered("Command line", StringUtils::ws2s(item.second->GetImageState()->cmdline));
 		result->PushDictOrdered("File path", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
 		result->PushDictOrdered("Start time", StringUtils::ws2s(item.second->GetStartTime().String()));
+		auto memory = item.second->GetMemoryState();
+		result->PushDictOrdered("Private bytes", std::to_string(memory->PrivateWorkingSetSize));
+		result->PushDictOrdered("Working set", std::to_string(memory->WorkingSetSize));
 		
 	}
 	delete mgr;

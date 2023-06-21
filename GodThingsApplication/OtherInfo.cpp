@@ -7,7 +7,7 @@ SchduleTaskMgr* SchduleTaskMgr::GetMgr() {
             SchduleTaskMgr::_single = new SchduleTaskMgr();
         }
         catch (...) {
-            delete SchduleTaskMgr::_single;
+            //delete SchduleTaskMgr::_single;
             SchduleTaskMgr::_single = NULL;
         }
     }

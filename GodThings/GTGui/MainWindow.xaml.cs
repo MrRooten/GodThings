@@ -141,11 +141,11 @@ namespace GTGui {
             this.mods = modules;
             Dictionary<string, List<GodAgent.Module>> tree = new Dictionary<string, List<GodAgent.Module>>();
             foreach (var module in modules) {
-                if (tree.ContainsKey(module.Class)) {
-                    tree[module.Class].Add(module); 
+                if (tree.ContainsKey(module.Path)) {
+                    tree[module.Path].Add(module); 
                 } else {
-                    tree.Add(module.Class, new List<GodAgent.Module>());
-                    tree[module.Class].Add(module);
+                    tree.Add(module.Path, new List<GodAgent.Module>());
+                    tree[module.Path].Add(module);
                 }
                 
             }
