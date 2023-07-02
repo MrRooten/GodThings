@@ -885,7 +885,7 @@ ResultSet* RecentRunning::ModuleRun() {
 		}
 	}
 
-	Dir d(L"C:\\Windows\\Prefetch");
+	GTDir d(L"C:\\Windows\\Prefetch");
 
 	auto files = d.ListFiles();
 	std::vector<std::wstring> pfs;
@@ -1019,6 +1019,7 @@ ResultSet* FwRules::ModuleRun() {
 	auto result = new ResultSet();
 	FwRuleMgr::IterateFwRule([result](FwRule* rule) -> bool {
 		result->PushDictOrdered("Name", StringUtils::ws2s(rule->GetName()));
+		result->PushDictOrdered("ServiceName", StringUtils::ws2s(rule->GetServiceName()));
 		result->PushDictOrdered("AppName", StringUtils::ws2s(rule->GetAppName()));
 		result->PushDictOrdered("LocalAddr", StringUtils::ws2s(rule->GetLocalAddresses()));
 		result->PushDictOrdered("LocalPorts", StringUtils::ws2s(rule->GetLocalPorts()));

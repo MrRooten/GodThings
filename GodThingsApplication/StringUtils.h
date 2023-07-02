@@ -25,6 +25,8 @@ public:
 
 	static void replaceAll(std::string& str, const std::string& from, const std::string& to);
 
+	static void replaceAll(std::wstring& str, const std::wstring& from, const std::wstring& to);
+
 	static std::vector<std::wstring> StringSplit(std::wstring s, std::wstring delim);
 
 	static bool IsNumeric(std::wstring s);

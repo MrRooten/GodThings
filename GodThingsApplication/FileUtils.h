@@ -36,12 +36,15 @@ public:
 	static BOOL CreateLink(const LPWSTR filePath, const LPWSTR linkPath);
 };
 
-class Dir {
+class GTDir {
 private:
 	std::wstring dirpath;
 public:
-	Dir(const wchar_t* dirpath);
+	GTDir(const wchar_t* dirpath);
 	std::vector<std::wstring> ListFiles();
+	bool IsDirExist();
+	bool IsFileExist();
+	bool CreateDir();
 };
 
 class MFTReader {
@@ -51,6 +54,15 @@ public:
 	DWORD Initialize();
 };
 
-
+class GTZip {
+private:
+	std::wstring zippath;
+public:
+	GTZip(const wchar_t* zippath);
+	bool CreateZip();
+	bool AddFile();
+	bool AddDir(const wchar_t* dirpath);
+	bool Close();
+};
 GTWString TryNTPathToDOSPath(const wchar_t* path);
 #endif // !_FILE_UTILS_H

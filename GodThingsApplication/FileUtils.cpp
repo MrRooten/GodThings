@@ -137,11 +137,11 @@ GTFile* GTFileUtils::Open(LPCWSTR filePath,LPCWSTR mode) {
 	return file;
 }
 
-Dir::Dir(const wchar_t* dirpath) {
+GTDir::GTDir(const wchar_t* dirpath) {
 	this->dirpath = dirpath;
 }
 
-std::vector<std::wstring> Dir::ListFiles() {
+std::vector<std::wstring> GTDir::ListFiles() {
 	WIN32_FIND_DATAW ffd = { 0 };
 	std::vector<std::wstring> res;
 	std::wstring path;
@@ -157,6 +157,32 @@ std::vector<std::wstring> Dir::ListFiles() {
 		
 	} while (FindNextFileW(hFind, &ffd) != 0);
 	return res;
+}
+
+bool GTDir::IsDirExist() {
+	auto attr = GetFileAttributesW(this->dirpath.c_str());
+	return (attr != INVALID_FILE_ATTRIBUTES &&
+		(attr & FILE_ATTRIBUTE_DIRECTORY));
+
+}
+
+bool GTDir::IsFileExist() {
+	auto attr = GetFileAttributesW(this->dirpath.c_str());
+	return attr != INVALID_FILE_ATTRIBUTES;
+}
+
+bool GTDir::CreateDir() {
+	auto attr = GetFileAttributesW(this->dirpath.c_str());
+	if (this->IsDirExist() == TRUE || this->IsFileExist() == TRUE) {
+		return FALSE;
+	}
+
+	if (CreateDirectoryW(this->dirpath.c_str(), NULL)) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 GTWString DisplayVolumePaths(
@@ -324,6 +350,10 @@ GTWString TryNTPathToDOSPath(const wchar_t* path) {
 	return volume_nt_name;
 }
 
+GTZip::GTZip(const wchar_t* zippath) {
+	this->zippath = zippath;
+}
 
-
-
+bool GTZip::CreateZip() {
+	return false;
+}

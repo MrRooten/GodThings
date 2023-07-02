@@ -173,6 +173,18 @@ public:
 
 	static void RunAllModules(int len_args, wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
+		GTWString space = L" ";
+		GTWString colon = L":";
+		GTWString space_to = L"_";
+		GTWString colon_to = L"_";
+		GTWString dirpath = L"Result_" + GTTime::GetTime().String();
+		StringUtils::replaceAll(dirpath, space, space_to);
+		StringUtils::replaceAll(dirpath, colon, colon_to);
+		GTDir dir(dirpath.c_str());
+		if (dir.CreateDir() == FALSE && dir.IsDirExist() == FALSE) {
+			return;
+		}
+
 		for (auto& mod : mgr->modules) {
 			if (mod->RunType != ModuleAuto) {
 				continue;
@@ -200,15 +212,16 @@ public:
 				printf("\n");
 			}
 
-			for (int i = 0; i < len_args; i++) {
-				if (lstrcmpW(args[i], L"--export-csv") == 0) {
-					std::wstring filename = mod->Path + L"." + mod->Name + L".csv";
-					auto file = GTFileUtils::Open(filename.c_str(), L"w");
-					auto s = "\xef\xbb\xbf" + res->ToCsvString();
-					file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
-					delete file;
-				}
-			}
+			
+			//for (int i = 0; i < len_args; i++) {
+				//if (lstrcmpW(args[i], L"--export-csv") == 0) {
+			std::wstring filename = dirpath + L"\\" + mod->Path + L"." + mod->Name + L".csv";
+			auto file = GTFileUtils::Open(filename.c_str(), L"w");
+			auto s = "\xef\xbb\xbf" + res->ToCsvString();
+			file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
+			delete file;
+				//}
+			//}
 			delete res;
 			wprintf(L"%s Module Ending...\n", mod->Name.c_str());
 		}
@@ -266,7 +279,7 @@ public:
 		initialize init;
 #endif // PYTHON_ENABLE
 		if (argc < 2) {
-			help(argv[0]);
+			RunAllModules(argc - 2, &argv[2]);
 			return;
 		}
 

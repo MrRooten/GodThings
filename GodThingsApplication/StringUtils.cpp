@@ -79,6 +79,16 @@ void StringUtils::replaceAll(std::string& str, const std::string& from, const st
     }
 }
 
+void StringUtils::replaceAll(std::wstring& str, const std::wstring& from, const std::wstring& to) {
+    if (from.empty())
+        return;
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::wstring::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+    }
+}
+
 std::vector<std::wstring> StringUtils::StringSplit(std::wstring s, std::wstring delim) {
     size_t pos_start = 0, pos_end, delim_len = delim.length();
     std::wstring token;

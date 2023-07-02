@@ -1083,7 +1083,7 @@ ResultSet* File::ModuleRun() {
 	}
 	auto ret = IsWhat(file);
 	if (ret == -1) { //If is directory
-		Dir dir(StringUtils::s2ws(file).c_str());
+		GTDir dir(StringUtils::s2ws(file).c_str());
 		auto files = dir.ListFiles();
 		for (auto& _tmp_file : files) {
 			auto start = std::chrono::high_resolution_clock::now();
