@@ -123,6 +123,9 @@
     <ClCompile Include="FireWallInfo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="WmiUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -261,6 +264,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="FireWallInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WmiUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

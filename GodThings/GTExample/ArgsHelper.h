@@ -21,6 +21,7 @@
 #include "ObjectInfo.h"
 #include "LDAPUtils.h"
 #include "FireWallInfo.h"
+#include "WmiUtils.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t* file) {
@@ -327,10 +328,9 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			FwRuleMgr::IterateFwRule([](FwRule* rule) -> bool {
-				printf("%x\n", rule);
-				return true;
-				});
+			WmiTaker taker;
+			auto r1 = taker.take(L"SELECT * FROM Win32_NetworkAdapterConfiguration");
+
 			return;
 		}
 		else if (subcmd == L"list_path") {

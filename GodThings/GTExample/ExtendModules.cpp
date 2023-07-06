@@ -155,7 +155,7 @@ Event21::Event21(const char* xml) {
 		name = (char*)next->Value();
 
 		if (_strcmpi(name, "EventId") == 0) {
-			this->event_id = stoi(value);
+			this->event_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "TimeCreated") == 0) {
 			auto attr = next->FindAttribute("SystemTime");
@@ -164,17 +164,17 @@ Event21::Event21(const char* xml) {
 			}
 		}
 		else if (_strcmpi(name, "EventRecordId") == 0) {
-			this->record_id = stoi(value);
+			this->record_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Execution") == 0) {
 			auto pid = next->FindAttribute("ProcessID");
 			auto tid = next->FindAttribute("ThreadID");
 			if (pid != NULL) {
-				this->process_id = stoi(pid->Value());
+				this->process_id = std::stoi(pid->Value());
 			}
 
 			if (tid != NULL) {
-				this->thread_id = stoi(tid->Value());
+				this->thread_id = std::stoi(tid->Value());
 			}
 		}
 		else if (_strcmpi(name, "Computer") == 0) {
@@ -197,7 +197,7 @@ Event21::Event21(const char* xml) {
 			this->user = value;
 		}
 		else if (_strcmpi(name, "SessionID") == 0) {
-			this->session_id = stoi(value);
+			this->session_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Address") == 0) {
 			this->address = value;
@@ -240,7 +240,7 @@ Event23::Event23(const char* xml) {
 		name = (char*)next->Value();
 
 		if (_strcmpi(name, "EventId") == 0) {
-			this->event_id = stoi(value);
+			this->event_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "TimeCreated") == 0) {
 			auto attr = next->FindAttribute("SystemTime");
@@ -249,17 +249,17 @@ Event23::Event23(const char* xml) {
 			}
 		}
 		else if (_strcmpi(name, "EventRecordId") == 0) {
-			this->record_id = stoi(value);
+			this->record_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Execution") == 0) {
 			auto pid = next->FindAttribute("ProcessID");
 			auto tid = next->FindAttribute("ThreadID");
 			if (pid != NULL) {
-				this->process_id = stoi(pid->Value());
+				this->process_id = std::stoi(pid->Value());
 			}
 
 			if (tid != NULL) {
-				this->thread_id = stoi(tid->Value());
+				this->thread_id = std::stoi(tid->Value());
 			}
 		}
 		else if (_strcmpi(name, "Computer") == 0) {
@@ -282,7 +282,7 @@ Event23::Event23(const char* xml) {
 			this->user = value;
 		}
 		else if (_strcmpi(name, "SessionID") == 0) {
-			this->session_id = stoi(value);
+			this->session_id = std::stoi(value);
 		}
 
 		next = next->NextSiblingElement();
@@ -324,7 +324,7 @@ Event24::Event24(const char* xml) {
 		name = (char*)next->Value();
 
 		if (_strcmpi(name, "EventId") == 0) {
-			this->event_id = stoi(value);
+			this->event_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "TimeCreated") == 0) {
 			auto attr = next->FindAttribute("SystemTime");
@@ -333,17 +333,17 @@ Event24::Event24(const char* xml) {
 			}
 		}
 		else if (_strcmpi(name, "EventRecordId") == 0) {
-			this->record_id = stoi(value);
+			this->record_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Execution") == 0) {
 			auto pid = next->FindAttribute("ProcessID");
 			auto tid = next->FindAttribute("ThreadID");
 			if (pid != NULL) {
-				this->process_id = stoi(pid->Value());
+				this->process_id = std::stoi(pid->Value());
 			}
 
 			if (tid != NULL) {
-				this->thread_id = stoi(tid->Value());
+				this->thread_id = std::stoi(tid->Value());
 			}
 		}
 		else if (_strcmpi(name, "Computer") == 0) {
@@ -366,7 +366,7 @@ Event24::Event24(const char* xml) {
 			this->user = value;
 		}
 		else if (_strcmpi(name, "SessionID") == 0) {
-			this->session_id = stoi(value);
+			this->session_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Address") == 0) {
 			this->address = value;
@@ -474,7 +474,7 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 		value = (char*)child_system_next->GetText();
 		name = (char*)child_system_next->Value();
 		if (_strcmpi(name, "EventId") == 0) {
-			auto event_id = stoi(value);
+			auto event_id = std::stoi(value);
 			Event21 *evt_start = NULL;
 			Event23* evt_end = NULL;
 			Event25* evt_remote_start = NULL;
@@ -701,7 +701,7 @@ Event25::Event25(const char* xml) {
 		name = (char*)next->Value();
 
 		if (_strcmpi(name, "EventId") == 0) {
-			this->event_id = stoi(value);
+			this->event_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "TimeCreated") == 0) {
 			auto attr = next->FindAttribute("SystemTime");
@@ -710,17 +710,17 @@ Event25::Event25(const char* xml) {
 			}
 		}
 		else if (_strcmpi(name, "EventRecordId") == 0) {
-			this->record_id = stoi(value);
+			this->record_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Execution") == 0) {
 			auto pid = next->FindAttribute("ProcessID");
 			auto tid = next->FindAttribute("ThreadID");
 			if (pid != NULL) {
-				this->process_id = stoi(pid->Value());
+				this->process_id = std::stoi(pid->Value());
 			}
 
 			if (tid != NULL) {
-				this->thread_id = stoi(tid->Value());
+				this->thread_id = std::stoi(tid->Value());
 			}
 		}
 		else if (_strcmpi(name, "Computer") == 0) {
@@ -743,7 +743,7 @@ Event25::Event25(const char* xml) {
 			this->user = value;
 		}
 		else if (_strcmpi(name, "SessionID") == 0) {
-			this->session_id = stoi(value);
+			this->session_id = std::stoi(value);
 		}
 		else if (_strcmpi(name, "Address") == 0) {
 			this->address = value;

@@ -383,6 +383,11 @@ VOID SystemInfo::IterateSystemHandle(std::function<void(DWORD, HANDLE)> handler,
 	return VOID();
 }
 
+GTWString SystemInfo::GetCPU()
+{
+	return GTWString();
+}
+
 
 DWORD SystemInfo::SetPoolTag()
 {

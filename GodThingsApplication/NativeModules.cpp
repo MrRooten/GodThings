@@ -710,7 +710,7 @@ ResultSet* MailiousProcessDlls::ModuleRun() {
 			auto sign = VerifyEmbeddedSignature(path.c_str());
 			FileInfo dllInfo(path.c_str());
 			if (!sign->IsSignature()) {
-				result->PushDictOrdered("Pid", to_string(pid));
+				result->PushDictOrdered("Pid", std::to_string(pid));
 				result->PushDictOrdered("Path", StringUtils::ws2s(path));
 				result->PushDictOrdered("Reason", "No signature");
 				wprintf(L"\tUnsigned dlls %d %s\n", pid, path.c_str());
@@ -841,7 +841,7 @@ DWORD RecentRunningEventLog(Evt* evt, PVOID data) {
 		value = (char*)child_system_next->GetText();
 		name = (char*)child_system_next->Value();
 		if (_strcmpi(name, "EventId") == 0) {
-			auto event_id = stoi(value);
+			auto event_id = std::stoi(value);
 			if (event_id == 9707) {
 				result->push_back(new ShellCore9707(evtXml.c_str()));
 				break;
@@ -1028,6 +1028,7 @@ ResultSet* FwRules::ModuleRun() {
 		result->PushDictOrdered("Description", StringUtils::ws2s(rule->GetDescription()));
 		result->PushDictOrdered("Protocol", StringUtils::ws2s(rule->GetProtocol()));
 		result->PushDictOrdered("Action", StringUtils::ws2s(rule->GetAction().WString()));
+		result->PushDictOrdered("Direction", StringUtils::ws2s(rule->GetDirection().WString()));
 		return true;
 		});
 	result->SetType(DICT);

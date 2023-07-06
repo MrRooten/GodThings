@@ -83,4 +83,9 @@ public:
 
 	VOID IterateSystemHandle(std::function<void(DWORD, HANDLE)> handler, std::set<DWORD>& pids);
 
+	GTWString GetCPU();
+
+	GTWString GetGPU();
+
+
 };

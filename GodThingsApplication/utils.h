@@ -8,7 +8,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
-using namespace std;
+
 
 typedef std::wstring GTWString;
 typedef std::string GTString;
