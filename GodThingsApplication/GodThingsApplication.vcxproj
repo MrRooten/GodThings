@@ -225,6 +225,7 @@
   <ItemGroup>
     <ClInclude Include="AccountInfo.h" />
     <ClInclude Include="CmdUtils.h" />
+    <ClInclude Include="ComUtils.h" />
     <ClInclude Include="DriverInfo.h" />
     <ClInclude Include="EventLogUtils.h" />
     <ClInclude Include="EvtInfo.h" />

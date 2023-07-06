@@ -46,10 +46,10 @@ void FwRuleMgr::IterateFwRule(FwCallback callback) {
     long fwRuleCount;
     char msg[1024] = { 0 };
     // Initialize COM.
-    hrComInit = CoInitializeEx(
-        0,
-        COINIT_APARTMENTTHREADED
-    );
+    //hrComInit = CoInitializeEx(
+    //    0,
+    //    COINIT_APARTMENTTHREADED
+    //);
 
     // Ignore RPC_E_CHANGED_MODE; this just means that COM has already been
     // initialized with a different mode. Since we don't care what the mode is,
@@ -144,11 +144,7 @@ Cleanup:
         pNetFwPolicy2->Release();
     }
 
-    // Uninitialize COM.
-    if (SUCCEEDED(hrComInit))
-    {
-        CoUninitialize();
-    }
+
 
     if (msg[0] != 0) {
         throw GTException(msg);

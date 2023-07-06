@@ -3,13 +3,10 @@
 #include "StringUtils.h"
 #include "utils.h"
 WmiTaker::WmiTaker() {
-	auto hres = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (FAILED(hres)) {
-		auto msg = std::format("Failed to initialize COM library. Error code = 0x{}", hres);
-		throw GTException(msg.c_str());
-	}
+    //auto hres = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-    hres = CoInitializeSecurity(
+
+    auto hres = CoInitializeSecurity(
         NULL,
         -1,                          // COM authentication
         NULL,                        // Authentication services
@@ -24,7 +21,7 @@ WmiTaker::WmiTaker() {
     if (FAILED(hres)) {
         auto msg = std::format("Failed to initialize Security. Error code = 0x{}", hres);
 
-        CoUninitialize();
+
         throw GTException(msg.c_str());
     }
 
@@ -37,7 +34,7 @@ WmiTaker::WmiTaker() {
     if (FAILED(hres))
     {
         auto msg = std::format("Failed to Create Instance. Error code = 0x{}", hres);
-        CoUninitialize();
+
         throw GTException(msg.c_str());
     }
 
@@ -56,7 +53,6 @@ WmiTaker::WmiTaker() {
     {
         auto msg = std::format("Failed to Connect to Server. Error code = 0x{}", hres);
         pLoc->Release();
-        CoUninitialize();
         throw GTException(msg.c_str());
     }
 
@@ -76,7 +72,6 @@ WmiTaker::WmiTaker() {
         auto msg = std::format("Failed CoSetProxyBlanket. Error code = 0x{}", hres);
         pSvc->Release();
         pLoc->Release();
-        CoUninitialize();
         throw GTException(msg.c_str());
     }
 }
@@ -154,5 +149,4 @@ WmiTaker::~WmiTaker()
 {
     pLoc->Release();
     pSvc->Release();
-    CoUninitialize();
 }

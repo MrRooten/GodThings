@@ -21,7 +21,7 @@ void SchduleTaskMgr::DeleteMgr() {
 }
 
 SchduleTaskMgr::SchduleTaskMgr() {
-    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    HRESULT hr = NULL; // = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     ITaskService* pService = NULL;
     if (FAILED(hr)) {
         throw std::exception();
@@ -39,7 +39,6 @@ SchduleTaskMgr::SchduleTaskMgr() {
         NULL);
 
     if (FAILED(hr)) {
-        CoUninitialize();
         throw std::exception();
     }
 
@@ -50,7 +49,6 @@ SchduleTaskMgr::SchduleTaskMgr() {
         (void**)&pService);
 
     if (FAILED(hr)) {
-        CoUninitialize();
         throw std::exception();
     }
 
@@ -58,7 +56,6 @@ SchduleTaskMgr::SchduleTaskMgr() {
         _variant_t(), _variant_t());
     if (FAILED(hr)) {
         pService->Release();
-        CoUninitialize();
         throw std::exception();
     }
 
@@ -67,7 +64,6 @@ SchduleTaskMgr::SchduleTaskMgr() {
 
     pService->Release();
     if (FAILED(hr)) {
-        CoUninitialize();
         throw std::exception();
     }
 
@@ -169,7 +165,6 @@ SchduleTaskMgr::~SchduleTaskMgr() {
         this->pRootFolder->Release();
     }
 
-    CoUninitialize();
 }
 
 tinyxml2::XMLElement* findChild(tinyxml2::XMLElement* element, const char* name) {

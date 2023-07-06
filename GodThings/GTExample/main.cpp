@@ -21,6 +21,7 @@ void extendInit() {
 
 
 int wmain(int argc, wchar_t* argv[]) {
+    CoInitializeEx(NULL, COINIT_MULTITHREADED);
     InitKernelUtils();
     extendInit();
 #ifdef PYTHON_ENABLE
