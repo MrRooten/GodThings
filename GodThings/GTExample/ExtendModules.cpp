@@ -107,11 +107,15 @@ ListSSP::ListSSP() {
 }
 
 ResultSet* ListSSP::ModuleRun() {
+	ResultSet* result = new ResultSet();
 	auto providers = SecurityProvider::ListProviders();
 	for (auto& provider : providers) {
-		wprintf(L"%s %s\n", provider.GetName().c_str(), provider.GetComment().c_str());
+		result->PushDictOrdered("Name", StringUtils::ws2s(provider.GetName()));
+		result->PushDictOrdered("Comment", StringUtils::ws2s(provider.GetComment()));
+		
 	}
-	return nullptr;
+	result->SetType(DICT);
+	return result;
 }
 
 RDPSessions::RDPSessions() {
@@ -944,6 +948,7 @@ LoadedFiles::LoadedFiles() {
 	this->Type = L"Extender";
 	this->Class = L"GetInfo";
 	this->Description = L"Get Loaded Files group by process";
+	this->RunType = ModuleNotAuto;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
@@ -1048,6 +1053,7 @@ File::File() {
 	this->Type = L"Extender";
 	this->Class = L"GetInfo";
 	this->Description = L"Get File Type of specified file";
+	this->RunType = ModuleNeedArgs;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }

@@ -191,10 +191,17 @@ public:
 				continue;
 			}
 			wprintf(L"%s Module Running...\n", mod->Name.c_str());
-			ResultSet* res = mod->ModuleRun();
+			ResultSet* res = NULL;
+			try {
+				res = mod->ModuleRun();
+			}
+			catch (...) {
+				wprintf(L"%s Module failed\n");
+				continue;
+			}
 			if (res == nullptr) {
 				wprintf(L"%s Module Ending...\n", mod->Name.c_str());
-				return;
+				continue;
 			}
 			auto json = res->ToJsonObject();
 			auto data = json["Data"];

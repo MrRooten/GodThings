@@ -3,10 +3,10 @@
 #include "StringUtils.h"
 #include "utils.h"
 WmiTaker::WmiTaker() {
-    //auto hres = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    auto hres = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 
-    auto hres = CoInitializeSecurity(
+    hres = CoInitializeSecurity(
         NULL,
         -1,                          // COM authentication
         NULL,                        // Authentication services
@@ -18,10 +18,8 @@ WmiTaker::WmiTaker() {
         NULL                         // Reserved
     );
 
-    if (FAILED(hres)) {
+    if (FAILED(hres) && hres != RPC_E_TOO_LATE) {
         auto msg = std::format("Failed to initialize Security. Error code = 0x{}", hres);
-
-
         throw GTException(msg.c_str());
     }
 
