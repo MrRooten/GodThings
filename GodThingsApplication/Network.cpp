@@ -767,4 +767,115 @@ LPCWSTR DnsCache::GetDomain(const wchar_t* ip) {
 	return NULL;
 }
 
+NetInterface::NetInterface()
+{
+}
 
+std::vector<NetInterface> NetInterface::GetInterfaces() {
+	PIP_ADAPTER_INFO pAdapterInfo;
+	PIP_ADAPTER_INFO pAdapter = NULL;
+	DWORD dwRetVal = 0;
+	UINT i;
+
+	/* variables used to print DHCP time info */
+	struct tm newtime;
+	char buffer[32];
+	errno_t error;
+
+	ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+	pAdapterInfo = (IP_ADAPTER_INFO*)LocalAlloc(GPTR, sizeof(IP_ADAPTER_INFO));
+	if (pAdapterInfo == NULL) {
+		throw GTException("Error allocating memory needed to call GetAdaptersinfo\n");
+	}
+	std::vector<NetInterface> result;
+	// Make an initial call to GetAdaptersInfo to get
+	// the necessary size into the ulOutBufLen variable
+	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+		LocalFree(pAdapterInfo);
+		pAdapterInfo = (IP_ADAPTER_INFO*)LocalAlloc(GPTR, ulOutBufLen);
+		if (pAdapterInfo == NULL) {
+			throw GTException("Error allocating memory needed to call GetAdaptersinfo\n");
+		}
+	}
+
+	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+		pAdapter = pAdapterInfo;
+		while (pAdapter) {
+			NetInterface adapter;
+			adapter.name = pAdapter->AdapterName;
+			adapter.description = pAdapter->Description;
+			switch (pAdapter->Type) {
+			case MIB_IF_TYPE_OTHER:
+				adapter.type = "Other";
+				break;
+			case MIB_IF_TYPE_ETHERNET:
+				adapter.type = "Ethernet";
+				break;
+			case MIB_IF_TYPE_TOKENRING:
+				adapter.type = "Token Ring";
+				break;
+			case MIB_IF_TYPE_FDDI:
+				adapter.type = "FDDI";
+				break;
+			case MIB_IF_TYPE_PPP:
+				adapter.type = "PPP";
+				break;
+			case MIB_IF_TYPE_LOOPBACK:
+				adapter.type = "Lookback";
+				break;
+			case MIB_IF_TYPE_SLIP:
+				adapter.type = "Slip";
+				break;
+			default:
+				//printf("Unknown type %ld\n", pAdapter->Type);
+				break;
+			}
+
+			adapter.addr = pAdapter->IpAddressList.IpAddress.String;
+			adapter.mask = pAdapter->IpAddressList.IpMask.String;
+			adapter.gateway = pAdapter->GatewayList.IpAddress.String;
+			result.push_back(adapter);
+			pAdapter = pAdapter->Next;
+		}
+	}
+
+	if (pAdapterInfo) {
+		LocalFree(pAdapterInfo);
+	}
+	return result;
+}
+
+GTString& NetInterface::GetName() {
+	return this->name;
+	// TODO: 在此处插入 return 语句
+}
+
+GTString& NetInterface::GetType()
+{
+	return this->type;
+	// TODO: 在此处插入 return 语句
+}
+
+GTString& NetInterface::GetDescription()
+{
+	return this->description;
+	// TODO: 在此处插入 return 语句
+}
+
+GTString& NetInterface::GetIpAddress()
+{
+	return this->addr;
+	// TODO: 在此处插入 return 语句
+}
+
+GTString& NetInterface::GetMask()
+{
+	return this->mask;
+	// TODO: 在此处插入 return 语句
+}
+
+GTString& NetInterface::GetGateway()
+{
+	return this->gateway;
+	// TODO: 在此处插入 return 语句
+}

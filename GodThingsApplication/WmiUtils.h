@@ -17,7 +17,7 @@ class WmiTaker {
 	IWbemLocator* pLoc = NULL;
 	IWbemServices* pSvc = NULL;
 public:
-	using WmiVariable = std::variant<std::wstring, int, short, double>;
+	using WmiVariable = std::variant<std::wstring, int, short, double, UINT64>;
 	using WmiResult = std::vector<std::map<std::wstring, WmiVariable>>;
 	WmiTaker();
 	WmiResult take(const wchar_t* sql);

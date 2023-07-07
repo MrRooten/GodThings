@@ -92,10 +92,10 @@ public:
 	static void RunModule(wchar_t* moduleName, int len_args, wchar_t** args) {
 		auto mgr = ModuleMgr::GetMgr();
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		bool is_csv_output = true;
+		bool is_csv_output = false;
 		for (int i = 0; i < len_args; i++) {
-			if (lstrcmpW(args[i], L"--disable-csv") == 0) {
-				is_csv_output = false;
+			if (lstrcmpW(args[i], L"--output-csv") == 0) {
+				is_csv_output = true;
 			}
 		}
 		for (auto& mod : mgr->modules) {
@@ -328,8 +328,7 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			WmiTaker taker;
-			auto r1 = taker.take(L"SELECT * FROM Win32_NetworkAdapterConfiguration");
+			auto interfaces = NetInterface::GetInterfaces();
 
 			return;
 		}

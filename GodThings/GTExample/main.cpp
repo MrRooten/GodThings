@@ -12,6 +12,8 @@ void extendInit() {
     new LoadedFiles();
     new File();
     new ProcessHandle();
+    new StaticInfo();
+    new NetInterfaces();
 }
 
 
@@ -21,7 +23,7 @@ void extendInit() {
 
 
 int wmain(int argc, wchar_t* argv[]) {
-    CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    auto _ = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     InitKernelUtils();
     extendInit();
 #ifdef PYTHON_ENABLE

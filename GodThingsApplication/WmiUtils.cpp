@@ -134,6 +134,11 @@ WmiTaker::WmiResult WmiTaker::take(const wchar_t* sql) {
             else if (vtProp.vt == VT_I4) {
                 result[PropName] = vtProp.intVal;
             }
+            else if (vtProp.vt == VT_UI8) {
+                result[PropName] = vtProp.ullVal;
+            }
+            
+                
             VariantClear(&vtProp);
             SysFreeString(PropName);
         }

@@ -66,3 +66,15 @@ public:
 	LocalAccountTokenFilterPolicyBackDoor();
 	ResultSet* ModuleRun();
 };
+
+class StaticInfo : public NativeModule {
+public:
+	StaticInfo();
+	ResultSet* ModuleRun();
+};
+
+class NetInterfaces : public NativeModule {
+public:
+	NetInterfaces();
+	ResultSet* ModuleRun();
+};

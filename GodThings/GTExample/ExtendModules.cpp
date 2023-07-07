@@ -1192,3 +1192,57 @@ ResultSet* ProcessHandle::ModuleRun() {
 
 	return result;
 }
+
+StaticInfo::StaticInfo() {
+	this->Name = L"StaticInfo";
+	this->Path = L"WMI";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+#include "WmiUtils.h"
+ResultSet* StaticInfo::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	WmiTaker taker;
+	auto r1 = taker.take(L"SELECT * FROM Win32_Processor");
+	auto r2 = taker.take(L"SELECT * FROM Win32_ComputerSystem");
+	auto r3 = taker.take(L"SELECT * FROM Win32_NetworkAdapterConfiguration");
+	auto &v = r1[0];
+	auto& v2 = r2[0];
+	std::wstring n = L"abc";
+	result->PushDictOrdered("CPUName", StringUtils::ws2s(std::get<std::wstring>(v[L"Caption"])));
+	result->PushDictOrdered("Domain", StringUtils::ws2s(std::get<std::wstring>(v2[L"Domain"])));
+	result->PushDictOrdered("Model", StringUtils::ws2s(std::get<std::wstring>(v2[L"Model"])));
+	result->PushDictOrdered("Name", StringUtils::ws2s(std::get<std::wstring>(v2[L"Name"])));
+	result->PushDictOrdered("PrimaryOwnerName", StringUtils::ws2s(std::get<std::wstring>(v2[L"PrimaryOwnerName"])));
+	result->PushDictOrdered("TotalPhysicalMemory", StringUtils::ws2s(std::get<std::wstring>(v2[L"TotalPhysicalMemory"])));
+	result->SetType(DICT);
+	return result;
+}
+
+NetInterfaces::NetInterfaces() {
+	this->Name = L"NetInterfaces";
+	this->Path = L"Network";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Interface of system";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+#include "Network.h"
+ResultSet* NetInterfaces::ModuleRun() {
+	auto result = new ResultSet();
+	auto interfaces = NetInterface::GetInterfaces();
+	for (auto& i : interfaces) {
+		result->PushDictOrdered("Name", i.GetName());
+		result->PushDictOrdered("IpAddr", i.GetIpAddress());
+		result->PushDictOrdered("Mask", i.GetMask());
+		result->PushDictOrdered("Gateway", i.GetGateway());
+		result->PushDictOrdered("Type", i.GetType());
+		result->PushDictOrdered("Description", i.GetDescription());
+	}
+	result->SetType(DICT);
+	return result;
+}

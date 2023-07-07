@@ -101,3 +101,21 @@ public:
 	void Update();
 	LPCWSTR GetDomain(const wchar_t* ip);
 };
+
+class NetInterface {
+	GTString name;
+	GTString type;
+	GTString description;
+	GTString addr;
+	GTString mask;
+	GTString gateway;
+public:
+	NetInterface();
+	static std::vector<NetInterface> GetInterfaces();
+	GTString& GetName();
+	GTString& GetType();
+	GTString& GetDescription();
+	GTString& GetIpAddress();
+	GTString& GetMask();
+	GTString& GetGateway();
+};
