@@ -39,4 +39,40 @@ GTWString ConvertSidToUsername(const WCHAR* sid) {
 	return outName;
 }
 
+BOOL DebugPrivilege() {
+	HANDLE hToken;
+	TOKEN_PRIVILEGES tokenPrivileges;
+	LUID luid;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+	{
+		//std::cerr << "Failed to open process token." << std::endl;
+		return FALSE;
+	}
+
+	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid))
+	{
+		//std::cerr << "Failed to look up privilege value." << std::endl;
+		return FALSE;
+	}
+
+	tokenPrivileges.PrivilegeCount = 1;
+	tokenPrivileges.Privileges[0].Luid = luid;
+	tokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	if (!AdjustTokenPrivileges(hToken, FALSE, &tokenPrivileges, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
+	{
+		//std::cerr << "Failed to adjust token privileges." << std::endl;
+		return FALSE;
+	}
+
+	if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
+	{
+		//std::cerr << "Failed to assign all privileges." << std::endl;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 

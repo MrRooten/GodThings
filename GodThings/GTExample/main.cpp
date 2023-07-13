@@ -1,7 +1,7 @@
 #include "KernelUtils.h"
 #include "ArgsHelper.h"
 #include "ExtendModules.h"
-
+#include "PrivilegeUtils.h"
 void extendInit() {
     new BAMParse();
     new LastShutdown();
@@ -14,6 +14,7 @@ void extendInit() {
     new ProcessHandle();
     new StaticInfo();
     new NetInterfaces();
+    new WmiDrivers();
 }
 
 
@@ -25,6 +26,7 @@ void extendInit() {
 int wmain(int argc, wchar_t* argv[]) {
     auto _ = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     InitKernelUtils();
+    DebugPrivilege();
     extendInit();
 #ifdef PYTHON_ENABLE
     initialize init;

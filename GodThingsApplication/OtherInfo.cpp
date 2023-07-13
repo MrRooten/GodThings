@@ -23,9 +23,6 @@ void SchduleTaskMgr::DeleteMgr() {
 SchduleTaskMgr::SchduleTaskMgr() {
     HRESULT hr = NULL; // = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     ITaskService* pService = NULL;
-    if (FAILED(hr)) {
-        throw std::exception();
-    }
 
     hr = CoInitializeSecurity(
         NULL,
@@ -38,7 +35,7 @@ SchduleTaskMgr::SchduleTaskMgr() {
         0,
         NULL);
 
-    if (FAILED(hr)) {
+    if (FAILED(hr) && hr != RPC_E_TOO_LATE) {
         throw std::exception();
     }
 

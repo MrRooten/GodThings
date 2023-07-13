@@ -78,3 +78,15 @@ public:
 	NetInterfaces();
 	ResultSet* ModuleRun();
 };
+
+class WmiSchduleTask : public NativeModule {
+public:
+	WmiSchduleTask();
+	ResultSet* ModuleRun();
+};
+
+class WmiDrivers : public NativeModule {
+public:
+	WmiDrivers();
+	ResultSet* ModuleRun();
+};

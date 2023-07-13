@@ -12,3 +12,5 @@ BOOL HasPrivilege(std::wstring privilege);
 BOOL GetSystem();
 
 GTWString ConvertSidToUsername(const WCHAR* sid);
+
+BOOL DebugPrivilege();

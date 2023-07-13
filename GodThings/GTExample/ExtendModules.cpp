@@ -1141,6 +1141,7 @@ ProcessHandle::ProcessHandle() {
 	this->Type = L"Extender";
 	this->Class = L"GetInfo";
 	this->Description = L"Get File Type of specified file";
+	this->RunType = ModuleNeedArgs;
 	auto mgr = ModuleMgr::GetMgr();
 	mgr->RegisterModule(this);
 }
@@ -1215,15 +1216,21 @@ ResultSet* StaticInfo::ModuleRun() {
 	auto r1 = taker.take(L"SELECT * FROM Win32_Processor");
 	auto r2 = taker.take(L"SELECT * FROM Win32_ComputerSystem");
 	auto r3 = taker.take(L"SELECT * FROM Win32_NetworkAdapterConfiguration");
+	auto system_info = taker.take(L"SELECT * FROM Win32_OperatingSystem");
 	auto &v = r1[0];
 	auto& v2 = r2[0];
+	auto& v3 = system_info[0];
 	std::wstring n = L"abc";
+	result->PushDictOrdered("Name", StringUtils::ws2s(std::get<std::wstring>(v3[L"Caption"])));
 	result->PushDictOrdered("CPUName", StringUtils::ws2s(std::get<std::wstring>(v[L"Caption"])));
 	result->PushDictOrdered("Domain", StringUtils::ws2s(std::get<std::wstring>(v2[L"Domain"])));
 	result->PushDictOrdered("Model", StringUtils::ws2s(std::get<std::wstring>(v2[L"Model"])));
 	result->PushDictOrdered("Name", StringUtils::ws2s(std::get<std::wstring>(v2[L"Name"])));
 	result->PushDictOrdered("PrimaryOwnerName", StringUtils::ws2s(std::get<std::wstring>(v2[L"PrimaryOwnerName"])));
 	result->PushDictOrdered("TotalPhysicalMemory", StringUtils::ws2s(std::get<std::wstring>(v2[L"TotalPhysicalMemory"])));
+	result->PushDictOrdered("BuildNumber", StringUtils::ws2s(std::get<std::wstring>(v3[L"BuildNumber"])));
+	result->PushDictOrdered("LastBoot", StringUtils::ws2s(std::get<std::wstring>(v3[L"LastBootUpTime"])));
+	result->PushDictOrdered("InstallDate", StringUtils::ws2s(std::get<std::wstring>(v3[L"InstallDate"])));
 	result->SetType(DICT);
 	return result;
 }
@@ -1248,6 +1255,47 @@ ResultSet* NetInterfaces::ModuleRun() {
 		result->PushDictOrdered("Gateway", i.GetGateway());
 		result->PushDictOrdered("Type", i.GetType());
 		result->PushDictOrdered("Description", i.GetDescription());
+	}
+	result->SetType(DICT);
+	return result;
+}
+
+WmiSchduleTask::WmiSchduleTask() {
+	this->Name = L"SchduleTask";
+	this->Path = L"WMI";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get SchduleTask from wmi";
+	this->RunType = ModuleNotImplement;
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* WmiSchduleTask::ModuleRun() {
+	return nullptr;
+}
+
+WmiDrivers::WmiDrivers() {
+	this->Name = L"Drivers";
+	this->Path = L"WMI";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Drivers from wmi";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* WmiDrivers::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	WmiTaker taker;
+	auto r1 = taker.take(L"SELECT * FROM Win32_SystemDriver");
+	for (auto& v : r1) {
+		result->PushDictOrdered("Name", StringUtils::ws2s(std::get<std::wstring>(v[L"Name"])));
+		result->PushDictOrdered("Caption", StringUtils::ws2s(std::get<std::wstring>(v[L"Caption"])));
+		result->PushDictOrdered("ServiceType", StringUtils::ws2s(std::get<std::wstring>(v[L"ServiceType"])));
+		result->PushDictOrdered("StartName", StringUtils::ws2s(std::get<std::wstring>(v[L"StartName"])));
+		result->PushDictOrdered("State", StringUtils::ws2s(std::get<std::wstring>(v[L"State"])));
+		result->PushDictOrdered("Path", StringUtils::ws2s(std::get<std::wstring>(v[L"PathName"])));
 	}
 	result->SetType(DICT);
 	return result;
