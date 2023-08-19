@@ -22,6 +22,7 @@
 #include "LDAPUtils.h"
 #include "FireWallInfo.h"
 #include "WmiUtils.h"
+#include "NtfsVolume.h"
 class ArgsHelper {
 public:
 	static void help(wchar_t* file) {
@@ -331,16 +332,13 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			ProcessManager mgr;
-			mgr.SetAllThreads();
-			for (auto pair : mgr.threadsMap) {
-				auto pid = pair.first;
-				auto threads = mgr.threadsMap[pid];
-				printf("%d\n", pid);
-				for (auto t : threads) {
-					printf("\t%p\n", t->GetBaseAddress());
-				}
-			}
+			NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
+			int count = 0;
+			query->QueryUSNData([&count](PUSN_RECORD record) -> bool {
+				//wprintf(L"%s\n", record->FileName);
+				count += 1;
+				return true;
+				});
 			return;
 		}
 		else if (subcmd == L"list_path") {

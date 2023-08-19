@@ -200,6 +200,7 @@
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="NtAPI.cpp" />
+    <ClCompile Include="NtfsVolume.cpp" />
     <ClCompile Include="ObjectInfo.cpp" />
     <ClCompile Include="OtherInfo.cpp" />
     <ClCompile Include="Parse.cpp" />
@@ -246,6 +247,7 @@
     <ClInclude Include="NtFileInfo.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="NtAPI.h" />
+    <ClInclude Include="NtfsVolume.h" />
     <ClInclude Include="NtObjectInfo.h" />
     <ClInclude Include="NtThreadInfo.h" />
     <ClInclude Include="ObjectInfo.h" />
