@@ -335,7 +335,7 @@ public:
 			NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
 			int count = 0;
 			query->QueryUSNData([&count](PUSN_RECORD record) -> bool {
-				//wprintf(L"%s\n", record->FileName);
+				wprintf(L"%s\n", record->FileName);
 				count += 1;
 				return true;
 				});

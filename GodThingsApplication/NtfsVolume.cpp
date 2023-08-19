@@ -29,6 +29,7 @@ PVOID NtfsQuery::QueryUSNData(USNRecordProcess process) {
 	PVOID output = LocalAlloc(GPTR, chunkSize);
 	DWORD bytesReturn = 0;
 	PVOID test;
+	bool isBreak = false;
 	while (true) {
 		if (DeviceIoControl(this->hVolume, FSCTL_READ_USN_JOURNAL, &ReadData, sizeof(ReadData), output, chunkSize, &bytesReturn, NULL) == false) {
 			throw GTException(StringUtils::ws2s(GetLastErrorAsString()).c_str());
@@ -42,9 +43,19 @@ PVOID NtfsQuery::QueryUSNData(USNRecordProcess process) {
 		while (realRetBytes > 0) {
 			realRetBytes -= record->RecordLength;
 			record = (PUSN_RECORD)((PUCHAR)record + record->RecordLength);
-			process(record);
+			if (process(record) == false) {
+				isBreak = true;
+				break;
+			}
 		}
 
+		if (isBreak) {
+			break;
+		}
+
+		if (output == NULL) {
+			break;
+		}
 		ReadData.StartUsn = *(USN*)output;
 	}
 	
