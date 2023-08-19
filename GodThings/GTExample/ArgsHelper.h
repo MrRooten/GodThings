@@ -215,21 +215,17 @@ public:
 			for (int i = 0; i < size; i++) {
 				for (auto& key : orders) {
 					auto member = data[key][i];
-					wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
+					//wprintf(L"%-30s ", StringUtils::s2ws(member.asCString()).c_str());
 				}
-				printf("\n");
+				//printf("\n");
 			}
 
 			
-			//for (int i = 0; i < len_args; i++) {
-				//if (lstrcmpW(args[i], L"--export-csv") == 0) {
 			std::wstring filename = dirpath + L"\\" + mod->Path + L"." + mod->Name + L".csv";
 			auto file = GTFileUtils::Open(filename.c_str(), L"w");
 			auto s = "\xef\xbb\xbf" + res->ToCsvString();
 			file->WriteBytes(0, (PBYTE)s.c_str(), s.size());
 			delete file;
-				//}
-			//}
 			delete res;
 			wprintf(L"%s Module Ending...\n", mod->Name.c_str());
 		}
@@ -335,8 +331,16 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			auto interfaces = NetInterface::GetInterfaces();
-
+			ProcessManager mgr;
+			mgr.SetAllThreads();
+			for (auto pair : mgr.threadsMap) {
+				auto pid = pair.first;
+				auto threads = mgr.threadsMap[pid];
+				printf("%d\n", pid);
+				for (auto t : threads) {
+					printf("\t%p\n", t->GetBaseAddress());
+				}
+			}
 			return;
 		}
 		else if (subcmd == L"list_path") {

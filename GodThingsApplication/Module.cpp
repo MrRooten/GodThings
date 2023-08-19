@@ -217,7 +217,6 @@ DWORD ModuleMgr::LoadModules() {
 	FilesRelateOpenCommandsModule* relateProgram = new FilesRelateOpenCommandsModule();
 	NetworkModule* network = new NetworkModule();
 	Rundll32Backdoor* rundll = new Rundll32Backdoor();
-	UnsignedRunningProcess* unsignedProcess = new UnsignedRunningProcess();
 	ShadowAccount* shadowAccount = new ShadowAccount();
 	USBHistory* usbHistory = new USBHistory();
 	ListSchduleTask* task = new ListSchduleTask(); 
@@ -226,6 +225,7 @@ DWORD ModuleMgr::LoadModules() {
 	new RecentRunning();
 	new Accounts();
 	new FwRules();
+	new GetInjectedThread();
 #ifdef  PYTHON_ENABLE
 
 	std::wstring currPath = std::filesystem::current_path().native().c_str();

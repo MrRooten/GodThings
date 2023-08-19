@@ -1110,6 +1110,16 @@ DWORD Process::WriteMemoryToAddress(PVOID address, PBYTE inData, size_t size) {
 	return status;
 }
 
+MEMORY_BASIC_INFORMATION Process::QueryMemoryInfo(UINT64 BaseAddr) {
+	MEMORY_BASIC_INFORMATION info;
+	HANDLE hProcess = GetCachedHandle(PROCESS_QUERY_INFORMATION);
+	auto size = VirtualQueryEx(hProcess, (LPCVOID)BaseAddr, &info, sizeof(MEMORY_BASIC_INFORMATION));
+	if (size == 0) {
+		throw GTException(StringUtils::ws2s(GetLastErrorAsString()).c_str());
+	}
+	return info;
+}
+
 Thread::Thread(TID tid) {
 	this->threadId = tid;
 }
@@ -1177,6 +1187,30 @@ std::vector<Thread> Thread::GetThreadsByPId(DWORD pid) {
 	return result;
 }
 
+UINT64 Thread::GetBaseAddress() {
+	if (this->isBaseAddressInit == false) {
+		SetLastError(0);
+		pNtQueryInformationThread NtQueryInformation = (pNtQueryInformationThread)GetNativeProc("NtQueryInformationThread");
+		if (NtQueryInformation == NULL) {
+			return GetLastError();
+		}
+		auto tid = (DWORD)this->threadId;
+		HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, false, (DWORD)tid);
+		if (hThread == NULL) {
+			throw GTException(StringUtils::ws2s(GetLastErrorAsString()).c_str());
+		}
+		ULONG size = 0;
+		NTSTATUS status = NtQueryInformation(hThread, ThreadQuerySetWin32StartAddress, &this->baseAddress, sizeof(this->baseAddress), &size);
+		if (!NT_SUCCESS(status)) {
+			CloseHandle(hThread);
+			throw GTException(StringUtils::ws2s(GetLastErrorAsString()).c_str());
+		}
+		this->basicInfoInit = true;
+		CloseHandle(hThread);
+	}
+	return this->baseAddress;
+}
+
 DWORD Thread::SetBasicInfo() {
 	SetLastError(0);
 	pNtQueryInformationThread NtQueryInformation = (pNtQueryInformationThread)GetNativeProc("NtQueryInformationThread");
@@ -1193,6 +1227,7 @@ DWORD Thread::SetBasicInfo() {
 	if (!NT_SUCCESS(status)) {
 		goto cleanup;
 	}
+	this->basicInfoInit = true;
 cleanup:
 	CloseHandle(hThread);
 	return 0;

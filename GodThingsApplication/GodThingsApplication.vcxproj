@@ -240,6 +240,7 @@
     <ClInclude Include="KernelUtils.h" />
     <ClInclude Include="LDAPUtils.h" />
     <ClInclude Include="MagicUtils.h" />
+    <ClInclude Include="MFT.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="NetworkUtils.h" />
     <ClInclude Include="NtFileInfo.h" />

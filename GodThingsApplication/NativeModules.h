@@ -50,12 +50,6 @@ public:
 	ResultSet* ModuleRun();
 };
 
-class UnsignedRunningProcess : public NativeModule {
-public:
-	UnsignedRunningProcess();
-	ResultSet* ModuleRun();
-};
-
 class DriverList : public NativeModule {
 public:
 	DriverList();
@@ -161,6 +155,13 @@ public:
 class FwRules : public NativeModule {
 public:
 	FwRules();
+	ResultSet* ModuleRun();
+};
+
+
+class GetInjectedThread : public NativeModule {
+public:
+	GetInjectedThread();
 	ResultSet* ModuleRun();
 };
 #endif

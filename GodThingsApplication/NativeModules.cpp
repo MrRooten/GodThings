@@ -19,10 +19,19 @@ ProcessModule::ProcessModule() {
 
 ResultSet* ProcessModule::ModuleRun() {
 	ResultSet* result = new ResultSet();
+	std::map<PID, bool> trustMap;
 	ProcessManager* mgr = new ProcessManager();
 	SystemInfo info;
 	auto time1 = info.GetSystemTimeInfo();
 	mgr->SetAllProcesses();
+	for (auto item : mgr->processesMap) {
+		if (item.second->GetImageState()->IsSigned()) {
+			trustMap[item.first] = true;
+		}
+		else {
+			trustMap[item.first] = false;
+		}
+	}
 	Sleep(1000);
 	for (auto item : mgr->processesMap) {
 		result->PushDictOrdered("PID", std::to_string(item.first));
@@ -42,10 +51,21 @@ ResultSet* ProcessModule::ModuleRun() {
 		result->PushDictOrdered("User name", StringUtils::ws2s(item.second->UserName()));
 		result->PushDictOrdered("Command line", StringUtils::ws2s(item.second->GetImageState()->cmdline));
 		result->PushDictOrdered("File path", StringUtils::ws2s(item.second->GetImageState()->imageFileName));
-		result->PushDictOrdered("Start time", StringUtils::ws2s(item.second->GetStartTime().String()));
+		result->PushDictOrdered("Start time", StringUtils::ws2s(item.second->GetStartTime().String_utc_to_local()));
 		auto memory = item.second->GetMemoryState();
 		result->PushDictOrdered("Private bytes", std::to_string(memory->PrivateWorkingSetSize));
 		result->PushDictOrdered("Working set", std::to_string(memory->WorkingSetSize));
+		if (trustMap.contains(item.first)) {
+			if (trustMap[item.first]) {
+				result->PushDictOrdered("Verified", "True");
+			}
+			else {
+				result->PushDictOrdered("Verified", "False");
+			}
+		}
+		else {
+			result->PushDictOrdered("Verified", "");
+		}
 		
 	}
 	delete mgr;
@@ -113,16 +133,12 @@ StartupModule::StartupModule() {
 
 ResultSet* StartupModule::ModuleRun() {
 	ResultSet* result = new ResultSet();
+
 	do {
 		HANDLE hFind = INVALID_HANDLE_VALUE;
-		WCHAR appdataPath[101];
 		LARGE_INTEGER filesize;
-		GetEnvironmentVariableW(L"appdata", appdataPath, 99);
-		if (lstrlenW(appdataPath) == 0) {
-			break;
-		}
 		std::wstring path;
-		path = std::wstring(L"C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup");
+		path = std::wstring(L"C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\");
 
 		if (PathFileExistsW(path.c_str()) == FALSE) {
 			//wprintf(L"The Startup in menu is not exist");
@@ -279,16 +295,23 @@ NetworkModule::NetworkModule() {
 
 ResultSet* NetworkModule::ModuleRun() {
 	ResultSet* result = new ResultSet();
+	auto inst = DnsCache::GetInstance();
 	NetworkManager mgr;
 	mgr.SetTCPConnection();
 	ProcessManager proMgr;
 	proMgr.UpdateInfo();
 	for (auto connection : mgr.connections) {
+		auto domain = inst->GetDomain(connection->GetRemoteIPAsString().c_str());
+		if (domain == NULL) {
+			domain = L"";
+		}
 		result->PushDictOrdered("local", StringUtils::ws2s(connection->GetLocalIPAsString().c_str()) + ":" + std::to_string(connection->localPort));
 		result->PushDictOrdered("remote", StringUtils::ws2s(connection->GetRemoteIPAsString().c_str()) + ":" + std::to_string(connection->remotePort));
+		result->PushDictOrdered("domain", StringUtils::ws2s(domain));
 		result->PushDictOrdered("state", StringUtils::ws2s(connection->GetStateAsString().c_str()));
 		result->PushDictOrdered("pid", std::to_string(connection->owningPid));
 		result->PushDictOrdered("process name", StringUtils::ws2s(proMgr.processesMap[connection->owningPid]->GetProcessName()));
+		
 	}
 	result->SetType(DICT);
 	return result;
@@ -345,38 +368,6 @@ ResultSet* ShadowAccount::ModuleRun() {
 			//GTPrintln(L"\t%s", user->userName.c_str());
 			result->PushDictOrdered("username", StringUtils::ws2s(user->userName));
 			result->report = "Might have shadow account";
-		}
-	}
-	result->SetType(DICT);
-	return result;
-}
-
-UnsignedRunningProcess::UnsignedRunningProcess() {
-	this->Name = L"Unsigned";
-	this->Path = L"Process";
-	this->Type = L"Native";
-	this->Class = L"GetInfo";
-	this->Description = L"Get programs that unsigned in processes";
-	auto mgr = ModuleMgr::GetMgr();
-	mgr->RegisterModule(this);
-}
-
-ResultSet* UnsignedRunningProcess::ModuleRun(){
-	ResultSet* result = new ResultSet();
-	ProcessManager mgr;
-	mgr.UpdateInfo();
-	for (auto item : mgr.processesMap) {
-		auto proName = item.second->processName;
-		auto iproName = StringUtils::ToLower(proName);
-		if (item.second->GetImageState()->IsSigned() == false) {
-			Process* process = item.second;
-			auto imageState = process->GetImageState();
-			std::wstring cmdline = imageState->cmdline;
-			result->PushDictOrdered("pid", std::to_string(item.first));
-			result->PushDictOrdered("info", StringUtils::ws2s(item.second->GetImageState()->GetSignInfo()));
-			result->PushDictOrdered("user", StringUtils::ws2s(item.second->UserName()));
-			result->PushDictOrdered("cmdline", StringUtils::ws2s(cmdline).c_str());
-			result->report = "There is unsigned process running";
 		}
 	}
 	result->SetType(DICT);
@@ -973,7 +964,7 @@ ResultSet* Accounts::ModuleRun() {
 		result->PushDictOrdered("LastLogon", StringUtils::ws2s(user->GetLastLogon().String_utc_to_local()));
 		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().String_utc_to_local()));
 		result->PushDictOrdered("Comment", StringUtils::ws2s(user->GetComment()));
-		
+		result->PushDictOrdered("LogonServer", StringUtils::ws2s(user->GetLogonServer()));
 	}
 	result->SetType(DICT);
 	return result;
@@ -1031,6 +1022,85 @@ ResultSet* FwRules::ModuleRun() {
 		result->PushDictOrdered("Direction", StringUtils::ws2s(rule->GetDirection().WString()));
 		return true;
 		});
+	result->SetType(DICT);
+	return result;
+}
+
+GetInjectedThread::GetInjectedThread() {
+	this->Name = L"GetInjectedThread";
+	this->Path = L"Thread";
+	this->Type = L"Native";
+	this->Class = L"GetInfo";
+	this->Description = L"List Injected Thread";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+std::string GetMemroyType(DWORD type) {
+	std::string result = "";
+	if (type == MEM_IMAGE) {
+		result = "MEM_IMAGE";
+	}
+	else if (type == MEM_MAPPED) {
+		result = "MEM_MAPPED";
+	}
+	else if (type == MEM_PRIVATE) {
+		result = "MEM_PRIVATE";
+	}
+	else {
+		result = "MEM_UNKNOWN";
+	}
+
+	return result;
+}
+
+std::string GetMemoryState(DWORD state) {
+	std::string result = "";
+	if (state == MEM_COMMIT) {
+		result += "MEM_COMMIT";
+	}
+	else if (state == MEM_FREE) {
+		result += "MEM_FREE";
+	}
+	else if (state == MEM_RESERVE) {
+		result += "MEM_RESERVE";
+	}
+	else {
+		result = std::to_string(state);
+	}
+
+	return result;
+}
+
+ResultSet* GetInjectedThread::ModuleRun() {
+	auto result = new ResultSet();
+	ProcessManager mgr;
+	mgr.SetAllThreads();
+	mgr.SetAllProcesses();
+	for (auto pair : mgr.threadsMap) {
+		auto pid = pair.first;
+		auto threads = mgr.threadsMap[pid];
+		//printf("%d\n", pid);
+		auto process = mgr.processesMap[pid];
+		for (auto t : threads) {
+			try {
+				auto baseAddr = t->GetBaseAddress();
+				auto info = process->QueryMemoryInfo(baseAddr);
+				if (info.Type == MEM_IMAGE && info.State == MEM_COMMIT) {
+					continue;
+				}
+				result->PushDictOrdered("Pid", std::to_string(pid));
+				result->PushDictOrdered("Name", StringUtils::ws2s(process->GetProcessName()));
+				result->PushDictOrdered("Tid", std::to_string(t->threadId));
+				result->PushDictOrdered("Type", GetMemroyType(info.Type));
+				result->PushDictOrdered("State", GetMemoryState(info.State));
+				//printf("info: %x\n", info.Type);
+			}
+			catch (...) {
+				continue;
+			}
+		}
+	}
 	result->SetType(DICT);
 	return result;
 }

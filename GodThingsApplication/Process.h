@@ -249,6 +249,7 @@ public:
 	GTWString GetProcessName();
 	DWORD ReadMemoryFromAddress(PVOID address,PBYTE outData,size_t size);
 	DWORD WriteMemoryToAddress(PVOID address, PBYTE inData,size_t size);
+	MEMORY_BASIC_INFORMATION QueryMemoryInfo(UINT64 BaseAddr);
 	DWORD InjectDll(const LPWSTR dllname);
 	GTTime GetStartTime();
 	std::vector<Segment>& GetSegments();
@@ -298,12 +299,18 @@ public:
 	KERNEL_USER_TIMES* GetKernelUserTimes();
 	DWORD GetProcessId();
 	static std::vector<Thread> GetThreadsByPId(DWORD pid);
+	UINT64 GetBaseAddress();
 private:
+	BOOL isBaseAddressInit = false;
+	UINT64 baseAddress;
+
 	HANDLE hThread;
 	HANDLE threadToken;
 	CONTEXT threadContext;
+	bool basicInfoInit = false;
 	THREAD_BASIC_INFORMATION basicInfo;
 	DWORD SetBasicInfo();
+
 	KERNEL_USER_TIMES kernelUserTime;
 	DWORD SetKernelUserTime();
 	LONG basePriority;
