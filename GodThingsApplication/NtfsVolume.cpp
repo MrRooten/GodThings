@@ -43,7 +43,7 @@ PVOID NtfsQuery::QueryUSNData(USNRecordProcess process) {
 		while (realRetBytes > 0) {
 			realRetBytes -= record->RecordLength;
 			record = (PUSN_RECORD)((PUCHAR)record + record->RecordLength);
-			if (process(record) == false) {
+			if (process(record, this->hVolume) == false) {
 				isBreak = true;
 				break;
 			}

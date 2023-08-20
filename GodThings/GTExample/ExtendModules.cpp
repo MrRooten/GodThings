@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
+#include "NtfsVolume.h"
 LastShutdown::LastShutdown() {
 	this->Name = L"LastShutdown";
 	this->Path = L"System";
@@ -1297,6 +1298,154 @@ ResultSet* WmiDrivers::ModuleRun() {
 		result->PushDictOrdered("State", StringUtils::ws2s(std::get<std::wstring>(v[L"State"])));
 		result->PushDictOrdered("Path", StringUtils::ws2s(std::get<std::wstring>(v[L"PathName"])));
 	}
+	result->SetType(DICT);
+	return result;
+}
+
+USNRecord::USNRecord() {
+	this->Name = L"USNRecord";
+	this->Path = L"Ntfs";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Get Drivers from wmi";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+
+GTString ReasonToString(DWORD reason) {
+	std::vector<GTString> reasons;
+	if ((reason & USN_REASON_DATA_OVERWRITE) != 0) {
+		reasons.push_back("DATA_OVERWRITE");
+	}
+	if ((reason & USN_REASON_DATA_EXTEND) != 0) {
+		reasons.push_back("DATA_EXTEND");
+	}
+	if ((reason & USN_REASON_DATA_TRUNCATION) != 0) {
+		reasons.push_back("DATA_TRUNCATION");
+	}
+	if ((reason & USN_REASON_NAMED_DATA_OVERWRITE) != 0) {
+		reasons.push_back("NAMED_DATA_OVERWRITE");
+	}
+	if ((reason & USN_REASON_NAMED_DATA_TRUNCATION) != 0) {
+		reasons.push_back("NAMED_DATA_TRUNCATION");
+	}
+	if ((reason & USN_REASON_FILE_CREATE) != 0) {
+		reasons.push_back("FILE_CREATE");
+	}
+	if ((reason & USN_REASON_FILE_DELETE) != 0) {
+		reasons.push_back("FILE_DELETE");
+	}
+	if ((reason & USN_REASON_EA_CHANGE) != 0) {
+		reasons.push_back("EA_CHANGE");
+	}
+	if ((reason & USN_REASON_SECURITY_CHANGE) != 0) {
+		reasons.push_back("SECURITY_CHANGE");
+	}
+	if ((reason & USN_REASON_RENAME_OLD_NAME) != 0) {
+		reasons.push_back("RENAME_OLD_NAME");
+	}
+	if ((reason & USN_REASON_RENAME_NEW_NAME) != 0) {
+		reasons.push_back("RENAME_NEW_NAME");
+	}
+	if ((reason & USN_REASON_INDEXABLE_CHANGE) != 0) {
+		reasons.push_back("INDEXABLE_CHANGE");
+	}
+	if ((reason & USN_REASON_BASIC_INFO_CHANGE) != 0) {
+		reasons.push_back("BASIC_INFO_CHANGE");
+	}
+	if ((reason & USN_REASON_HARD_LINK_CHANGE) != 0) {
+		reasons.push_back("HARD_LINK_CHANGE");
+	}
+	if ((reason & USN_REASON_COMPRESSION_CHANGE) != 0) {
+		reasons.push_back("COMPRESSION_CHANGE");
+	}
+	if ((reason & USN_REASON_ENCRYPTION_CHANGE) != 0) {
+		reasons.push_back("ENCRYPTION_CHANGE");
+	}
+	if ((reason & USN_REASON_OBJECT_ID_CHANGE) != 0) {
+		reasons.push_back("OBJECT_ID_CHANGE");
+	}
+	if ((reason & USN_REASON_REPARSE_POINT_CHANGE) != 0) {
+		reasons.push_back("REPARSE_POINT_CHANGE");
+	}
+	if ((reason & USN_REASON_STREAM_CHANGE) != 0) {
+		reasons.push_back("STREAM_CHANGE");
+	}
+	if ((reason & USN_REASON_TRANSACTED_CHANGE) != 0) {
+		reasons.push_back("TRANSACTED_CHANGE");
+	}
+	if ((reason & USN_REASON_CLOSE) != 0) {
+		reasons.push_back("CLOSE");
+	}
+
+	return StringUtils::StringsJoin(reasons, "|");
+}
+
+FILE_ID_DESCRIPTOR getFileIdDescriptor(const DWORDLONG fileId)
+{
+	FILE_ID_DESCRIPTOR fileDescriptor;
+	fileDescriptor.Type = FileIdType;
+	fileDescriptor.FileId.QuadPart = fileId;
+	fileDescriptor.dwSize = 24;
+
+	return fileDescriptor;
+}
+
+ResultSet* USNRecord::ModuleRun() {
+	ResultSet* result = new ResultSet();
+	auto drives = GetLogicalDrives();
+	//NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
+	std::set<GTWString> lists({L"exe", L"jsp", L"asp", L"php", L"bat", L"phtml", L"php5", L"php7", L"ashx"});
+	const WCHAR* drive_letters = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	int len = 26;
+	for (int i = 0; i < len; i++) {
+		if ((drives & 1) == 0) {
+			drives = drives >> 1;;
+			continue;
+		}
+		WCHAR letter = drive_letters[i];
+		GTWString _path = L"\\\\.\\";
+		_path += letter;
+		_path += L":";
+		NtfsQuery* query = new NtfsQuery(_path.c_str());
+		try {
+			query->QueryUSNData([&result, &lists, &_path](PUSN_RECORD record, HANDLE hVolume) -> bool {
+				GTWString _name = GTWString(record->FileName, record->FileName + record->FileNameLength);
+				GTWString name = GTWString(_name.c_str());
+				auto index = name.find_last_of(L".");
+				if (index == std::string::npos) {
+
+				}
+				else {
+					GTWString ext = name.substr(index + 1);
+					if (lists.contains(ext)) {
+						//wprintf(L"Log:%s\n", name.c_str());
+						FILE_ID_DESCRIPTOR descriptor = getFileIdDescriptor(record->FileReferenceNumber);
+						TCHAR filePath[MAX_PATH] = {0};
+						HANDLE hh = OpenFileById(hVolume, &descriptor, FILE_GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, 0x80);
+						GetFinalPathNameByHandle(hh, filePath, MAX_PATH, 0);
+						GTWString wFullPath = filePath;
+						result->PushDictOrdered("File", StringUtils::ws2s(name));
+						result->PushDictOrdered("Reason", ReasonToString(record->Reason));
+						FILETIME time;
+						time.dwLowDateTime = record->TimeStamp.LowPart;
+						time.dwHighDateTime = record->TimeStamp.HighPart;
+						result->PushDictOrdered("Date", StringUtils::ws2s(GTTime(time).String_utc_to_local()));
+						result->PushDictOrdered("Drive", StringUtils::ws2s(_path));
+						result->PushDictOrdered("FullPath", StringUtils::ws2s(wFullPath));
+					}
+				}
+				return true;
+				});
+		}
+		catch (...) {
+
+		}
+		drives = drives >> 1;
+	}
+	int count = 0;
+	
 	result->SetType(DICT);
 	return result;
 }

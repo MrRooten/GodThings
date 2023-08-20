@@ -334,11 +334,6 @@ public:
 		else if (subcmd == L"test") {
 			NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
 			int count = 0;
-			query->QueryUSNData([&count](PUSN_RECORD record) -> bool {
-				wprintf(L"%s\n", record->FileName);
-				count += 1;
-				return true;
-				});
 			return;
 		}
 		else if (subcmd == L"list_path") {

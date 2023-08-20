@@ -15,6 +15,7 @@ void extendInit() {
     new StaticInfo();
     new NetInterfaces();
     new WmiDrivers();
+    new USNRecord();
 }
 
 

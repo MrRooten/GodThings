@@ -90,3 +90,9 @@ public:
 	WmiDrivers();
 	ResultSet* ModuleRun();
 };
+
+class USNRecord : public NativeModule {
+public:
+	USNRecord();
+	ResultSet* ModuleRun();
+};

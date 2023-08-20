@@ -23,7 +23,7 @@ public:
 
 	USN_JOURNAL_DATA QueryUSNInfo();
 
-	using USNRecordProcess = std::function<bool(PUSN_RECORD)>;
+	using USNRecordProcess = std::function<bool(PUSN_RECORD,HANDLE)>;
 
 	PVOID QueryUSNData(USNRecordProcess process);
 
