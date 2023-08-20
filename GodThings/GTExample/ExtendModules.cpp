@@ -1420,12 +1420,21 @@ ResultSet* USNRecord::ModuleRun() {
 				else {
 					GTWString ext = name.substr(index + 1);
 					if (lists.contains(ext)) {
+						bool deleted = false;
 						//wprintf(L"Log:%s\n", name.c_str());
 						FILE_ID_DESCRIPTOR descriptor = getFileIdDescriptor(record->FileReferenceNumber);
 						TCHAR filePath[MAX_PATH] = {0};
 						HANDLE hh = OpenFileById(hVolume, &descriptor, FILE_GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, 0x80);
 						GetFinalPathNameByHandle(hh, filePath, MAX_PATH, 0);
 						GTWString wFullPath = filePath;
+						if (wFullPath.size() == 0) {
+							FILE_ID_DESCRIPTOR descriptor = getFileIdDescriptor(record->ParentFileReferenceNumber);
+							HANDLE hh = OpenFileById(hVolume, &descriptor, FILE_GENERIC_READ, FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, 0x80);
+							GetFinalPathNameByHandle(hh, filePath, MAX_PATH, 0);
+							wFullPath = filePath;
+							wFullPath += name;
+							deleted = true;
+						}
 						result->PushDictOrdered("File", StringUtils::ws2s(name));
 						result->PushDictOrdered("Reason", ReasonToString(record->Reason));
 						FILETIME time;
@@ -1434,6 +1443,12 @@ ResultSet* USNRecord::ModuleRun() {
 						result->PushDictOrdered("Date", StringUtils::ws2s(GTTime(time).String_utc_to_local()));
 						result->PushDictOrdered("Drive", StringUtils::ws2s(_path));
 						result->PushDictOrdered("FullPath", StringUtils::ws2s(wFullPath));
+						if (deleted == true) {
+							result->PushDictOrdered("Found", "Deleted");
+						}
+						else {
+							result->PushDictOrdered("Found", "Found");
+						}
 					}
 				}
 				return true;
