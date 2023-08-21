@@ -1519,6 +1519,27 @@ GTWString _ImageState::GetSignInfo() {
 	return this->info->info;
 }
 
+GTString _ImageState::GetMd5Hash() {
+	HANDLE hFile = CreateFileW(this->filePath.c_str(), GENERIC_READ,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_FLAG_SEQUENTIAL_SCAN,
+		NULL);
+	GTString hash;
+	try {
+		hash = Md5File(hFile);
+	}
+	catch (...) {
+		CloseHandle(hFile);
+		GTString result = "Hash filed" + StringUtils::ws2s(GetLastErrorAsString());
+		throw GTException(result.c_str());
+	}
+	CloseHandle(hFile);
+	return hash;
+	
+}
+
 _ImageState::~_ImageState() {
 	if (this->info != NULL) {
 		delete this->info;

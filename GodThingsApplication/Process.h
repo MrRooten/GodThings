@@ -122,6 +122,7 @@ typedef struct _ImageState {
 	bool IsSigned();
 	
 	GTWString GetSignInfo();
+	GTString GetMd5Hash();
 	~_ImageState();
 }ImageState;
 

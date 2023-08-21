@@ -1382,8 +1382,7 @@ GTString ReasonToString(DWORD reason) {
 	return StringUtils::StringsJoin(reasons, "|");
 }
 
-FILE_ID_DESCRIPTOR getFileIdDescriptor(const DWORDLONG fileId)
-{
+FILE_ID_DESCRIPTOR getFileIdDescriptor(const DWORDLONG fileId) {
 	FILE_ID_DESCRIPTOR fileDescriptor;
 	fileDescriptor.Type = FileIdType;
 	fileDescriptor.FileId.QuadPart = fileId;
@@ -1392,16 +1391,20 @@ FILE_ID_DESCRIPTOR getFileIdDescriptor(const DWORDLONG fileId)
 	return fileDescriptor;
 }
 
+GTString filehash(GTWString path) {
+
+}
+
 ResultSet* USNRecord::ModuleRun() {
 	ResultSet* result = new ResultSet();
 	auto drives = GetLogicalDrives();
 	//NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
-	std::set<GTWString> lists({L"exe", L"jsp", L"asp", L"php", L"bat", L"phtml", L"php5", L"php7", L"ashx"});
+	std::set<GTWString> lists({L"exe", L"jsp", L"asp", L"php", L"bat", L"phtml", L"php5", L"php7", L"ashx", L"class", L"jar"});
 	const WCHAR* drive_letters = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	int len = 26;
 	for (int i = 0; i < len; i++) {
 		if ((drives & 1) == 0) {
-			drives = drives >> 1;;
+			drives = drives >> 1;
 			continue;
 		}
 		WCHAR letter = drive_letters[i];
@@ -1449,6 +1452,20 @@ ResultSet* USNRecord::ModuleRun() {
 						else {
 							result->PushDictOrdered("Found", "Found");
 						}
+						try {
+							if (hh != INVALID_HANDLE_VALUE) {
+								result->PushDictOrdered("Hash", Md5File(hh));
+							}
+							else {
+								result->PushDictOrdered("Hash", "");
+							}
+							
+						}
+						catch (...) {
+							result->PushDictOrdered("Hash", "");
+						}
+						CloseHandle(hh);
+						
 					}
 				}
 				return true;

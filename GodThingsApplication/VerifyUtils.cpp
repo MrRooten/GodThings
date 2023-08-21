@@ -1,7 +1,7 @@
 #include "VerifyUtils.h"
 #include "mscat.h"
 #include "utils.h"
-
+#include "StringUtils.h"
 DWORD VerifyCatalogSignatureAddition(_In_ LPCWSTR pwszSourceFile,
     _In_ bool UseStrongSigPolicy, GTWString& catalogFile);
 SignatureInfomation* VerifyEmbeddedSignature(LPCWSTR pwszSourceFile) {
@@ -455,6 +455,90 @@ BytesBuffer Sha1(PBYTE bytes, size_t n) {
     if (hCryptProv)
         CryptReleaseContext(hCryptProv, 0);
     return result;
+}
+
+
+#define BUFSIZE 1024
+#define MD5LEN  16
+
+BytesBuffer Md5File(HANDLE hFile) {
+    HCRYPTPROV hProv = 0;
+    HCRYPTHASH hHash = 0;
+    BOOL bResult = FALSE;
+    BYTE rgbFile[BUFSIZE];
+    DWORD cbRead = 0;
+    BYTE rgbHash[MD5LEN];
+    DWORD cbHash = 0;
+    CHAR rgbDigits[] = "0123456789abcdef";
+    if (INVALID_HANDLE_VALUE == hFile) {
+        throw GTException("not a valid HANDLE");
+    }
+
+    // Get handle to the crypto provider
+    if (!CryptAcquireContext(&hProv,
+        NULL,
+        NULL,
+        PROV_RSA_FULL,
+        CRYPT_VERIFYCONTEXT)) {
+        GTString result = "CryptAccquireContext failed " + StringUtils::ws2s(GetLastErrorAsString());
+        throw GTException(result.c_str());
+    }
+
+    if (!CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash))
+    {
+        GTString result = "CryptAccquireContext failed " + StringUtils::ws2s(GetLastErrorAsString());
+        throw GTException(result.c_str());
+    }
+
+    while (bResult = ReadFile(hFile, rgbFile, BUFSIZE,
+        &cbRead, NULL))
+    {
+        if (0 == cbRead)
+        {
+            break;
+        }
+
+        if (!CryptHashData(hHash, rgbFile, cbRead, 0))
+        {
+            GTString result = "CryptAccquireContext failed " + StringUtils::ws2s(GetLastErrorAsString());
+            CryptReleaseContext(hProv, 0);
+            CryptDestroyHash(hHash);
+            throw GTException(result.c_str());
+        }
+    }
+
+    if (!bResult)
+    {
+        GTString result = "Read File " + StringUtils::ws2s(GetLastErrorAsString());
+        CryptReleaseContext(hProv, 0);
+        CryptDestroyHash(hHash);
+        throw GTException(result.c_str());
+    }
+
+    cbHash = MD5LEN;
+    GTString md5Result;
+    if (CryptGetHashParam(hHash, HP_HASHVAL, rgbHash, &cbHash, 0))
+    {
+        char key[3] = {0};
+        for (DWORD i = 0; i < cbHash; i++)
+        {
+            snprintf(key, 3, "%c%c", rgbDigits[rgbHash[i] >> 4],
+                rgbDigits[rgbHash[i] & 0xf]);
+            md5Result += key;
+        }
+        
+    }
+    else
+    {
+        GTString result = "CryptGetHashParam failed: " + StringUtils::ws2s(GetLastErrorAsString());
+        CryptDestroyHash(hHash);
+        CryptReleaseContext(hProv, 0);
+        throw GTException(result.c_str());
+    }
+
+    CryptDestroyHash(hHash);
+    CryptReleaseContext(hProv, 0);
+    return md5Result;
 }
 
 #include "StringUtils.h"

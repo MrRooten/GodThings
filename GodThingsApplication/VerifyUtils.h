@@ -42,3 +42,4 @@ DWORD VerifyCatalogSignature(_In_ LPCWSTR pwszSourceFile,
 BytesBuffer Sha256(PBYTE bytes, size_t n);
 BytesBuffer Sha1(PBYTE bytes, size_t n);
 GTString Base64Encode(PBYTE bytes, size_t n);
+BytesBuffer Md5File(HANDLE hFile);

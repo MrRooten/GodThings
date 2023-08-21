@@ -332,8 +332,23 @@ public:
 #endif // PYTHON_ENABLE
 		}
 		else if (subcmd == L"test") {
-			NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
-			int count = 0;
+			//NtfsQuery* query = new NtfsQuery(L"\\\\.\\C:");
+			GTWString path = L"C:\\Windows\\Prefetch\\VCPKGSRV.EXE-B543CDC6.pf";
+			PrefetchFile* f = new PrefetchFile(path);
+			f->Parse();
+			while (f->HasMoreFileMetrics()) {
+				auto metrics = f->NextFileMetrics();
+				if (metrics.filename == L"\\VOLUME{01d8ccf0bebc2031-98bec3f0}\\PROGRAM FILES\\MICROSOFT VISUAL STUDIO\\2022\\COMMUNITY\\COMMON7\\IDE\\VC\\VCPACKAGES\\X86\\VCPKGSRV.EXE") {
+					HANDLE hh = CreateFile(metrics.filename.c_str(), GENERIC_READ,
+						FILE_SHARE_READ,
+						NULL,
+						OPEN_EXISTING,
+						FILE_FLAG_SEQUENTIAL_SCAN,
+						NULL);
+					printf("%d\n", hh);
+				}
+				printf("");
+			}
 			return;
 		}
 		else if (subcmd == L"list_path") {

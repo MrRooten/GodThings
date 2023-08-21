@@ -66,6 +66,13 @@ ResultSet* ProcessModule::ModuleRun() {
 		else {
 			result->PushDictOrdered("Verified", "");
 		}
+
+		try {
+			result->PushDictOrdered("File Hash", item.second->GetImageState()->GetMd5Hash());
+		}
+		catch (...) {
+			result->PushDictOrdered("File Hash", "");
+		}
 		
 	}
 	delete mgr;
@@ -870,7 +877,7 @@ ResultSet* RecentRunning::ModuleRun() {
 				result->PushDictOrdered("exec", StringUtils::ws2s(parser.GetLastRun()));
 				result->PushDictOrdered("type", "UserAssist");
 				result->PushDictOrdered("name", StringUtils::ws2s(name));
-				
+				result->PushDictOrdered("path", "");
 				
 			}
 		}
@@ -888,8 +895,16 @@ ResultSet* RecentRunning::ModuleRun() {
 	files.clear();
 	for (auto& pf : pfs) {
 		auto s = L"C:\\Windows\\Prefetch\\" + pf;
+		auto exeName = pf.substr(0, pf.find_last_of(L"-"));
 		PrefetchFile* f = new PrefetchFile(s);
 		f->Parse();
+		GTWString path;
+		while (f->HasMoreFileMetrics()) {
+			auto metrics = f->NextFileMetrics();
+			if (metrics.filename.ends_with(exeName)) {
+				path = metrics.filename;
+			}
+		}
 		//wprintf(L"%s\n", pf.c_str());
 		auto times = f->GetExecTime();
 		for (auto& time : times) {
@@ -899,8 +914,8 @@ ResultSet* RecentRunning::ModuleRun() {
 			//wprintf(L"\t%s\n", time.ToString().c_str());
 			result->PushDictOrdered("exec", StringUtils::ws2s(time.String_utc_to_local()));
 			result->PushDictOrdered("type", "Prefetch");
-			result->PushDictOrdered("name", StringUtils::ws2s(pf));
-			
+			result->PushDictOrdered("name", StringUtils::ws2s(exeName));
+			result->PushDictOrdered("path", StringUtils::ws2s(path));
 			
 		}
 		delete f;
@@ -921,6 +936,7 @@ ResultSet* RecentRunning::ModuleRun() {
 		result->PushDictOrdered("exec", StringUtils::ws2s(t.String_utc_to_local()));
 		result->PushDictOrdered("type", "ShellCore-Run");
 		result->PushDictOrdered("name", e->commandLine);
+		result->PushDictOrdered("path", "");
 		
 	}
 	

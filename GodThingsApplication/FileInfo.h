@@ -80,6 +80,7 @@ public:
 	uint32_t _a_filename_offset;
 	std::wstring filename;
 	uint32_t _a_filename_nb_char;
+	LARGE_INTEGER file_ref;
 	FileMetrics();
 };
 
