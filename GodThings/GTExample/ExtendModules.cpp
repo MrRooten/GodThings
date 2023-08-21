@@ -1411,7 +1411,7 @@ ResultSet* USNRecord::ModuleRun() {
 		NtfsQuery* query = new NtfsQuery(_path.c_str());
 		try {
 			query->QueryUSNData([&result, &lists, &_path](PUSN_RECORD record, HANDLE hVolume) -> bool {
-				GTWString _name = GTWString(record->FileName, record->FileName + record->FileNameLength);
+				GTWString _name = GTWString(record->FileName, record->FileName + (record->FileNameLength/2));
 				GTWString name = GTWString(_name.c_str());
 				auto index = name.find_last_of(L".");
 				if (index == std::string::npos) {
