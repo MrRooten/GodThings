@@ -1413,7 +1413,21 @@ ResultSet* USNRecord::ModuleRun() {
 		_path += L":";
 		NtfsQuery* query = new NtfsQuery(_path.c_str());
 		try {
-			query->QueryUSNData([&result, &lists, &_path](PUSN_RECORD record, HANDLE hVolume) -> bool {
+			int count = 0;
+			query->QueryUSNData([&result, &lists, &_path, &count](PUSN_RECORD record, HANDLE hVolume) -> bool {
+				if (count == 0) {
+					result->PushDictOrdered("File", "StartDate");
+					result->PushDictOrdered("Reason", "");
+					FILETIME time;
+					time.dwLowDateTime = record->TimeStamp.LowPart;
+					time.dwHighDateTime = record->TimeStamp.HighPart;
+					result->PushDictOrdered("Date", StringUtils::ws2s(GTTime(time).String_utc_to_local()));
+					result->PushDictOrdered("Drive", "");
+					result->PushDictOrdered("FullPath", "");
+					result->PushDictOrdered("Hash", "");
+
+				}
+				count += 1;
 				GTWString _name = GTWString(record->FileName, record->FileName + (record->FileNameLength/2));
 				GTWString name = GTWString(_name.c_str());
 				auto index = name.find_last_of(L".");
