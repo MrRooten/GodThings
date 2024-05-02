@@ -126,6 +126,34 @@ typedef struct _ImageState {
 	~_ImageState();
 }ImageState;
 
+
+typedef struct _GroupFlags {
+	GTWString name;
+	GTWString flags;
+}GroupFlags;
+
+typedef struct _TokenPrivilege {
+	GTWString name;
+	UINT32 status;
+
+	GTWString GetDescription();
+}TokenPrivilege;
+
+typedef struct _ProcessToken {
+	GTWString user;
+	GTWString userSID;
+	UINT32 session;
+	bool elevated;
+	bool virtualized;
+	GTWString appContainerSID;
+	std::vector<GroupFlags> flags;
+	std::vector<TokenPrivilege> privileges;
+}ProcessToken;
+
+class SvcHostSP {
+
+};
+
 class LoadedDll {
 	HMODULE hModule;
 	GTWString path;

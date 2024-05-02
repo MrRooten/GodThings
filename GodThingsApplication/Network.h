@@ -119,3 +119,8 @@ public:
 	GTString& GetMask();
 	GTString& GetGateway();
 };
+
+
+class SPIProviderManager {
+
+};
