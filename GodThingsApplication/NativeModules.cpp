@@ -971,7 +971,7 @@ Accounts::Accounts() {
 
 ResultSet* Accounts::ModuleRun() {
 	ResultSet* result = new ResultSet();
-	AccountInfoManager mgr;
+	/*AccountInfoManager mgr;
 	mgr.Initialize();
 	auto users = mgr.GetAccountList();
 	for (auto user : users) {
@@ -981,7 +981,7 @@ ResultSet* Accounts::ModuleRun() {
 		result->PushDictOrdered("LastLogoff", StringUtils::ws2s(user->GetLastLogoff().String_utc_to_local()));
 		result->PushDictOrdered("Comment", StringUtils::ws2s(user->GetComment()));
 		result->PushDictOrdered("LogonServer", StringUtils::ws2s(user->GetLogonServer()));
-	}
+	}*/
 	result->SetType(DICT);
 	return result;
 }
