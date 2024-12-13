@@ -257,7 +257,7 @@ GTTime GTTime::FromTimeStamp(UINT32 timestamp) {
 
 GTTime GTTime::FromTimeStamp64(UINT64 time) {
 	FILETIME ft;
-	ft.dwLowDateTime = time && 0xffffffff;
+	ft.dwLowDateTime = time & 0xffffffff;
 	ft.dwHighDateTime = time >> 32;
 	return GTTime(ft);
 }

@@ -96,3 +96,9 @@ public:
 	USNRecord();
 	ResultSet* ModuleRun();
 };
+
+class ServiceStartLog : public NativeModule {
+public:
+	ServiceStartLog();
+	ResultSet* ModuleRun();
+};

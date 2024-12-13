@@ -624,7 +624,7 @@ GetDnsCachedData(
 	LocalFree(pwszAllRecordsWorkBuf);
 	return data;
 }
-
+#include <format>
 DnsCache* DnsCache::GetInstance() {
 	if (DnsCache::single != NULL) {
 		return DnsCache::single;
@@ -648,6 +648,7 @@ DnsCache* DnsCache::GetInstance() {
 	if (!DnsGetCacheDataTable(&pDNSCacheTable)) //get error + display
 	{
 		//wprintf(L"\tListing DNS Cache failed.\r\n");
+		LOG_ERROR_REASON(L"List DNS Cache failed");
 		return NULL;
 	}
 

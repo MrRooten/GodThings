@@ -284,18 +284,18 @@ UserAssistParser::UserAssistParser(BytesBuffer buffer) {
 		this->runCount = run;
 		last_run = get_u64l(buffer.c_str() + 8);
 		FILETIME ft;
-		ft.dwLowDateTime = last_run && 0xffffffff;
+		ft.dwLowDateTime = last_run & 0xffffffff;
 		ft.dwHighDateTime = last_run >> 32;
 		this->lastRun = GTTime(ft);
 		if (buffer.size() > 68) {
 			focusCount = get_u32l(buffer.c_str() + 8);
 			this->focusCount = focusCount;
 			focusTime = get_u32l(buffer.c_str() + 12);
-			ft.dwLowDateTime = focusTime && 0xffffffff;
+			ft.dwLowDateTime = focusTime & 0xffffffff;
 			ft.dwHighDateTime = focusTime >> 32;
 			this->focusTime = GTTime(ft);
 			last_run = get_u64l(buffer.c_str() + 60);
-			ft.dwLowDateTime = last_run && 0xffffffff;
+			ft.dwLowDateTime = last_run & 0xffffffff;
 			ft.dwHighDateTime = last_run >> 32;
 			this->lastRun = GTTime(ft);
 		}

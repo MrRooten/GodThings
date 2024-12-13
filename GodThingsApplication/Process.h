@@ -308,18 +308,18 @@ public:
 	Thread(TID tid);
 	Thread(PSYSTEM_THREAD_INFORMATION pInfo);
 	Thread(DWORD pid, DWORD tid);
-	SecurityState* securityState;
-	TID threadId;
+	SecurityState* securityState = NULL;
+	TID threadId = 0;
 	PID processId = 0;
-	Priority priority;
-	ULONG memoryPriority;
+	Priority priority = 0;
+	ULONG memoryPriority = 0;
 	FILETIME createTime;
 	FILETIME exitTime;
 	FILETIME kernelTime;
 	FILETIME userTime;
-	ULONG64 cycleTime;
-	LPTSTR description;
-	DWORD accessRights;
+	ULONG64 cycleTime = 0;
+	LPTSTR description = NULL;
+	DWORD accessRights = 0;
 	void Suspend();
 	void Resume();
 	void Terminate();
@@ -331,10 +331,10 @@ public:
 	UINT64 GetBaseAddress();
 private:
 	BOOL isBaseAddressInit = false;
-	UINT64 baseAddress;
+	UINT64 baseAddress = 0;
 
-	HANDLE hThread;
-	HANDLE threadToken;
+	HANDLE hThread = NULL;
+	HANDLE threadToken = NULL;
 	CONTEXT threadContext;
 	bool basicInfoInit = false;
 	THREAD_BASIC_INFORMATION basicInfo;

@@ -367,16 +367,16 @@ ShadowAccount::ShadowAccount() {
 ResultSet* ShadowAccount::ModuleRun() {
 	ResultSet* result = new ResultSet();
 	GTPrintln(L"Shadow Account Backddor:");
-	AccountInfoManager mgr;
-	mgr.Initialize();
-	auto users = mgr.GetAccountList();
-	for (auto user : users) {
-		if (StringUtils::HasEnding(user->userName, L"$")) {
-			//GTPrintln(L"\t%s", user->userName.c_str());
-			result->PushDictOrdered("username", StringUtils::ws2s(user->userName));
-			result->report = "Might have shadow account";
-		}
-	}
+	//AccountInfoManager mgr;
+	//mgr.Initialize();
+	//auto users = mgr.GetAccountList();
+	//for (auto user : users) {
+	//	if (StringUtils::HasEnding(user->userName, L"$")) {
+	//		//GTPrintln(L"\t%s", user->userName.c_str());
+	//		result->PushDictOrdered("username", StringUtils::ws2s(user->userName));
+	//		result->report = "Might have shadow account";
+	//	}
+	//}
 	result->SetType(DICT);
 	return result;
 }

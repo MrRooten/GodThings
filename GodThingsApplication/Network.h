@@ -47,8 +47,8 @@ public:
 	IN_ADDR localIPv4;
 	IN6_ADDR remoteIPv6;
 	IN_ADDR remoteIPv4;
-	DWORD localPort;
-	DWORD remotePort;
+	UWORD localPort;
+	UWORD remotePort;
 	DWORD State;	
 	DWORD owningPid;
 	Protocol protocol;

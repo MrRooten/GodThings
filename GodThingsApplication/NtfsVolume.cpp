@@ -22,13 +22,12 @@ USN_JOURNAL_DATA NtfsQuery::QueryUSNInfo() {
 
 PVOID NtfsQuery::QueryUSNData(USNRecordProcess process) {
 	PUSN_RECORD record;
-	SIZE_T chunkSize = 0x100000;
+	DWORD chunkSize = 0x100000;
 	READ_USN_JOURNAL_DATA_V0 ReadData = { 0, 0xFFFFFFFF, FALSE, 0, 0 };
 	auto JournalData = this->QueryUSNInfo();
 	ReadData.UsnJournalID = JournalData.UsnJournalID;
 	PVOID output = LocalAlloc(GPTR, chunkSize);
 	DWORD bytesReturn = 0;
-	PVOID test;
 	bool isBreak = false;
 	while (true) {
 		if (DeviceIoControl(this->hVolume, FSCTL_READ_USN_JOURNAL, &ReadData, sizeof(ReadData), output, chunkSize, &bytesReturn, NULL) == false) {

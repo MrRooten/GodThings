@@ -21,7 +21,7 @@ ResultSet* LastShutdown::ModuleRun() {
 	auto v = RegistryUtils::GetValueStatic(L"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Windows", L"ShutdownTime");
 	auto t = get_u64l(v.c_str());
 	FILETIME ft;
-	ft.dwLowDateTime = t && 0xffffffff;
+	ft.dwLowDateTime = t & 0xffffffff;
 	ft.dwHighDateTime = t >> 32;
 	GTTime gTime(ft);
 	result->PushDictOrdered("LastShutdown", StringUtils::ws2s(gTime.String_utc_to_local()));
@@ -495,7 +495,7 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 
 			if (event_id == 23) {
 				evt_end = new Event23(xml.c_str());
-				for (int i = set.size()-1; i >= 0;i--) {
+				for (int i = (int)set.size()-1; i >= 0;i--) {
 					auto session = set[i];
 					if (session->session_id == evt_end->session_id && session->is_closed == false) {
 						session->type = Logoff;
@@ -517,7 +517,7 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 
 			if (event_id == 24) {
 				evt_remote_end = new Event24(xml.c_str());
-				for (int i = set.size() - 1; i >= 0; i--) {
+				for (int i = (int)set.size() - 1; i >= 0; i--) {
 					auto session = set[i];
 					if (session->session_id == evt_remote_end->session_id && session->is_closed == false) {
 						session->type = CloseConn;
@@ -536,13 +536,13 @@ DWORD RDPProcess(Evt* evt, PVOID data) {
 }
 
 GTString ConvertSectoDay(INT64 n) {
-	int day = n / (24 * 3600);
+	INT64 day = n / (24 * 3600);
 
 	n = n % (24 * 3600);
-	int hour = n / 3600;
+	INT64 hour = n / 3600;
 
 	n %= 3600;
-	int minutes = n / 60;
+	INT64 minutes = n / 60;
 
 	n %= 60;
 	INT64 seconds = n;
@@ -1492,6 +1492,27 @@ ResultSet* USNRecord::ModuleRun() {
 	}
 	int count = 0;
 	
+	result->SetType(DICT);
+	return result;
+}
+
+class Event7045 {
+
+};
+
+ServiceStartLog::ServiceStartLog() {
+	this->Name = L"ServiceLog";
+	this->Path = L"EvtxLog";
+	this->Type = L"Extender";
+	this->Class = L"GetInfo";
+	this->Description = L"Service Log from evtx";
+	auto mgr = ModuleMgr::GetMgr();
+	mgr->RegisterModule(this);
+}
+
+ResultSet* ServiceStartLog::ModuleRun() {
+	ResultSet* result = new ResultSet();
+
 	result->SetType(DICT);
 	return result;
 }
